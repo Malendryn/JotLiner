@@ -23,4 +23,17 @@
       </metadata>
     </info>
   </bookmark>
+  <bookmark href="file:///mnt/local/git/project.jotliner/.envrc" added="2025-03-28T20:39:15.866881Z" modified="2025-03-28T20:44:02.806013Z" visited="2025-03-28T20:39:15.866882Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="text/plain"/>
+        <bookmark:groups>
+          <bookmark:group>xed</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="xed" exec="&apos;xed %u&apos;" modified="2025-03-28T20:44:02.806011Z" count="3"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
 </xbel>
