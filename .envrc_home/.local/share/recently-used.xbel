@@ -36,4 +36,14 @@
       </metadata>
     </info>
   </bookmark>
+  <bookmark href="file:///mnt/local/git/project.jotliner" added="2025-03-28T21:55:39.067070Z" modified="2025-03-28T21:57:02.150753Z" visited="2025-03-28T21:55:39.067070Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="inode/directory"/>
+        <bookmark:applications>
+          <bookmark:application name="code" exec="&apos;code %u&apos;" modified="2025-03-28T21:57:02.150749Z" count="2"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
 </xbel>

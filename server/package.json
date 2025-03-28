@@ -1,0 +1,14 @@
+{
+  "name": "jlserver",
+  "version": "1.0.0",
+  "description": "server for jotliner",
+  "main": "jlserver.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Malendryn Tiger (Ron Stanions)",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

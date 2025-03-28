@@ -3,17 +3,25 @@
     "telemetry.machineId": "336e1ff75031a38bb671c8d69b0018a38f8b7fa11579de29d2a7f9666981daa6",
     "telemetry.devDeviceId": "9297d04c-8858-423e-8a9a-876b8a156607",
     "backupWorkspaces": {
-        "workspaces": [],
-        "folders": [
+        "workspaces": [
             {
-                "folderUri": "file:///mnt/local/git/project.jotliner"
+                "id": "fae046117b51a0a3a37df82df92bee7a",
+                "configURIPath": "file:///mnt/local/git/project.jotliner/server/code.code-workspace"
+            },
+            {
+                "id": "fb0707118ff4e075c2e30567de01db07",
+                "configURIPath": "file:///mnt/local/git/project.jotliner/client/code.code-workspace"
             }
         ],
+        "folders": [],
         "emptyWindows": []
     },
     "profileAssociations": {
         "workspaces": {
-            "file:///mnt/local/git/project.jotliner": "__default__profile__"
+            "file:///mnt/local/git/project.jotliner": "__default__profile__",
+            "file:///mnt/local/git/project.jotliner/code.code-workspace": "__default__profile__",
+            "file:///mnt/local/git/project.jotliner/server/code.code-workspace": "__default__profile__",
+            "file:///mnt/local/git/project.jotliner/client/code.code-workspace": "__default__profile__"
         },
         "emptyWindows": {}
     },
@@ -1722,17 +1730,49 @@
     },
     "windowsState": {
         "lastActiveWindow": {
-            "folder": "file:///mnt/local/git/project.jotliner",
-            "backupPath": "/mnt/local/git/project.jotliner/.envrc_home/.config/Code/Backups/87a5583eedbafc2929091659fcdc3f1c",
+            "workspaceIdentifier": {
+                "id": "fb0707118ff4e075c2e30567de01db07",
+                "configURIPath": "file:///mnt/local/git/project.jotliner/client/code.code-workspace"
+            },
+            "backupPath": "/mnt/local/git/project.jotliner/.envrc_home/.config/Code/Backups/fb0707118ff4e075c2e30567de01db07",
             "uiState": {
                 "mode": 0,
-                "x": 2377,
-                "y": 1251,
+                "x": 4313,
+                "y": 1337,
                 "width": 1200,
                 "height": 800
             }
         },
-        "openedWindows": []
+        "openedWindows": [
+            {
+                "workspaceIdentifier": {
+                    "id": "fae046117b51a0a3a37df82df92bee7a",
+                    "configURIPath": "file:///mnt/local/git/project.jotliner/server/code.code-workspace"
+                },
+                "backupPath": "/mnt/local/git/project.jotliner/.envrc_home/.config/Code/Backups/fae046117b51a0a3a37df82df92bee7a",
+                "uiState": {
+                    "mode": 0,
+                    "x": 2476,
+                    "y": 1340,
+                    "width": 1200,
+                    "height": 800
+                }
+            },
+            {
+                "workspaceIdentifier": {
+                    "id": "fb0707118ff4e075c2e30567de01db07",
+                    "configURIPath": "file:///mnt/local/git/project.jotliner/client/code.code-workspace"
+                },
+                "backupPath": "/mnt/local/git/project.jotliner/.envrc_home/.config/Code/Backups/fb0707118ff4e075c2e30567de01db07",
+                "uiState": {
+                    "mode": 0,
+                    "x": 4313,
+                    "y": 1337,
+                    "width": 1200,
+                    "height": 800
+                }
+            }
+        ]
     },
     "window.titleBarStyleOverride": "custom",
     "windowControlHeight": 35
