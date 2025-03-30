@@ -8,7 +8,7 @@
             "skipFiles": [
             "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/jlserver.js" 1  // Change to jlserver.js
+            "program": "${workspaceFolder}/server.js"
         }
     ]
 }

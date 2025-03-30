@@ -1,14 +1,17 @@
 {
-  "name": "jlserver",
+  "name": "jotliner",
   "version": "1.0.0",
-  "description": "server for jotliner",
-  "main": "jlserver.js",
+  "type": "module",
+  "description": "server for the local machine's jotliner clients (local webpage)",
+  "main": "server.js",
   "scripts": {
     "test": "test"
   },
   "author": "Malendryn Tiger (Ron Stanions)",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.7",
+    "ws": "^8.18.0"
   }
 }
