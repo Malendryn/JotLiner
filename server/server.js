@@ -1,8 +1,44 @@
 
 // const path = require("path");
 
+import express from 'express';
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
+const app = express();
+const port = 3000;      // must match port in intex.html's wss port
+
+app.use(express.static(path.join(__dirname, 'client')));
+
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+wss.on('connection', (ws) => {
+  console.log('Client connected');
+
+  ws.on('message', (message) => {
+    console.log(`Received: ${message}`);
+    ws.send(`Server: ${message}`);
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+
+  ws.send('Welcome!');
+});
+
+server.listen(port, () => {
+  console.log(`Server listening at http://localhost:${port}`);
+});
+
+/*
 async function start() {
     function loadModule(modulePath, autoInit = false) {       // load a module, exit and shutdown with errmsg if fails
         return new Promise((resolve, reject) => {
@@ -38,3 +74,4 @@ async function start() {
 
 start();
 
+*/

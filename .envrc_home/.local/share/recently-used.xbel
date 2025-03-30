@@ -46,4 +46,43 @@
       </metadata>
     </info>
   </bookmark>
+  <bookmark href="file:///mnt/local/git/project.jotliner/CONCEPT.txt" added="2025-03-30T19:26:11.974180Z" modified="2025-03-30T19:26:11.974184Z" visited="2025-03-30T19:26:11.974181Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="text/plain"/>
+        <bookmark:groups>
+          <bookmark:group>xed</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="xed" exec="&apos;xed %u&apos;" modified="2025-03-30T19:26:11.974183Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///mnt/local/git/project.jotliner/STATUS.txt" added="2025-03-30T19:26:11.976744Z" modified="2025-03-30T19:26:11.976754Z" visited="2025-03-30T19:26:11.976744Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="text/plain"/>
+        <bookmark:groups>
+          <bookmark:group>xed</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="xed" exec="&apos;xed %u&apos;" modified="2025-03-30T19:26:11.976752Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///mnt/local/git/project.jotliner/LICENSE.txt" added="2025-03-30T19:26:11.977918Z" modified="2025-03-30T19:26:11.977921Z" visited="2025-03-30T19:26:11.977918Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="text/plain"/>
+        <bookmark:groups>
+          <bookmark:group>xed</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="xed" exec="&apos;xed %u&apos;" modified="2025-03-30T19:26:11.977919Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
 </xbel>
