@@ -14,7 +14,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const port = 3000;      // must match port in intex.html's wss port
 
-app.use(express.static(path.join(__dirname, 'client')));
+app.use(express.static(path.join(__dirname, '../client')));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
