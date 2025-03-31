@@ -1,0 +1,15 @@
+{
+    // ... other settings ...
+    "externalTools": {
+      "openOdf": {
+        "command": "xdg-open",
+        "args": ["${file}"],
+        "extensions": ["odf"]
+      },
+      "CherryTree": {
+        "command": "/usr/bin/cherrytree",
+        "args": ["${file}"],
+        "extensions": ["ctb"]
+      }
+    }
+  }

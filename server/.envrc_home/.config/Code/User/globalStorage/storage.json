@@ -27,8 +27,8 @@
             "backupPath": "/mnt/local/git/project.jotliner/server/.envrc_home/.config/Code/Backups/fae046117b51a0a3a37df82df92bee7a",
             "uiState": {
                 "mode": 0,
-                "x": 2276,
-                "y": 1307,
+                "x": 2079,
+                "y": 1263,
                 "width": 1200,
                 "height": 800
             }
@@ -1725,7 +1725,7 @@
         "layoutInfo": {
             "sideBarSide": "left",
             "editorPartMinWidth": 220,
-            "titleBarHeight": 0,
+            "titleBarHeight": 35,
             "activityBarWidth": 48,
             "sideBarWidth": 300,
             "auxiliarySideBarWidth": 0,
@@ -1733,5 +1733,6 @@
             "windowBorder": false
         }
     },
-    "window.titleBarStyleOverride": "custom"
+    "window.titleBarStyleOverride": "custom",
+    "windowControlHeight": 35
 }

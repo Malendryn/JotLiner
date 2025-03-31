@@ -1,0 +1,28 @@
+2025-03- ------------------------------------------------------------------------------------------------------------
+2025-03- ------------------------------------------------------------------------------------------------------------
+2025-03-31 ------------------------------------------------------------------------------------------------------------
+got all the basics of loading ssm_core_<name>.js modules working in both frontend and backend of client
+reworked globals and initialization (formerly bootstrap) to be more 'appropriately positioned'?
+
+at any rate the basics on both front and backend are now all set up to work properly once again!
+
+2025-03-30 ------------------------------------------------------------------------------------------------------------
+managed to seperate client and server into 2 diff debuggers so I can launch 
+    code code.workspace in the server dir and F5 to run and debug that
+    --and seperately launch--
+    code code.workspace in the client dir and F5 to run and debug that AT the same time
+
+
+2025-03-28 ------------------------------------------------------------------------------------------------------------
+got the most basic stuff working now
+got a simple 'client/jotliner.html' setup and debuggable using vscode
+got a simple 'server/jlserver.js' setup (as an express server on 8080) and debuggable using vscode
+
+next step is to move the bulk of the functionality out of 'project.jotliner_02' into this project
+2025-03-28 ------------------------------------------------------------------------------------------------------------
+Starting project anew (again!)
+Concept this time is everything runs in a webpage and it talks to an SQL DB on some backend
+
+Notion here is that html already handles all we desire, we just have to figure out how to make it work for us
+
+

@@ -85,4 +85,17 @@
       </metadata>
     </info>
   </bookmark>
+  <bookmark href="file:///mnt/local/git/project.jotliner/extra/cherrytree.ctb" added="2025-03-30T20:31:51.441484Z" modified="2025-03-30T20:31:51.441488Z" visited="2025-03-30T20:31:51.441484Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="text/plain"/>
+        <bookmark:groups>
+          <bookmark:group>xed</bookmark:group>
+        </bookmark:groups>
+        <bookmark:applications>
+          <bookmark:application name="xed" exec="&apos;xed %u&apos;" modified="2025-03-30T20:31:51.441486Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
 </xbel>

@@ -1,52 +1,22 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>WebSocket Client</title>
-</head>
-<body>
-  qqq<br>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="copyright" content="© 2025 Ron Stanions. All Rights Reserved." />
+        <meta name="license" content="This work is licensed under the ISC License. (See http://localhost/LICENSE.txt)" />
+        <title>JotLiner Client</title>
+        <link rel="stylesheet" href="index.css">
+    </head>
+    <body id="body">
 
-  <input type="text" id="messageInput" />
-  <button onclick="sendMessage()">Send</button>
-  <ul id="messages"></ul>
+        <input type="text" id="messageInput" />
+        <button onclick="sendMessage()">Send</button>
+        <ul id="messages"></ul>
 
-  <script>
-    const socket = new WebSocket('ws://localhost:3000'); // Connect to the same port as the Express server
-
-    socket.onopen = () => {
-      console.log('WebSocket connection opened');
-      addMessage('WebSocket connection opened');
-    };
-
-    socket.onmessage = (event) => {
-      console.log('Message received:', event.data);
-      addMessage('Server: ' + event.data);
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket connection closed');
-      addMessage('WebSocket connection closed');
-    };
-
-    function sendMessage() {
-      const messageInput = document.getElementById('messageInput');
-      const message = messageInput.value;
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(message);
-        addMessage('Client: ' + message);
-        messageInput.value = '';
-      } else {
-        console.error('WebSocket connection is not open');
-        addMessage('WebSocket connection is not open');
-      }
-    }
-
-    function addMessage(message) {
-      const messages = document.getElementById('messages');
-      const newMessage = document.createElement('li');
-      newMessage.textContent = message;
-      messages.appendChild(newMessage);
-    }
-  </script>
-</body>
+    </body>
+    <script src="index.js"></script>
 </html>
+
+
+
