@@ -56,7 +56,7 @@ async function start() {
     // module._init(8888);   // fire up websocket server
 
     const app = express();
-    app.use(express.static(path.join(BG.basePath, 'client')));
+    app.use(express.static(path.join(BG.basePath, 'client/html')));
 
     const server = http.createServer(app);
     server.listen(BG.port, () => {
