@@ -1,0 +1,66 @@
+
+let doc = `
+=TXT;100;100;100;100;6;IAm000 junk! =TXT;200;200;100;100;6;IAm001  this is junk
++=TXT;100;100;100;200;10;IAm001_000 moreJunk! =TXT;100;100;555;666;10;IAm001_001 and even more junk
+-=TXT;100;100;100;100;6;IAm002
+`;
+
+
+`Note that this is NOT INTENDED to be a human readable format! (Some aspects of it may be,  some will not!)
+    ... (but I will try to make it text-view-friendly as much as possible)
+
+new rule, 'junk of any kind immediately prior to the'-''+'or'=' is allowed
+    this allows comments at end of line (that must not have - + or = in them!)
+    and linefeeds as well
+
+################################# HOWTO interpret the doc above ##################################3
+=       what follows is a component (which will be a child of FG.content)
+TXT;        the component is a DCH_TXT component (type1) 
+<type1 components always have XYWH so we read that now>
+    100;100;100;100;     X;Y;W;H in pixels (effectively absolute within its displaybox)
+    6;                   # of bytes that follow that are handled by the DOC component (NOT counting the 5 OR the semicolon that follows!)
+    IAM000               bytes delivered to DOC handler  (note there is no ; after bytes)
+<at this point skip EVERY char that is not a +,-, or =>
+=TXT;200;200;100;100;6;IAm001       ---- another TXT component at same level as prior component (EG: also a child of FG.content)
+this is junk                        ---- ignored
++                                   ---- everything that follows is a child of the most recently loaded component (in this case TXT 'IAm001')
+=TXT;100;100;100;200;10;IAm001_000  ---- another TXT component,  a child of TXT 'IAm001'
+ moreJunk!                          ---- ignored
+=TXT;100;100;555;666;10;IAm001_001  ---- another TXT component, also a child of TXT 'IAm001'
+ and even more junk
+-                                   ---- step up a level
+=TXT;100;100;100;100;6;IAm002       ---- another TXT component, back to being a child of FG.content
+`
+
+doc = doc.trim();    // TESTONLY remove the whitespace at start and end, it's only there for example purposes
+export { doc };
+
+`
+=   what follows is a component at the same level as any prior ones
++   what follows is a child of the most recent component
+-   step back out of this level of components up to the prior level
+
+so what if on each '+' we create a basic content wrapper which only knows parent and children[]
+    then on each - we step out and go up one wrapper
+    with this we can forgoe the '-' altogether as it always adds to the current wrapper
+    but no WE NEED THE = cuz every object must start with +,-, or = so we can use the readCtl() concept everytime everywhere
+
+the docs are what contain parent and children NOT the loader!
+so at highest level FG.content = []
+
+
+this=loader
+    parent=null
+    current = []
+    found an =
+        load the doc into my current []
+    found a -
+        if parent not null this=parent (go up a level)
+        if parent null this is an error
+    found a +
+        create new loader
+        set loaders parent to this
+        add loader to current[]
+        make this = loader
+
+`

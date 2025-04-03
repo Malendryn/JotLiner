@@ -41,18 +41,18 @@ BG.port = 3000;      // must match port in intex.html's wss port
 
 
 async function start() {
-    await BF.loadModule("./modules/core/ssm_core_Globals.js");      // load globals first, cuz everything lives off globals, and connect it to globalThis.SG
-    await BF.loadModule("./modules/core/ssm_core_Functions.js");    // load functions next, and connect it to globalThis.SF
+    await BF.loadModule("./modules/core/bem_core_Globals.js");      // load globals first, cuz everything lives off globals, and connect it to globalThis.SG
+    await BF.loadModule("./modules/core/bem_core_Functions.js");    // load functions next, and connect it to globalThis.SF
 
 // RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO track all ws connections for broadcasting purposes
 
   // BG.dbRoot = path.join(__dirname, "db");
-  // await BG.loadModule("./modules/ssm_Functions.mjs");
+  // await BG.loadModule("./modules/bem_Functions.mjs");
 
   // await BF.loadModule("./modules/db_sqlite3/bem_dbBASE.mjs");
   // await BF.loadModule("./modules/db_sqlite3/bem_db_server.mjs");
 
-    // let module = await BF.loadModule("./modules/core/ssm_core_WSockHandler.js");
+    // let module = await BF.loadModule("./modules/core/bem_core_WSockHandler.js");
     // module._init(8888);   // fire up websocket server
 
     const app = express();
@@ -78,7 +78,6 @@ async function start() {
     
       ws.send('Welcome!');
     });
-    
     
     // now we just sit back and let websockets handle everything from here on in
 }

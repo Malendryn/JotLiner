@@ -1,15 +1,19 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-03 ------------------------------------------------------------------------------------------------------------
+finally got a loader working! so now the doc can be loaded in its entirety into FG.content with a single load call!
+2025-04-01 ------------------------------------------------------------------------------------------------------------
+began fleshing out classes to load/unload an actual document, and to define the format of a document as well
+(I am avoiding using the word Jot or JotLiner anywhere in the code as I still may change the name of the project)
+
 2025-04-01 ------------------------------------------------------------------------------------------------------------
 began laying out overall 'frame' of file format
 figured out new way to achieve c++-like inheritance without using .prototype
 moved all client code one subdir deeper (under html) so that .vscode, .envrc etc arent part of the user content
 
 2025-03-31 ------------------------------------------------------------------------------------------------------------
-got all the basics of loading ssm_core_<name>.js modules working in both frontend and backend of client
+got all the basics of loading bem_core_<name>.js modules working in both frontend and backend of client
 reworked globals and initialization (formerly bootstrap) to be more 'appropriately positioned'?
 
 at any rate the basics on both front and backend are now all set up to work properly once again!

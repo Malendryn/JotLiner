@@ -1,6 +1,9 @@
 
-globalThis.FG = {}; // global 'Frontend Globals' variables   (see csm_core_Globals.js for details)
-globalThis.FF = {}; // global 'Frontend Functions' functions (see csm_core_Functions.js for details)
+globalThis.FG  = {}; // global 'Frontend Globals' variables   (see fem_core_Globals.js for details)
+globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Functions.js for details)
+globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Shared.js for details)
+globalThis.DCH = {}; // document component handler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
+
 FF.loadModule = async (modulePath) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -9,12 +12,13 @@ FF.loadModule = async (modulePath) => {
                 await module.init();
             }
             resolve(module);
-            return
-        } catch (error) {
-            debugger; console.log(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
-            alert(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
-            reject(error);
             return;
+        } catch (error) {
+            console.log(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
+            alert(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
+            throw(error);
+            // reject(error);
+            // return;
         }
     });
 };
@@ -23,17 +27,26 @@ FF.loadModule = async (modulePath) => {
 // RSTODO go look at the older jotliner code, we had detailed funcalls to handle loading and tracking and unloading modules that we NEED to move over to here!
 window.addEventListener('load', async function() {
     // console.log(this.document.baseURI);
-    await FF.loadModule("./modules/core/csm_core_Globals.js");          // populate basics of FG
-    await FF.loadModule("./modules/core/csm_core_Functions.js");      // populate basics of FF
-    await FF.loadModule("./modules/core/csm_core_WSockHandler.js");     // assigns FG.ws and FF funcs and opens ws connection BEFORE returning
+    await FF.loadModule("./modules/core/fem_core_Globals.js");          // populate basics of FG
+    await FF.loadModule("./modules/core/fem_core_Functions.js");        // populate basics of FF
+    await FF.loadModule("./modules/core/fem_core_Shared.js");           // populate basics of SH  (things shared twixt frontend and backend)
+    await FF.loadModule("./modules/core/fem_core_WSockHandler.js");     // assigns FG.ws and opens FG.ws BEFORE returning
 
-    // const qq = await FF.loadModule("./modules/csm_txted.js");
-    // qq.myFunction();
-    // console.log(qq.myVariable);
+    await FF.loadModule("./modules/core/fem_core_DocComBASE.js");      // FF.DocComBASE class for all other DocComponentHandlers to inherit from
+    await FF.loadModule("./modules/core/fem_core_ContentLoader.js");    // FF.ContentLoader that loads DocComponents from a str
+
+
+// RSTEST begin
+    let module = await FF.loadModule("./__DOCFORMAT__.js"); // describes minimal document format as well as implements and returns a test doc
+    let doc    = module.doc;                                // extract the test doc from the module
+    let sr     = new SH.StringReader(doc);                  // turn it into a stringreader
+
+    const loader = new FF.ContentLoader(null);
+    FG.content = await loader.load(sr);    // load doc and all children and stick it on FG.content
+    debugger;
+// RSTEST end
 });
 
-
-console.log("foo");
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

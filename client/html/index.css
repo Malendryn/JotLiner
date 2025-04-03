@@ -1,0 +1,62 @@
+#wrapper {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    bottom: 20px;
+    right: 20px;
+    border: 1px solid black;
+    background-color: lightpink;
+    overflow: hidden;   /* hide content that extends outside the box */
+    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
+}
+
+#box000 {
+    position: relative;     /* Important for absolute positioning context */
+    top: 20px;
+    left: 20px;
+    width: 90%;
+    height: 90%;
+    border: 1px solid black;
+    background-color: lightblue;
+    overflow: hidden;   /* hide content that extends outside the box */
+    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
+}
+
+#box000_000 {
+    position: relative;     /* Important for absolute positioning context */
+    top: 100px;
+    left: 100px;
+    width: 100px;
+    height: 200px;
+    border: 1px solid black;
+    overflow: hidden;   /* hide content that extends outside the box */
+    z-index: 1;
+    background-color: lightgreen;
+    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
+}
+
+#box000_001 {
+    position: relative;     /* Important for absolute positioning context */
+    top: 50%;
+    left: 50%;
+    width: 150px;
+    height: 150px;
+    transform: translate(-50%, -50%); /* Center the element */
+    z-index: 3;
+    border: 1px solid black;
+    background-color: lightgreen;
+    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
+}
+
+#box000_002 {
+    position: absolute;     /* Important for absolute positioning context */
+    bottom: 100px;
+    right: 100px;
+    width: 100px;
+    height: 200px;
+    border: 1px solid black;
+    overflow: hidden;   /* hide content that extends outside the box */
+    z-index: 2;
+    background-color: lightgreen;
+    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
+}
