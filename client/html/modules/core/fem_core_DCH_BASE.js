@@ -8,7 +8,9 @@
 
 
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
-    type = 1;           // ALL that inherit from this, will be type=1 (see DOCFORMAT)
+    hasXYWH     = true;     // next 4 values are XYWH
+    isRaw       = false;    // false = load as "byteCount;byteData", true=pass sr as-is for lowlevel processing
+
     X;Y;                // X,Y  pixel-relative To parent's 0,0 (negative vals are allowed)
     W;H;                // Width Height of contents in pixels
 //    zDepth;               // order of displaying, (higher#s are above/onTopOf lower#s, 0 is furthest away)
@@ -24,41 +26,53 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     bgColor = [0, 0, 0, 0];     // RGBA border color  (as x00 to xFF)
 */
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // must-ALWAYS-override functions --------------------------------------------------------------------------------------------
-    async parse(sr)   {        await _errorP(sr); }    // load StreamReader data into object for displaying
-    async unparse()   { return await _errorU();   }    // unload displayable data, return as a str (for saving)
+    async load(sr)     {        await _errorP.call(this, sr);   }   // load StreamReader data into object for displaying
+    async unload()     {        await _errorU.call(this);       }   // unload displayable data, return as a str (for saving)
+    async render(div)  { return await _errorR.call(this, div);  }   // render object content into el returned by getDiv()
 
-    async render()    { await _render.call(this);      }    // rerender entire object and all its children
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// must-NEVER-override functions --------------------------------------------------------------------------------------------
+    // async getDiv()     { return await _getDiv.call(this);  }    // get a new div, set its XYWH
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // optional override functions ----------------------------------------------------------------------------------------
-//  async init()     {};                              // called immediately after class is finished creation (do we need this?)
-    async resize(w, h) { _resize.call(this, w, h); }  // resize box (but not contents!) to new dimensions and rebuild contents as needed
+//  async init()     {};                                   // called immediately after class is finished creation (do we need this?)
+    async makeDiv(div) { return await _makeDiv.call(this, div); }  // create and locate/size a div for this object
 
     constructor() {
     };
 }; // end class
 
 
-async function _render(sr) {
-
+async function _makeDiv(div) {
+    const el = document.createElement("div");
+    el.style.position = "absolute";
+    el.style.left   = this.X + "px";
+    el.style.top    = this.Y + "px";
+    let W = this.W, H = this.H;
+    if (W < 0) {
+        W = div.offsetWidth - this.X + W;
+    }
+    if (H < 0) {
+        H = div.offsetHeight - this.Y + H;
+    }
+    el.style.width  = W + "px";
+    el.style.height = H + "px";
+    return el;
 }
+
+
+
 
 async function _errorP(sr) {
-    throw new Error("DCH_BASE parse(sr) not overridden");
+    throw new Error(this.class.name, ": load(sr) not overridden");
 }
-
 async function _errorU() {
-    throw new Error("DCH_BASE unparse() not overridden");
+    throw new Error(this.class.name, ": unload() not overridden");
 }
-
-async function _resize(width, height) {   // change size of box (not contents!) and then rerender
-    debugger;
-    this.W = width;
-    this.H = height;
-    this.render();
+async function _errorR(div) {
+    throw new Error(this.class.name, ": render() not overridden");
 }
-
 

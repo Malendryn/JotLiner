@@ -9,17 +9,22 @@ export class DocComponentLoader {   // base class of all document components
 
 async function _load(sr) {      // this loader loads the 'out of band' stuff not specifically inside a component
     const dchName = await sr.readNext();      // read next ctrl word  (that is, everything up to next ';')
+    if (dchName == "") {
+        return null;
+    }
     if (!DCH.hasOwnProperty(dchName)) {          // load the module(plugin) if not already loaded
         const dch = await FF.loadModule("./modules/DocComponentHandlers/dch_" + dchName + ".js")
         DCH[dchName] = dch.DCH;
     }
     const docHandler = new DCH[dchName]();          // get new instance of actual handler
 
-    docHandler.X = parseInt(await sr.readNext());
-    docHandler.Y = parseInt(await sr.readNext());
-    docHandler.W = parseInt(await sr.readNext());
-    docHandler.H = parseInt(await sr.readNext());
-    if (docHandler.type > 0) {                          // type = <positive> only get access to content that belongs to them
+    if (docHandler.hasXYWH) {
+        docHandler.X = parseInt(await sr.readNext());
+        docHandler.Y = parseInt(await sr.readNext());
+        docHandler.W = parseInt(await sr.readNext());
+        docHandler.H = parseInt(await sr.readNext());
+    }
+    if (docHandler.isRaw == false) {
         let byteCt = parseInt(await sr.readNext());     // so the next value is the #bytes that belong to them
         let str = await sr.readChunk(byteCt, true);     // which we then yank from the stream (and shrink sr too!)
         sr = new FG.StreamReader(str);                  // and finally replace/discard passed sr with this new one

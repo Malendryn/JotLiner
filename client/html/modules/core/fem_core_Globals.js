@@ -4,11 +4,13 @@
 // FG.baseURL   = "";       // for backend this is __filename, for frontend this is 'http://site:port'
 // FG.__dirname   
 // ==== FROM fem_core_WSockHandler ====================================================================================
+FG.version      = [0, 0, 0];    // SET AT  TOP OF "index.js", NOT HERE !!!!  (used to match against FG.docVersion to upgrade doc when needed)
+
 FG.baseURL      = window.location.origin;  // "http://localhost:3000"
 FG.ws           = null;     // WebSocket connector to localServer
 FG.content      = null;     // the currently loaded document as a tree of handlers
 FG.DCH_BASE     = null;     // base class from which ALL DocComponentHandlers must inherit from
-
+FG.docVersion   = [0, 0, 0];    // when a doc is loaded it's "VER;1.2.3;" header is placed here
 /*  RSTODO:
 FG.ViewBASE     = null,     // base class for all views loaded via FF.loadView()
 

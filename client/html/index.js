@@ -4,6 +4,8 @@ globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Func
 globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Shared.js for details)
 globalThis.DCH = {}; // document component handler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
 
+FG.version = [0, 1, 0];
+
 FF.loadModule = async (modulePath) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -30,8 +32,8 @@ window.addEventListener('load', async function() {
     // console.log(this.document.baseURI);
     await FF.loadModule("./modules/core/fem_core_Globals.js");          // populate basics of FG
     await FF.loadModule("./modules/core/fem_core_Functions.js");        // populate basics of FF
-    await FF.loadModule("./modules/core/fem_core_WSockHandler.js");         // assigns FG.ws and opens FG.ws BEFORE returning
-    await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");                 // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
+    await FF.loadModule("./modules/core/fem_core_WSockHandler.js");     // assigns FG.ws and opens FG.ws BEFORE returning
+    await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");             // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
 
     mod = await FF.loadModule("./modules/shared/shared_StreamReader.js");       // done this way so can name as FG=frontend BG=backend
     FG.StreamReader = mod.StreamReader;
@@ -40,25 +42,23 @@ window.addEventListener('load', async function() {
     FF.dchLoader = new mod.DocComponentLoader()
 
 
+    FG.content    = null;           // create new document which has nothing!
+    FG.docVersion = FG.version;     // set new document version to match system version
+
 // RSTEST begin
+// first lets load a test document from the __DOCFORMAT__.js file
     let module = await FF.loadModule("./__DOCFORMAT__.js"); // describes minimal document format as well as implements and returns a test doc
     let doc    = module.doc;                                // extract the test doc from the module
     let sr     = new FG.StreamReader(doc);                  // turn it into a StreamReader
 
-    FG.content = await FF.dchLoader.load(sr);               // load doc and all children and stick it on FG.content
+// now lets test an actual loading and rendering of it
+    FG.content = [];    // to load a document we must first blow out existing one entirely
 
-    const div = this.document.getElementById("wrapper2");
-    div.style.position = "fixed";
-    div.style.top = "20px";
-    div.style.left = "20px";
-    div.style.bottom = "510px";
-    div.style.right = "20px";
-    div.style.border = "3px solid black";
-    div.style.backgroundColor = "lightsalmon";
-    div.style.overflow = "hidden";
-    div.style.whiteSpace = "nowrap";
-    div.innerHTML = "";
-    FG.content.render(div);
+    await FF.dchLoader.load(sr);                // load AND TOSS the 'out-of-band' VER handler
+    FG.content = await FF.dchLoader.load(sr);   // load doc and all children and stick it on FG.content
+
+    const div = this.document.getElementById("body");
+    await FG.content.render(div);
     debugger;
 // RSTEST end
 });

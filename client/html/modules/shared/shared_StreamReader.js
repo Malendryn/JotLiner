@@ -12,7 +12,7 @@ export class StreamReader {
 
     async readChunk(len, shrink = false) {
         if (this.idx >= this.str.length) {     // test for end of data
-            return "";
+            return "";                         // whatever MAY have been captured, toss it as garbage and return ""
         }
         const end = Math.min(this.idx + len, this.str.length);
         const data = this.str.substring(this.idx, end);
@@ -41,7 +41,7 @@ export class StreamReader {
             tmp += this.str[this.idx];
             ++this.idx;
         }
-        return tmp;             // off endof this.str, don't increment idx
+        return "";             // whatever MAY have been captured, toss it as garbage and return ""
     }
 
 
