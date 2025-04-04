@@ -7,6 +7,7 @@
 FG.baseURL      = window.location.origin;  // "http://localhost:3000"
 FG.ws           = null;     // WebSocket connector to localServer
 FG.content      = null;     // the currently loaded document as a tree of handlers
+FG.DCH_BASE     = null;     // base class from which ALL DocComponentHandlers must inherit from
 
 /*  RSTODO:
 FG.ViewBASE     = null,     // base class for all views loaded via FF.loadView()

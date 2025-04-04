@@ -1,0 +1,39 @@
+file:///mnt/local/git/project.jotliner/client/html/modules/DocComponentHandlers/dch_BOX.js {"mtime":1743732762329,"ctime":1743548136453,"size":1414,"etag":"3e2eq2h0b1ej","orphaned":false,"typeId":""}
+
+// load/save()  converts docudata to/from DocComponentHandlers, 
+// render()     handles rendering the box inside which children[] DocComponentHandlers reside in
+
+class DCH_BOX extends FG.DCH_BASE {
+    type = -1;       // spclcase, lowlevel loader
+
+    children = [];
+
+    async load(sr)     { return await _load.call(this, sr); }   // load content, return ptr
+    async render()              {        await _render.call(this);           }   // rerender entire object and all its children
+
+
+//#####################################################################################################################
+    constructor() {
+        super();
+        this.type = -1;  // Special class, has control of the StreamReader
+    };
+};
+export { DCH_BOX as DCH };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function _load(sr) {     // this loader loads the 'out of band' stuff not specifically inside a component
+    let numChildren = parseInt(await sr.readNext());
+    while (numChildren-- > 0) {
+        let tmp = await FF.dchLoader.load(sr);       // load the object
+        tmp.parent = this;                              // set its parent to this box
+        this.children.push(tmp);                        // and finally add it to the children of this box
+    }
+}
+
+    
+function _render() {                // render the box and all its children
+    debugger;
+}
+
+

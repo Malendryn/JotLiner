@@ -2,7 +2,9 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04-03 ------------------------------------------------------------------------------------------------------------
-finally got a loader working! so now the doc can be loaded in its entirety into FG.content with a single load call!
+have it now loading the sample doc, including stepping in and out of children.
+next aim is to display these loaded DocComponents 
+
 2025-04-01 ------------------------------------------------------------------------------------------------------------
 began fleshing out classes to load/unload an actual document, and to define the format of a document as well
 (I am avoiding using the word Jot or JotLiner anywhere in the code as I still may change the name of the project)

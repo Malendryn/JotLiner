@@ -1,9 +1,13 @@
-file:///mnt/local/git/project.jotliner/extra/STATUS.txt {"mtime":1743655223652,"ctime":1743362359171,"size":2880,"etag":"3e2b3d9nq2us","orphaned":false,"typeId":""}
-2025-04- ------------------------------------------------------------------------------------------------------------
+file:///mnt/local/git/project.jotliner/extra/STATUS.txt {"mtime":1743671177498,"ctime":1743362359171,"size":2895,"etag":"3e2bq0dqf30c","orphaned":false,"typeId":""}
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04-03 ------------------------------------------------------------------------------------------------------------
-finally got a loader working! so now the doc can be loaded in its entirety into FG.content with a single load call!
+Now that I got the loader working ... I rewrote it again!  NO LONGER uses +=-  just straightup BOX TXT etc objects
+
+
+2025-04-03 ------------------------------------------------------------------------------------------------------------
+have it now loading the sample doc, including stepping in and out of children.
+next aim is to display these loaded DocComponents 
 
 2025-04-01 ------------------------------------------------------------------------------------------------------------
 began fleshing out classes to load/unload an actual document, and to define the format of a document as well

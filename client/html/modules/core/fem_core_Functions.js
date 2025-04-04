@@ -4,12 +4,16 @@
 // FF.functions
 // return---?snc? funcname-----------------Description-------------------------------------------------------
 // ==== FROM index.js =================================================================================================
-// module   async loadmodule(modulePath)   load and return module, if has an init(), call that before returning
-// ==== FROM f_core_Functions.js ====================================================================================
+// module   async loadModule(modulePath)   load and return module, if has an init(), call that before returning
+
+// ==== FROM fem_core_Functions.js ====================================================================================
 // --------       shutdown(event)          called before server exits entirely.  closes database and does other cleanup
 // -------- async msDelay(ms)              cause a delay of ms,  EG: 'await FF.msDelay(1500);'
 // -------- async makeUUID()               make and return a UUID
 // -------- async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
+
+// ==== FROM fem_core_DocComponentLoader.js ===========================================================================
+// return   async fcLoader.load(sr)		   load a SINGLE DocComponent from StreamReader and return it
 
 // ==== FROM ????????????????????? ====================================================================================
 // --------       logout()                 detach and forget current user and go back to login screen

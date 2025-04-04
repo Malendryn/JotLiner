@@ -26,23 +26,39 @@ FF.loadModule = async (modulePath) => {
 
 // RSTODO go look at the older jotliner code, we had detailed funcalls to handle loading and tracking and unloading modules that we NEED to move over to here!
 window.addEventListener('load', async function() {
+    let mod;
     // console.log(this.document.baseURI);
     await FF.loadModule("./modules/core/fem_core_Globals.js");          // populate basics of FG
     await FF.loadModule("./modules/core/fem_core_Functions.js");        // populate basics of FF
-    await FF.loadModule("./modules/core/fem_core_Shared.js");           // populate basics of SH  (things shared twixt frontend and backend)
-    await FF.loadModule("./modules/core/fem_core_WSockHandler.js");     // assigns FG.ws and opens FG.ws BEFORE returning
+    await FF.loadModule("./modules/core/fem_core_WSockHandler.js");         // assigns FG.ws and opens FG.ws BEFORE returning
+    await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");                 // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
 
-    await FF.loadModule("./modules/core/fem_core_DocComBASE.js");      // FF.DocComBASE class for all other DocComponentHandlers to inherit from
-    await FF.loadModule("./modules/core/fem_core_ContentLoader.js");    // FF.ContentLoader that loads DocComponents from a str
+    mod = await FF.loadModule("./modules/shared/shared_StreamReader.js");       // done this way so can name as FG=frontend BG=backend
+    FG.StreamReader = mod.StreamReader;
+
+    mod = await FF.loadModule("./modules/shared/shared_DocComponentLoader.js"); // FG.dchLoader -- loads DocComponents from a str
+    FF.dchLoader = new mod.DocComponentLoader()
 
 
 // RSTEST begin
     let module = await FF.loadModule("./__DOCFORMAT__.js"); // describes minimal document format as well as implements and returns a test doc
     let doc    = module.doc;                                // extract the test doc from the module
-    let sr     = new SH.StringReader(doc);                  // turn it into a stringreader
+    let sr     = new FG.StreamReader(doc);                  // turn it into a StreamReader
 
-    const loader = new FF.ContentLoader(null);
-    FG.content = await loader.load(sr);    // load doc and all children and stick it on FG.content
+    FG.content = await FF.dchLoader.load(sr);               // load doc and all children and stick it on FG.content
+
+    const div = this.document.getElementById("wrapper2");
+    div.style.position = "fixed";
+    div.style.top = "20px";
+    div.style.left = "20px";
+    div.style.bottom = "510px";
+    div.style.right = "20px";
+    div.style.border = "3px solid black";
+    div.style.backgroundColor = "lightsalmon";
+    div.style.overflow = "hidden";
+    div.style.whiteSpace = "nowrap";
+    div.innerHTML = "";
+    FG.content.render(div);
     debugger;
 // RSTEST end
 });
