@@ -1,12 +1,12 @@
 
 let doc = `
 VER;0.1.0;              // create a VER component <type -1> which is lowlevel, handles next value (1.0.0) as a version # of the document;
-BOX;510;20;-20;-20;     // create a BOX component <type -1> which is lowlevel, which loads its own XYWH and a # of following components that belong to it;
-    TXT;100;100;100;100;6;IAm000    // create a TXT component <type 1>, autoread XYWH, then numBytes raw, then raw="IAm000" ;
-    BOX;20;20;510;20;2;             // create a BOX component at XYWH having 2 subcomponents;
-        TXT;100;100;100;200;10;IAm001_000 // create a TXT component...;
-        TXT;100;100;555;666;10;IAm001_001 // create another TXT component...;
-    TXT;100;100;100;100;6;IAm001    // stepout of box (consumed 2 els) and add another TXT component to the outer box;
+BOX;20;20;-40;-40;3;    // create a BOX component <type -1> which is lowlevel, autoread XYWH, having the next 3 components belonging to it;
+    TXT;20;20;100;30;6;IAm000    // create a TXT component <type 1>, autoread XYWH, then numBytes raw, then raw="IAm000" ;
+    BOX;40;50;200;200;2;             // create a BOX component at XYWH having 2 subcomponents;
+        TXT;-10;10;100;30;10;IAm001_000 // create a TXT component...;
+        TXT;110;50;100;36;10;IAm001_001 // create another TXT component...;
+    TXT;240;240;100;30;6;IAm001    // stepout of box (consumed 2 els) and add another TXT component to the outer box;
 `;
 export { doc };
 `

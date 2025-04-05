@@ -1,7 +1,27 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-05 ------------------------------------------------------------------------------------------------------------
+I was going to allow XYWH to let negative WH work from the right border, but OneNote never did that, and I think it just
+complicates things,  so we'll stick with XYWH being absolute values
+* changed 'isRaw'   to 'hasChunk'
+* changed 'hasXYWH' to 'hasDiv'
+* I unfortunately finally lost in an attempt to define class functions beneath the class when I tried using super.func()
+so I have instead changed these to be simple comments at the top of the class for clarity, while at the bottom of the
+class the actual function exists (instead of being defined beneath the class)
+
+
+loading AND drawing now works!  ... at least in a testing capacity
+I have also reintroduced allowing negative WH as I found that by making all divs 'position="absolute"' this now works!
+    (I still do not see a need for it in a document like this, but it's nice to know it works!!)
+
 2025-04-04 ------------------------------------------------------------------------------------------------------------
 added a VER handler to load a version from the file for the purposes of updating
-changed 'type' to 'hasXYWH' and 'isRaw'
+* changed 'type' to 'hasXYWH' and 'isRaw'
 
 starting to get the visual layout working,  'BOX' now shows a box
 next is to get TXT working too
