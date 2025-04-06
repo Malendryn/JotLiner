@@ -12,7 +12,8 @@ export class DocLoader {   // create and return a DCH from a stream
             const dch = await FF.loadModule("./modules/DocComponentHandlers/dch_" + dchName + ".js")
             DCH[dchName] = dch.DCH;
         }
-        const dch = new DCH[dchName](parent);  // create handler, assign parent, create <div> if hasDiv=true
+        const dch = FG.DCH_BASE.create(dchName, parent);
+        // const dch = new DCH[dchName](parent);  // create handler, assign parent, create <div> if hasDiv=true
         await this._load(dch, sr);             // digest the stream passed to it
         return dch;
     }

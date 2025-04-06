@@ -1,10 +1,16 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
+Blind, Dumb, Stupid MAGA
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-06 ------------------------------------------------------------------------------------------------------------
+Did some more constructor reworking to cleanup handler creation a bit more
+doc loads nicely now and implemented a supersimple textarea for the TXT handler! (Renamed to TXA from TXT)
+
 2025-04-05 ------------------------------------------------------------------------------------------------------------
+came up with BDSM... "Blind, Dumb, Stupid MAGA"
+
 Another restructuring
 * found that vars put directly on a childclass arent seen by the baseclass (at least not in the constructor) so I
   created a construct() function the children must implement that's called by the baseclass constructor()
@@ -14,6 +20,7 @@ Another restructuring
 * changed load(sr,parent)/str=unload() to parse(sr)/str=unparse() as !must impl! emptyFuncs baseclass
 * moved setting of parent and div creation/attachment (this.div) to constructor()
 * moved setting XYWH "px" to DocLoader parse()
+
 2025-04-05 ------------------------------------------------------------------------------------------------------------
 I was going to allow XYWH to let negative WH work from the right border, but OneNote never did that, and I think it just
 complicates things,  so we'll stick with XYWH being absolute values
@@ -35,7 +42,6 @@ next is to get TXT working too
 
 2025-04-03 ------------------------------------------------------------------------------------------------------------
 Now that I got the loader working ... I rewrote it again!  NO LONGER uses +=-  just straightup BOX TXT etc objects
-
 
 2025-04-03 ------------------------------------------------------------------------------------------------------------
 have it now loading the sample doc, including stepping in and out of children.

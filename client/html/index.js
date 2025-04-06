@@ -53,14 +53,13 @@ window.addEventListener('load', async function() {
 // now lets test an actual loading and rendering of it
     FG.content = [];    // to load a document we must first blow out existing one entirely
 
-    await FF.DocLoader.load(sr, null);               // load AND TOSS the 'out-of-band' VER handler
+    await FF.DocLoader.load(sr, null);               // load AND TOSS the 'out-of-band' VER handler (very first item in all docs)
     FG.content = await FF.DocLoader.load(sr, null);  // load doc and all children and stick it on FG.content
 
     await FG.content.render();
     debugger;
 // RSTEST end
 });
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
