@@ -33,14 +33,13 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_Globals.js");          // populate basics of FG
     await FF.loadModule("./modules/core/fem_core_Functions.js");        // populate basics of FF
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");     // assigns FG.ws and opens FG.ws BEFORE returning
-    await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");             // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
+    await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");         // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
 
     mod = await FF.loadModule("./modules/shared/shared_StreamReader.js");       // done this way so can name as FG=frontend BG=backend
-    FG.StreamReader = mod.StreamReader;
+    FG.StreamReader = mod.StreamReader;     // its on FG cuz it's a class, not yet instanced
 
-    mod = await FF.loadModule("./modules/shared/shared_DocComponentLoader.js"); // FG.docComponentLoader -- loads DocComponents from a str
-    FF.docComponentLoader = new mod.DocComponentLoader()
-
+    mod = await FF.loadModule("./modules/shared/shared_DocLoader.js"); // FG.DocLoader -- loads DocComponents from a str
+    FF.DocLoader = new mod.DocLoader();     // its on FF cuz it's already instanced, not a raw class
 
     FG.content    = null;           // create new document which has nothing!
     FG.docVersion = FG.version;     // set new document version to match system version
@@ -54,8 +53,8 @@ window.addEventListener('load', async function() {
 // now lets test an actual loading and rendering of it
     FG.content = [];    // to load a document we must first blow out existing one entirely
 
-    await FF.docComponentLoader.load(sr, null);               // load AND TOSS the 'out-of-band' VER handler
-    FG.content = await FF.docComponentLoader.load(sr, null);  // load doc and all children and stick it on FG.content
+    await FF.DocLoader.load(sr, null);               // load AND TOSS the 'out-of-band' VER handler
+    FG.content = await FF.DocLoader.load(sr, null);  // load doc and all children and stick it on FG.content
 
     await FG.content.render();
     debugger;

@@ -12,7 +12,7 @@
 // -------- async makeUUID()               make and return a UUID
 // -------- async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
 
-// ==== FROM fem_core_DocComponentLoader.js ===========================================================================
+// ==== FROM fem_core_DocLoader.js ===========================================================================
 // return   async fcLoader.load(sr)		   load a SINGLE DocComponent from StreamReader and return it
 
 // ==== FROM ????????????????????? ====================================================================================
@@ -64,7 +64,7 @@ FF.makeHash = async (txt) => {
 }
 
 
-FF.DocComponentLoader = class DocComponentLoader {
+FF.DocLoader = class DocLoader {
 	constructor(doc) {
 		this.doc = doc;
 	}

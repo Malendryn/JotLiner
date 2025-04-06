@@ -1,9 +1,10 @@
 
 // this class is an extreme outlier as it has no real home in the document proper but is kept as a component for 'generic operability' across the board
 class DCH_VER extends FG.DCH_BASE {
-    hasDiv   = false;
-    hasChunk = false;
-
+    construct() {
+        this.hasDiv   = false;   // see baseclass
+        this.hasChunk = false;   // see baseclass
+    }
 // baseclass functions that are overridden below
     // async load(sr, parent)  // load content
     // async unload()          // load content
@@ -14,19 +15,18 @@ class DCH_VER extends FG.DCH_BASE {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    constructor() {
-        super();
+    constructor(parent) {
+        super(parent);
     };
 
 
-    async load(sr, parent) {
-        let chunk = await super.load(sr, parent);     // since hasChunk=false, chunk=null
+    async parse(sr) {
         const ver = await sr.readNext();
         FG.docVersion = ver.split(".").map(ss => parseInt(ss)); // store the doc version as [ major, minor, patch]
     }
     
     
-    async unload() {     // this loader loads the 'out of band' stuff not specifically inside a component
+    async unparse() {     // this loader loads the 'out of band' stuff not specifically inside a component
         debugger; await super.unload();
     }
     

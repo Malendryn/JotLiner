@@ -28,20 +28,22 @@ export class StreamReader {
 
     async readNext() {
         let tmp = "";
-        while (this.idx < this.str.length) {
-            if (this.str[this.idx] == ';') {    // find ending ';' chr
+        let chr = '';
+        while (true) {
+            while (this.idx < this.str.length && (chr = this.str[this.idx]) != ';') {   // while not eoStream and not a ';'
+                tmp += chr;
+                ++this.idx;
+            }
+            tmp = tmp.trim();               // get rid of surrounding whitespace
+            if (chr == ';') {    // if lastChr wasa ';'
                 ++this.idx;                     // skipover the chr
-                tmp = tmp.trim();               // get rid of surrounding whitespace
-                if (tmp.startsWith("//")) {     // this is a comment, ignore it
+                if (tmp.startsWith("//")) {     // this is a comment, toss it and read again!
                     tmp = "";
                     continue;
                 }
-                return tmp;
             }
-            tmp += this.str[this.idx];
-            ++this.idx;
+            return tmp;
         }
-        return "";             // whatever MAY have been captured, toss it as garbage and return ""
     }
 
 

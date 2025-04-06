@@ -1,5 +1,10 @@
 
 class DCH_TXT extends FG.DCH_BASE {
+    construct() {
+        this.hasDiv    = true;  // see baseclass
+        this.hasChunk  = true;  // see baseclass
+    }
+
     txt = "";
 
 // baseclass functions that are overridden below
@@ -12,25 +17,24 @@ class DCH_TXT extends FG.DCH_BASE {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    constructor() {
-        super();
+    constructor(parent) {
+        super(parent);
     };
 
 
-    async load(sr, parent) {
-        let chunk = await super.load(sr, parent);
-        this.txt = chunk;
+    async parse(sr) {
+        this.txt = await sr.readNext();
     }
     
     
-    async unload() {     // this loader loads the 'out of band' stuff not specifically inside a component
+    async unparse() {     // this loader loads the 'out of band' stuff not specifically inside a component
         debugger; await super.unload();
     }
     
     
     async render() {
-        let div = await super.render();
-        div.innerHTML = this.txt;
+        await super.render();
+        this.div.innerHTML = this.txt;
     }
 };
 export { DCH_TXT as DCH };      // always export 'as DCH' for docloader to attach to globalThis.DCH
