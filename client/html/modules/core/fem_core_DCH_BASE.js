@@ -11,14 +11,15 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 // NOTE: do not instance any DCH class directly, use FG.DCH_BASE.create() instead
 
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
-    hasDiv;    // T/F, true = create 'this.div' @ construction AND read XYWH from docStream when created via DocLoader
-    hasChunk;  // T/F, true = load "byteCount;byteData" from sr (and shrink) during parse(sr) and return as a str
+    hasDiv = true;    // true = create 'this.div' @ construction AND read XYWH from docStream when created via DocLoader
+    hasChunk = true;  // true = load "byteCount;byteData" from sr (and shrink) during parse(sr) and return as a str
 
     parent;         // parent of this handler (or null if toplevel)
     div = null;     // if hasDiv, html div that this object owns, else null
 
-    X;Y;        // X,Y posn for this.div (relative to parent div in pixels)
-    W;H;        // Width,Height of this.div. (negative values change width,height to right,bottom relative to parent div)
+//RSTODO discard these, no longer used
+    // X = 0;Y = 0;    // X,Y posn for this.div (relative to parent div in pixels)
+    // W = 0;H = 0;    // Width,Height of this.div. (negative values change width,height to right,bottom relative to parent div)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // must-implement functions -------------------------------------------------------------------------------------------
@@ -29,14 +30,18 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // helper functions (defined below) -----------------------------------------------------------------------------------
-    // el = async makeEl("DCH Name")   // create+this.div.appendChild(), sets TLBR = 0px, pos=absolute  (EG fill entirety of this.div)
+    // el = async makeEl("DCHandler Name") // create+attach, set TLBR = 0px, pos=absolute  (EG fill entirety of this.div)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    static create(dchName, parent) {
-        const dch = new DCH[dchName](parent);  // create handler, do nothing else but assign parent!
+    static async create(dchName, parent) {
+        if (!DCH.hasOwnProperty(dchName)) {          // load the module(plugin) if not already loaded
+            const dch = await FF.loadModule("./modules/DocComponentHandlers/dch_" + dchName + ".js")
+            DCH[dchName] = dch.DCH;
+        }
+        const dch = new DCH[dchName]();         // create handler, do nothing else!
         dch.parent = parent;
         if (dch.hasDiv) {                                  // is dch a visible object that needs a <div> to render in? 
             dch.div = document.createElement("div");           // create div
@@ -56,12 +61,12 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     async makeEl(name) {
         const el = document.createElement("textarea");
         this.div.appendChild(el);
-        el.style.backgroundColor = "lightgreen";
         el.style.position = "absolute";
         el.style.left = "0px";
         el.style.top = "0px";
         el.style.right = "0px";
         el.style.bottom = "0px";
+        // el.style.backgroundColor = "lightgreen";
         return el;
     }
 }; // end class

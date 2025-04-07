@@ -35,12 +35,12 @@ export class StreamReader {
                 ++this.idx;
             }
             tmp = tmp.trim();               // get rid of surrounding whitespace
-            if (chr == ';') {    // if lastChr wasa ';'
-                ++this.idx;                     // skipover the chr
-                if (tmp.startsWith("//")) {     // this is a comment, toss it and read again!
-                    tmp = "";
-                    continue;
-                }
+            if (chr == ';') {               // if lastChr wasa ';'
+                ++this.idx;                 // skipover the chr
+            }
+            if (tmp.startsWith("//")) {     // this is a comment, toss it and read again!
+                tmp = "";
+                continue;
             }
             return tmp;
         }

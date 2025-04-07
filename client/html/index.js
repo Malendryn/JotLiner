@@ -1,10 +1,10 @@
 
 globalThis.FG  = {}; // global 'Frontend Globals' variables   (see fem_core_Globals.js for details)
+FG.VERSION = "1.0";
 globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Functions.js for details)
 globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Shared.js for details)
 globalThis.DCH = {}; // document component handler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
 
-FG.version = [0, 1, 0];
 
 FF.loadModule = async (modulePath) => {
     return new Promise(async (resolve, reject) => {
@@ -41,23 +41,18 @@ window.addEventListener('load', async function() {
     mod = await FF.loadModule("./modules/shared/shared_DocLoader.js"); // FG.DocLoader -- loads DocComponents from a str
     FF.DocLoader = new mod.DocLoader();     // its on FF cuz it's already instanced, not a raw class
 
-    FG.content    = null;           // create new document which has nothing!
-    FG.docVersion = FG.version;     // set new document version to match system version
+    FF.newDoc();        // initialize system with an empty document
 
 // RSTEST begin
-// first lets load a test document from the __DOCFORMAT__.js file
-    let module = await FF.loadModule("./__DOCFORMAT__.js"); // describes minimal document format as well as implements and returns a test doc
+// first lets load a test document from the __TESTDOC__.js file
+    let module = await FF.loadModule("./__TESTDOC__.js");   // describes minimal document format as well as implements and returns a test doc
     let doc    = module.doc;                                // extract the test doc from the module
     let sr     = new FG.StreamReader(doc);                  // turn it into a StreamReader
 
 // now lets test an actual loading and rendering of it
-    FG.content = [];    // to load a document we must first blow out existing one entirely
+    FG.docRoot = await FF.DocLoader.load(sr, null);         // load doc and all children and stick it on FG.docRoot
 
-    await FF.DocLoader.load(sr, null);               // load AND TOSS the 'out-of-band' VER handler (very first item in all docs)
-    FG.content = await FF.DocLoader.load(sr, null);  // load doc and all children and stick it on FG.content
-
-    await FG.content.render();
-    debugger;
+    await FG.docRoot.render();
 // RSTEST end
 });
 

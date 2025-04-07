@@ -11,6 +11,8 @@
 // -------- async msDelay(ms)              cause a delay of ms,  EG: 'await FF.msDelay(1500);'
 // -------- async makeUUID()               make and return a UUID
 // -------- async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
+// -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
+// -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
 
 // ==== FROM fem_core_DocLoader.js ===========================================================================
 // return   async fcLoader.load(sr)		   load a SINGLE DocComponent from StreamReader and return it
@@ -68,6 +70,30 @@ FF.DocLoader = class DocLoader {
 	constructor(doc) {
 		this.doc = doc;
 	}
+};
+
+
+FF.clearDoc = async() => {
+// RSTODO create/call handler detachments here
+	FG.docRoot = null;
+	const div = document.getElementById("docWrapper");  // attach div to outermost <div id="docWrapper">
+	div.innerHTML = "";									// blowout any existing rendering
+}
+
+
+FF.newDoc = async () => {
+	FF.clearDoc();
+	const dch = await FG.DCH_BASE.create("BOX", null);		// blowout any loaded handlers and create toplevel BOX
+	dch.div.style.position    = "absolute";
+	dch.div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.div.style.top/bottom/etc during unparse()
+	dch.div.style.top    = "0px";
+	dch.div.style.right  = "0px";
+	dch.div.style.bottom = "0px";
+	dch.div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
+	dch.div.style.overflow = "hidden";
+//	dch.div.style.whiteSpace = "nowrap";		// unnecessary in a BOX as everything inside it is more divs
+
+	FG.docRoot = dch;
 };
 
 

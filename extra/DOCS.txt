@@ -1,0 +1,24 @@
+to distinguish 'system' keystrokes from handler keystrokes we are using a 'tap-then-hold' approach as follows:
+
+tap  hold then-while-holding   action
+ctrl ctrl arrowkeys            move entire box   (tap arrowkeys for 1 pixel or hold for repeat)
+ctrl alt  arrowkeys            move contents of box (tap arrowkeys for 1 pixel or hold for repeat)
+
+ctrl ctrl leftmouse+drag       move entire box
+ctrl alt  leftmouse+drag       move contents of box
+
+ctrl ctrl rightmouse           program context menu
+
+ctrl ctrl 'u'                  undo last 'system' operation
+ctrl ctrl 'r'                  redo last 'system' operation
+
+'system' context menu
+create component  -->  while still holding ctrl the entire time, click to start box, drag to size box, let go of ctrl to create component
+                       this opens another context menu with a list of all component types that can be created
+                       select one or click outside menu to cancel
+
+delete component  -->  delete component (box) under mousecursor at instant of rightmouseDown
+                       warns if component has children
+                       asks are you sure?
+
+think about undo!

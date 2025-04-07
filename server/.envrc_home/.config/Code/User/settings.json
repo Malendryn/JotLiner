@@ -1,5 +1,6 @@
 {
     "git.openRepositoryInParentFolders": "never",
     "explorer.confirmDelete": false,
-    "workbench.tree.indent": 32
+    "workbench.tree.indent": 32,
+    "update.mode": "none"
 }

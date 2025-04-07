@@ -9,6 +9,7 @@ class DCH_TXA extends FG.DCH_BASE {
     async construct() {
         this.el = await this.makeEl("textarea");
         this.el.style.resize = "none";
+        this.el.style.backgroundColor = "lightGreen";
     }
 
 
@@ -21,7 +22,7 @@ class DCH_TXA extends FG.DCH_BASE {
         debugger; return "";
     }
     
-    
+
     async render() {
 // we don't use render cuz this.el.innerHTML handles all that for us automatically
 // --however-- another way is to set this.txt = await sr.readNext() in parse() above, and then here
