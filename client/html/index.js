@@ -53,9 +53,87 @@ window.addEventListener('load', async function() {
     FG.docRoot = await FF.DocLoader.loadDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
 
     await FG.docRoot.render();
+
+    window.addEventListener('click', clicky, true);     // true=no one can stop me, muahaha!
+
+    document.addEventListener('mousedown', mousedown, true);
+    document.addEventListener('mousemove', mousemove, true);
+    document.addEventListener('mouseup',   mouseup,   true);
+
 // RSTEST end
 });
 
+
+let downX, downY, downRight, downBottom, targetEl = null;
+let downRect;
+
+function mousedown(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    debugger;
+//RSTODO WHEN moving a handled element and not its contents, 
+//     HERE we have to walk 'targetEl' UP to the this.div object that 'owns' the contents of the handler
+//     and THAT becomes the el to move (seperate from the targetEl so mousemove ?)
+    targetEl = /*discovered el goes here*/evt.target;
+
+    const tmp = window.getComputedStyle(targetEl);
+
+    downRect = {
+        lrMode: "",
+        tbMode: ""
+    };
+    if (targetEl.style.left)  {  downRect.lrMode += "L"; downRect.left  = parseInt(targetEl.style.left);  }
+    if (targetEl.style.right) {  downRect.lrMode += "R"; downRect.right = parseInt(targetEl.style.right); }
+    if (targetEl.style.width) {  downRect.lrMode += "W"; downRect.width = parseInt(targetEl.style.width); }
+
+    if (targetEl.style.top)    {  downRect.tbMode += "T"; downRect.top    = parseInt(targetEl.style.top);    }
+    if (targetEl.style.bottom) {  downRect.tbMode += "B"; downRect.bottom = parseInt(targetEl.style.bottom); }
+    if (targetEl.style.height) {  downRect.tbMode += "H"; downRect.height = parseInt(targetEl.style.height); }
+
+    targetEl.getBoundingClientRect();
+
+    downX = evt.screenX;
+    downY = evt.screenY;
+}
+
+
+function mousemove(evt) {
+    if (targetEl) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        const deltaX = (evt.screenX - downX);
+        const deltaY = (evt.screenY - downY);
+
+        if (downRect.lrMode.includes("L")) {
+            targetEl.style.left = (downRect.left  + deltaX) + "px";
+        }
+        if (downRect.lrMode.includes("R")) {
+            targetEl.style.right = (downRect.right - deltaX) + "px";
+        }
+        if (downRect.tbMode.includes("T")) {
+            targetEl.style.top = (downRect.top     + deltaY) + "px";
+        }
+        if (downRect.tbMode.includes("B")) {
+            targetEl.style.bottom = (downRect.bottom  - deltaY) + "px";
+        }
+    }    
+}
+function mouseup(evt) {
+    if (targetEl) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        targetEl = null;
+    }
+}
+
+
+
+
+
+
+function clicky(event) {
+    console.log("click=", event.target, true);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

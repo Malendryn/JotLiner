@@ -1,5 +1,19 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-17 ------------------------------------------------------------------------------------------------------------
+the click+drag logic is looking pretty good!  it handles all cases of L,R,W,H boxsizings
+
+however it looks like we need to track all divs that we consider 'parent' divs so when mousedragging 
+we drag the parent instead of the child  (EG: we dont want to drag the textarea, we want to drag the div owning it)
+
+this is currently just doing simple click+drag, no alt/ctrl modifiers
+
 2025-04-17 ------------------------------------------------------------------------------------------------------------
 did even more revamping of the docFormat and gave more control to the handlers
 * DCH_BASE.create() now gets sr passed to it which if not null loads this.div's setup params now before calling 
@@ -8,9 +22,8 @@ did even more revamping of the docFormat and gave more control to the handlers
 * removed makeEl() and left creating internal components to their own handling
 
 2025-04-17 ------------------------------------------------------------------------------------------------------------
-changed parse/unparse to loadDoc and unloadDoc cuz parse is a useful word to allow the handler to own
-changed docformat to L20;T20;R20;B20;W20;H20; instead of forcing XYWH so now div can freely float to right/bottom
-
+* changed parse/unparse to loadDoc and unloadDoc cuz parse is a useful word to allow the handler to own
+* changed docformat to L20;T20;R20;B20;W20;H20; instead of forcing XYWH so now div can freely float to right/bottom
 
 2025-04-07 ------------------------------------------------------------------------------------------------------------
 * more adj. to docloader so now VER isnt a handler any more, but first chars inFile must be "M.m;" for Major.Minor
@@ -25,8 +38,6 @@ Did some more constructor reworking to cleanup handler creation a bit more
 doc loads nicely now and implemented a supersimple textarea for the TXT handler! (Renamed to TXA from TXT)
 
 2025-04-05 ------------------------------------------------------------------------------------------------------------
-came up with BDSM... "Blind, Dumb, Stupid MAGA"
-
 Another restructuring
 * found that vars put directly on a childclass arent seen by the baseclass (at least not in the constructor) so I
   created a construct() function the children must implement that's called by the baseclass constructor()
