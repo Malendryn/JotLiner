@@ -26,11 +26,11 @@
             },
             "backupPath": "/mnt/local/git/project.jotliner/server/.envrc_home/.config/Code/Backups/fae046117b51a0a3a37df82df92bee7a",
             "uiState": {
-                "mode": 0,
-                "x": 2200,
-                "y": 280,
-                "width": 1200,
-                "height": 800
+                "mode": 1,
+                "x": 1920,
+                "y": 0,
+                "width": 1919,
+                "height": 1079
             }
         },
         "openedWindows": []

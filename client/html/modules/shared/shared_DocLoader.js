@@ -3,11 +3,15 @@
 
 
 export class DocLoader {   // create and return a DCH from a stream
-    async load(sr, parent)  {
-        if (parent == null) {               // if no parent, read first element as document version
-            const ver = await sr.readNext();
-            if (ver < FG.docVersion) {
-                debugger; // RSTODO doc is older than current version, must upgrade!
+    async loadDoc(sr, parent)  {
+        if (parent == null) {          // if null then read first element as document version
+            await FF.clearDoc();       // clear existing doc but don't create new one
+            FG.docRoot = null;
+            const docVer = await sr.readNext();
+            if (docVer < FG.VERSION) {
+                debugger; // RSTODO doc is older than current sysVersion, must upgrade!  (throw warning msg, no going back!)
+            } else if (docVer > FG.VERSION) {
+                debugger; // RSTODO throw error, can't read document, need newer software
             }
         }    
     
@@ -34,25 +38,19 @@ export class DocLoader {   // create and return a DCH from a stream
 
             dch.div.style.position = "absolute";
 
-            const X = parseInt(await sr.readNext());
-            const Y = parseInt(await sr.readNext());
-            const W = await sr.readNext();
-            const H = await sr.readNext();
-            // dch.W = parseInt(W);
-            // dch.H = parseInt(H);
+            for (let idx = 0; idx < 4; idx++) {    // get and parse the L/T R/B W H  values
+                const tmp = await sr.readNext();
+                const typ = tmp.charAt(0);         // get the L/T R/B W or H char
+                const val = tmp.substr(1) + "px";  // get the value and append "px"
 
-            dch.div.style.left   = X + "px";
-            dch.div.style.top    = Y + "px";
-
-            if (W.charAt(0) == '-') {
-                dch.div.style.right = W + "px";
-            } else {
-                dch.div.style.width = W + "px";
-            }
-            if (H.charAt(0) == '-') {
-                dch.div.style.bottom = H + "px";
-            } else {
-                dch.div.style.height = H + "px";
+                switch(typ) {
+                    case 'L':   dch.div.style.left   = val;   break;
+                    case 'T':   dch.div.style.top    = val;   break;
+                    case 'R':   dch.div.style.right  = val;   break;
+                    case 'B':   dch.div.style.bottom = val;   break;
+                    case 'W':   dch.div.style.width  = val;   break;
+                    case 'H':   dch.div.style.height = val;   break;
+                }
             }
 
 //RSTEMP get-us-going mods to experiment on the el
@@ -69,10 +67,10 @@ export class DocLoader {   // create and return a DCH from a stream
         if (dch.hasChunk) {
             chunkLen = parseInt(await sr.readNext());           // get the # of bytes that belong to this handler's content
             const chunk = await sr.readChunk(chunkLen, true);   // read next chunkLen bytes, then shrink sr
-            let tmpSr = new FG.StreamReader(chunk);             // limit stream available to parse() to just this chunk
-            await dch.parse(tmpSr);
+            let tmpSr = new FG.StreamReader(chunk);             // limit stream available to loadDoc() to just this chunk
+            await dch.loadDoc(tmpSr);
         } else {
-            await dch.parse(sr);      // if not expecting a chunk, has access to read directly from stream
+            await dch.loadDoc(sr);      // if not expecting a chunk, has access to read directly from stream
         }
     }
 };

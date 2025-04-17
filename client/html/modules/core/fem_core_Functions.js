@@ -74,25 +74,31 @@ FF.DocLoader = class DocLoader {
 
 
 FF.clearDoc = async() => {
-// RSTODO create/call handler detachments here
-	FG.docRoot = null;
+// RSTODO create/call handler detachers here while entire tree and html is all still present
+	if (FG.docRoot) {
+		FG.docRoot.detachHandlers();
+	}
+
+// then nuke it all!
 	const div = document.getElementById("docWrapper");  // attach div to outermost <div id="docWrapper">
 	div.innerHTML = "";									// blowout any existing rendering
 }
 
 
 FF.newDoc = async () => {
-	FF.clearDoc();
+	await FF.clearDoc();
+
+// then create a new doc by adding a single BOX handler as the docRoot
 	const dch = await FG.DCH_BASE.create("BOX", null);		// blowout any loaded handlers and create toplevel BOX
 	dch.div.style.position    = "absolute";
-	dch.div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.div.style.top/bottom/etc during unparse()
+	dch.div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.div.style.top/bottom/etc during unloadDoc()
 	dch.div.style.top    = "0px";
 	dch.div.style.right  = "0px";
 	dch.div.style.bottom = "0px";
 	dch.div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
-	dch.div.style.overflow = "hidden";
-//	dch.div.style.whiteSpace = "nowrap";		// unnecessary in a BOX as everything inside it is more divs
-
+	//	dch.div.style.overflow = "hidden";
+	//	dch.div.style.whiteSpace = "nowrap";		// unnecessary in a BOX as everything inside it is more divs
+	//
 	FG.docRoot = dch;
 };
 

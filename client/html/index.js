@@ -41,7 +41,7 @@ window.addEventListener('load', async function() {
     mod = await FF.loadModule("./modules/shared/shared_DocLoader.js"); // FG.DocLoader -- loads DocComponents from a str
     FF.DocLoader = new mod.DocLoader();     // its on FF cuz it's already instanced, not a raw class
 
-    FF.newDoc();        // initialize system with an empty document
+    await FF.newDoc();        // initialize system with an empty document  (unneeded as .load below does it now)
 
 // RSTEST begin
 // first lets load a test document from the __TESTDOC__.js file
@@ -50,7 +50,7 @@ window.addEventListener('load', async function() {
     let sr     = new FG.StreamReader(doc);                  // turn it into a StreamReader
 
 // now lets test an actual loading and rendering of it
-    FG.docRoot = await FF.DocLoader.load(sr, null);         // load doc and all children and stick it on FG.docRoot
+    FG.docRoot = await FF.DocLoader.loadDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
 
     await FG.docRoot.render();
 // RSTEST end

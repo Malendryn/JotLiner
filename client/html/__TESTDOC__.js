@@ -1,21 +1,21 @@
 
-let doc = `
+let doc1 = `
 1.0;    // indicates major.minor version of entire doc;
 
 // example multiline comment, be careful not to use a semicolon 
    inside the comment as that will terminate the comment!
 and we end the comment with a semicolon;
 
-BOX;20;20;-20;-20;4;    // create a BOX component (hasDiv=Y -> create div, reads X,Y,W,H, (hasChunk=N -> read 4, (has 4 following components are children));
-    TXA;20;20;100;30;6;IAm000    // create a TXA component <type 1>, autoread X,Y,W,H, then numBytes raw, then raw="IAm000" ;
-    BOX;40;60;200;200;2;             // create a BOX component at XYWH having 2 subcomponents;
-        TXA;-10;10;100;30;10;IAm001_000 // create a TXA component...;
-        TXA;110;50;100;36;10;IAm001_001 // create another TXA component...;
-    CTE;320;60;-20;-20;6;IAm002
-    TXA;260;240;100;30;6;IAm001    // stepout of box (consumed 2 els) and add another TXA component to the outer box;
+BOX;L20;T20;R20;B20;4;    // create a BOX component (hasDiv=Y -> create div, reads X,Y,W,H, (hasChunk=N -> read 4, (has 4 following components are children));
+    TXA;L20;T20;W100;H30;6;IAm000    // create a TXA component <type 1>, autoread X,Y,W,H, then numBytes raw, then raw="IAm000" ;
+    BOX;L40;T60;W200;H200;2;             // create a BOX component at XYWH having 2 subcomponents;
+        TXA;R10;B10;W100;H30;10;IAm001_000 // create a TXA component...;
+        TXA;L110;T50;W100;H36;10;IAm001_001 // create another TXA component...;
+    CTE;W160;H100;R20;B20;6;IAm002      // a 'contenteditable' div;
+    TXA;L260;W240;W100;H30;6;IAm001    // stepout of box (consumed 2 els) and add another TXA component to the outer box;
 `;
-export { doc };
 
+export { doc1 as doc };
 
 `
 file format 1.0 rules:
@@ -48,8 +48,8 @@ file format 1.0 rules:
         NEXT, IF dch.hasChunk = true... (hardcoded in the class)
                 ...read "N;" from stream as number of bytes in chunk
                 ...readChunk of (N) bytes
-                pass this chunk as a new StreamReader into dch.parse()
+                pass this chunk as a new StreamReader into dch.loadDoc()
               ELSEIF dch.hasChunk = false...
-                pass the main document StreamReader into dch.parse() instead of an encapsulated chunk
+                pass the main document StreamReader into dch.loadDoc() instead of an encapsulated chunk
                      (this handler now has direct access to remaining document stream, be careful!)
 `;

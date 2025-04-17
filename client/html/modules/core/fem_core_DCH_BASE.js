@@ -12,7 +12,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
     hasDiv = true;    // true = create 'this.div' @ construction AND read XYWH from docStream when created via DocLoader
-    hasChunk = true;  // true = load "byteCount;byteData" from sr (and shrink) during parse(sr) and return as a str
+    hasChunk = true;  // true = load "byteCount;byteData" from sr (and shrink) during loadDoc(sr) and return as a str
 
     parent;         // parent of this handler (or null if toplevel)
     div = null;     // if hasDiv, html div that this object owns, else null
@@ -24,14 +24,16 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // must-implement functions -------------------------------------------------------------------------------------------
     //       async construct()            // called in static create() after this.div established
-    //       async parse(StreamReader sr) // parse and populate self with data passed in via StreamReader (called by DocLoader)
-    // str = async unparse()              // unload displayable data, return as a str (called by DocSaver)
+    //       async loadDoc(StreamReader sr) // loadDoc and populate self with data passed in via StreamReader (called by DocLoader)
+    // str = async unloadDoc()              // unload displayable data, return as a str (called by DocSaver)
     //       async render()               // render object into its own 'this.div' docElement
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // helper functions (defined below) -----------------------------------------------------------------------------------
-    // el = async makeEl("DCHandler Name") // create+attach, set TLBR = 0px, pos=absolute  (EG fill entirety of this.div)
-
+    // el     = async makeEl("DCHandler Name") // create+attach, set TLBR = 0px, pos=absolute  (EG fill entirety of this.div)
+    // handle = async attachHandler(object, event, callback)
+    //          async detachHandler(handle)     // detach specified handle (if belongs to this object?)
+    //          async detachHandlers();         // cycle through all handles belonging to this object and all children
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,5 +71,16 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
         // el.style.backgroundColor = "lightgreen";
         return el;
     }
+
+
+    async detachHandler(handle) {   // detach specified handle
+        debugger;  
+    }
+
+
+    async detachHandlers() {    // cycle through object and all children and detach all handlers
+//        debugger;  
+    }
+
 }; // end class
 

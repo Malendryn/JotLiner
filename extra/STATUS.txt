@@ -2,8 +2,18 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 Blind, Dumb, Stupid MAGA
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-17 ------------------------------------------------------------------------------------------------------------
+changed parse/unparse to loadDoc and unloadDoc cuz parse is a useful word to allow the handler to own
+changed docformat to L20;T20;R20;B20;W20;H20; instead of forcing XYWH so now div can freely float to right/bottom
+
+
+2025-04-07 ------------------------------------------------------------------------------------------------------------
+* more adj. to docloader so now VER isnt a handler any more, but first chars inFile must be "M.m;" for Major.Minor
+* removed XYWH as vars from the class and am now relying on el.style.top/left/(width/right)/(height/bottom)
+* fleshed out the FF.newDoc() and FF.clearDoc() functions
+* added DOCS.txt to remind me how I intend to start handling keyboard/mouse ops in a way that won't interfere with 
+* commonly used ops inside any DocHandler
+Next up is start addling keyboard/mouse handlers (see DOCS.txt)
 
 2025-04-06 ------------------------------------------------------------------------------------------------------------
 Did some more constructor reworking to cleanup handler creation a bit more
