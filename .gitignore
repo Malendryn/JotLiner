@@ -2,6 +2,8 @@
 # .vscode_root has a LOT of '*Cache*' files in it so lets just eliminate ALL of them
 *Cache*
 
+*/.vscode/chrome/*
+
 # I DO NOT know why this NEXT line is NOT working, while the Cache line above IS working!
 History/
 Trash/
@@ -10,8 +12,6 @@ Trash/
 env.json
 # same for the ssl certs, don't push to git as they're just for me!
 server/sslcert/
-
-project.jotliner.WEBBASED.DELETEME/
 
 # Logs
 logs
