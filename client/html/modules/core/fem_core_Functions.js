@@ -89,10 +89,10 @@ FF.newDoc = async () => {
 	await FF.clearDoc();
 
 // then create a new doc by adding a single BOX handler as the docRoot
-	const dch = await FG.DCH_BASE.create("BOX", null);		// blowout any loaded handlers and create toplevel BOX
-	dch.div.style.position    = "absolute";
+	const dch = await FG.DCH_BASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel BOX
+	// dch.div.style.position    = "absolute";
 	dch.div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.div.style.top/bottom/etc during unloadDoc()
-	dch.div.style.top    = "0px";
+	dch.div.style.top    = "0px";	// set here cuz .create() didn't get a StreamReader passed to it
 	dch.div.style.right  = "0px";
 	dch.div.style.bottom = "0px";
 	dch.div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style

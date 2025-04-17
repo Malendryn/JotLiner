@@ -4,29 +4,40 @@ export class StreamReader {
     str;    // the string passed in during creation
     idx;    // index into string at present reading point
 
+//  **NOTE** none of these are async, not necessary
+//  val = length()       -- returns number of bytes left in the stream 
+//  val = readNext()     -- reads next ';'-terminated element, auto-skips over comments
+//  val = readChunk()    -- reads an el to get len bytes, then reads raw chunk and returns it
+//        shrink()       -- chop the already-read bytes off the internal str and reset idx to 0
+
 
     length() {  // returns whatever is left in the stream to read
-        return this.str.length - this.idx;
+        debugger; return this.str.length - this.idx;
     }
 
 
-    async readChunk(len, shrink = false) {
-        if (this.idx >= this.str.length) {     // test for end of data
-            return "";                         // whatever MAY have been captured, toss it as garbage and return ""
+    shrink() {
+        debugger; if (this.idx >= this.str.length) {     // test for end of data
+            return;
+        }
+        this.str = this.str.substring(this.idx);
+        this.idx = 0;
+    }
+
+
+    readChunk() {
+        let len = parseInt(this.readNext());  // get len of chunk
+        if (this.idx >= this.str.length) {    // test for end of data
+            return "";
         }
         const end = Math.min(this.idx + len, this.str.length);
         const data = this.str.substring(this.idx, end);
-        if (shrink) {
-            this.str = this.str.substring(end);
-            this.idx = 0;
-        } else {
-            this.idx = end;
-        }
+        this.idx = end;
         return data;
     }
 
 
-    async readNext() {
+    readNext() {
         let tmp = "";
         let chr = '';
         while (true) {

@@ -1,7 +1,12 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
-Blind, Dumb, Stupid MAGA
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-17 ------------------------------------------------------------------------------------------------------------
+did even more revamping of the docFormat and gave more control to the handlers
+* DCH_BASE.create() now gets sr passed to it which if not null loads this.div's setup params now before calling 
+    .construct() on the child
+* removed .hasChunk, it's now up to the handlers to read their own chunks (so they could have multiple chunks now)
+* removed makeEl() and left creating internal components to their own handling
+
 2025-04-17 ------------------------------------------------------------------------------------------------------------
 changed parse/unparse to loadDoc and unloadDoc cuz parse is a useful word to allow the handler to own
 changed docformat to L20;T20;R20;B20;W20;H20; instead of forcing XYWH so now div can freely float to right/bottom

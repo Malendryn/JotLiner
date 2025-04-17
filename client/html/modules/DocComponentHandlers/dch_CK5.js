@@ -1,20 +1,27 @@
 
 class DCH_CKEditor5 extends FG.DCH_BASE {     // https://ckeditor.com/docs/ckeditor5/latest/index.html
     hasDiv    = true;  // see baseclass
-    hasChunk  = true;  // see baseclass
 
-    el;
+    el;                 // becomes childof this.div and is another  "div"  (see construct())
 
 
     async construct() {
-        this.el = await this.makeEl("div");
+        debugger; this.el = document.createElement("div");
+        this.div.appendChild(this.el);
+        this.el.style.position = "absolute";
+        this.el.style.left = "0px";
+        this.el.style.top = "0px";
+        this.el.style.right = "0px";
+        this.el.style.bottom = "0px";
+        // el.style.backgroundColor = "lightgreen";
+
         this.el.setAttribute("contenteditable", "true");
         this.el.style.resize = "none";
     }
 
 
     async loadDoc(sr) {
-        this.el.innerHTML = await sr.readNext();
+        debugger; this.el.innerHTML = await sr.readChunk();
     }
     
     
@@ -25,7 +32,7 @@ class DCH_CKEditor5 extends FG.DCH_BASE {     // https://ckeditor.com/docs/ckedi
     
     async render() {
 // we don't use render cuz this.el.innerHTML handles all that for us automatically
-// --however-- another way is to set this.txt = await sr.readNext() in loadDoc() above, and then here
+// --however-- another way is to set this.txt = await sr.readChunk() in loadDoc() above, and then here
 // use this.el.innerHTML = this.txt
 // but this.el already fully handles the textology entirely so we can get away with 
 // storing the content directly in it, instead of storing it on this object AND inside this.el

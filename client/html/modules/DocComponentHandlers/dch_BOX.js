@@ -1,9 +1,8 @@
 
 class DCH_BOX extends FG.DCH_BASE {
     hasDiv    = true;     // see baseclass
-    hasChunk  = false;    // see baseclass
 
-    children = [];
+    children = [];          // the children handlers inside this box
 
 
     async construct() {
