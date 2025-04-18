@@ -63,66 +63,68 @@ window.addEventListener('load', async function() {
 // RSTEST end
 });
 
-
-let downX, downY, downRight, downBottom, targetEl = null;
-let downRect;
+let mouseOp = null; // mouse Operation (presently only for click+drag of divHandlers)
+    
+// let downX, downY, targetEl = null;
+// let downRect;
 
 function mousedown(evt) {
     evt.stopPropagation();
     evt.preventDefault();
-    debugger;
+
+    mouseOp = {};
+    let m = mouseOp;   // just for brevity below
+
 //RSTODO WHEN moving a handled element and not its contents, 
-//     HERE we have to walk 'targetEl' UP to the this.div object that 'owns' the contents of the handler
-//     and THAT becomes the el to move (seperate from the targetEl so mousemove ?)
-    targetEl = /*discovered el goes here*/evt.target;
+//     HERE we have to walk 'mouseOp.targetEl' UP to the this.div object that 'owns' the contents of the handler
+//     and THAT becomes the el to move (seperate from the mouseOp.targetEl so mousemove ?)
+m.targetEl = /*discovered el goes here*/evt.target;
 
-    const tmp = window.getComputedStyle(targetEl);
+    const tmp = window.getComputedStyle(m.targetEl);
 
-    downRect = {
+    m.downRect = {
         lrMode: "",
         tbMode: ""
     };
-    if (targetEl.style.left)  {  downRect.lrMode += "L"; downRect.left  = parseInt(targetEl.style.left);  }
-    if (targetEl.style.right) {  downRect.lrMode += "R"; downRect.right = parseInt(targetEl.style.right); }
-    if (targetEl.style.width) {  downRect.lrMode += "W"; downRect.width = parseInt(targetEl.style.width); }
+    if (m.targetEl.style.left)  {  m.downRect.lrMode += "L"; m.downRect.left  = parseInt(m.targetEl.style.left);  }
+    if (m.targetEl.style.right) {  m.downRect.lrMode += "R"; m.downRect.right = parseInt(m.targetEl.style.right); }
+    if (m.targetEl.style.width) {  m.downRect.lrMode += "W"; m.downRect.width = parseInt(m.targetEl.style.width); }     // not used, only care about LR
 
-    if (targetEl.style.top)    {  downRect.tbMode += "T"; downRect.top    = parseInt(targetEl.style.top);    }
-    if (targetEl.style.bottom) {  downRect.tbMode += "B"; downRect.bottom = parseInt(targetEl.style.bottom); }
-    if (targetEl.style.height) {  downRect.tbMode += "H"; downRect.height = parseInt(targetEl.style.height); }
+    if (m.targetEl.style.top)    {  m.downRect.tbMode += "T"; m.downRect.top    = parseInt(m.targetEl.style.top);    }
+    if (m.targetEl.style.bottom) {  m.downRect.tbMode += "B"; m.downRect.bottom = parseInt(m.targetEl.style.bottom); }
+    if (m.targetEl.style.height) {  m.downRect.tbMode += "H"; m.downRect.height = parseInt(m.targetEl.style.height); }  // not used, only care about TB
 
-    targetEl.getBoundingClientRect();
-
-    downX = evt.screenX;
-    downY = evt.screenY;
+    m.downX = evt.screenX;
+    m.downY = evt.screenY;
 }
 
 
 function mousemove(evt) {
-    if (targetEl) {
+    if (mouseOp) {
         evt.stopPropagation();
         evt.preventDefault();
-        const deltaX = (evt.screenX - downX);
-        const deltaY = (evt.screenY - downY);
+        const deltaX = (evt.screenX - mouseOp.downX);
+        const deltaY = (evt.screenY - mouseOp.downY);
 
-        if (downRect.lrMode.includes("L")) {
-            targetEl.style.left = (downRect.left  + deltaX) + "px";
+        if (mouseOp.downRect.lrMode.includes("L")) {
+            mouseOp.targetEl.style.left = (mouseOp.downRect.left  + deltaX) + "px";
         }
-        if (downRect.lrMode.includes("R")) {
-            targetEl.style.right = (downRect.right - deltaX) + "px";
+        if (mouseOp.downRect.lrMode.includes("R")) {
+            mouseOp.targetEl.style.right = (mouseOp.downRect.right - deltaX) + "px";
         }
-        if (downRect.tbMode.includes("T")) {
-            targetEl.style.top = (downRect.top     + deltaY) + "px";
+        if (mouseOp.downRect.tbMode.includes("T")) {
+            mouseOp.targetEl.style.top = (mouseOp.downRect.top     + deltaY) + "px";
         }
-        if (downRect.tbMode.includes("B")) {
-            targetEl.style.bottom = (downRect.bottom  - deltaY) + "px";
+        if (mouseOp.downRect.tbMode.includes("B")) {
+            mouseOp.targetEl.style.bottom = (mouseOp.downRect.bottom  - deltaY) + "px";
         }
     }    
 }
 function mouseup(evt) {
-    if (targetEl) {
+    if (mouseOp) {
         evt.stopPropagation();
         evt.preventDefault();
-        targetEl = null;
+        mouseOp = null;
     }
 }
 

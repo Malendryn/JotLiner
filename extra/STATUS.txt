@@ -6,6 +6,19 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
+
+Hey!  on 'finding' a div that's the parent of an internal item like a textarea... what if I put a simple flagvar on the 
+div so I can say when mouse is clicked 'do you have the mark?' on the clicked-on element  if no, ask parent, rinse-repeat
+
+much todo yet just on sizing!
+still have to add modifier keys (ctrl,alt,  doubletap-ctrl, etc)
+have to add dragsizing when on a corner of the box (not just dragging the whole box)
+  (could do this either when nearest to a corner (say within 8px, LIMITS minsize!)
+       OR by a modifier -- adds complexity )
+  maybe addd a click+mod+mousedown that switches us into a 'mode' that is this whole drag/size etc, uses the titlebar
+     with icons for 'move,resize' etc... also shows xylrtb in titlebar and allows direct editing of them)
+      a little slower but a LOT more powerful!  
+
 2025-04-17 ------------------------------------------------------------------------------------------------------------
 the click+drag logic is looking pretty good!  it handles all cases of L,R,W,H boxsizings
 

@@ -1,6 +1,0 @@
-2025/04/17-17:28:40.747 16fbdc Reusing MANIFEST /mnt/local/git/project.jotliner/client/.vscode/chrome/Default/shared_proto_db/MANIFEST-000001
-2025/04/17-17:28:40.747 16fbdc Recovering log #26
-2025/04/17-17:28:40.748 16fbdc Reusing old log /mnt/local/git/project.jotliner/client/.vscode/chrome/Default/shared_proto_db/000026.log 
-2025/04/17-17:28:40.792 16fbdd Level-0 table #30: started
-2025/04/17-17:28:40.799 16fbdd Level-0 table #30: 106932 bytes OK
-2025/04/17-17:28:40.801 16fbdd Delete type=0 #26
