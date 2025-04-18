@@ -1,98 +1,63 @@
-#body {
+html,body {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    margin: 0px;
+    display: flex;
+    flex-direction: column;     /* stack items vertically */
+    background-color: lightgrey;
+}
+
+/*********************************************************************************************************************/
+#divTitleBar { /* show currentbook<if at bookpage> */
+    position: relative;
+    height: 30px;
+    background-color: rgb(200, 200, 230);
+}
+/*********************************************************************************************************************/
+#divToolbar {
+    position: relative;
+    height: 30px;
+    background-color: rgb(173, 207, 230);
+    /* display:none; */
+    /* overflow: hidden; */
+}
+
+#divMainView {
+    position: relative;
+    background-color:blueviolet;
+    height: 100%;
+}
+
+#divLeftView {
+    position: absolute;
+    background-color: turquoise;
+    left: 0px;
+    width: 100px;   /* see divRightView left:px */
+    top: 0px;
+    bottom: 0px;
+}
+
+#divRightView {
+    position: absolute;
+    /* background-color: magenta; */
+    left:100px;     /* see divLeftView width:px */
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+}
+
+#docWrapper {
     position: absolute;
     left: 0px;
     top: 0px;
     right: 0px;
     bottom: 0px;
     /* border: 1px solid black; */
-    background-color: lightgrey;
-    overflow: hidden;   /* hide content that extends outside the box */
-    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
-}
-
-#docWrapper {
-    position: absolute;
-    left: 20px;
-    top: 20px;
-    right: 20px;
-    bottom: 20px;
-    border: 1px solid black;
     background-color: lightpink;
     overflow: hidden;   /* hide content that extends outside the box */
     white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
 }
 
-#wrapper1 {
-    position: relative;
-    left: 20px;
-    top: 20px;
-    right: 510px;
-    bottom: 20px;
-    border: 1px solid black;
-    background-color: lightpink;
-    overflow: hidden;   /* hide content that extends outside the box */
-    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
-}
-
-#wrapper2 {
-    position: relative;
-    left: 510px;
-    top: 20px;
-    right: 20px;
-    bottom: 20px;
-    border: 1px solid black;
-    background-color: lightpink;
-    overflow: hidden;   /* hide content that extends outside the box */
-    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
-}
-
-#box000 {
-    position: relative;     /* Important for absolute positioning context */
-    left: 20px;
-    top: 20px;
-    width: 90%;
-    height: 90%;
-    border: 1px solid black;
-    background-color: lightblue;
-    overflow: hidden;   /* hide content that extends outside the box */
-    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
-}
-
-#box000_000 {
-    position: relative;     /* Important for absolute positioning context */
-    left: 100px;
-    top: 100px;
-    width: 100px;
-    height: 200px;
-    border: 1px solid black;
-    overflow: hidden;   /* hide content that extends outside the box */
-    z-index: 1;
-    background-color: lightgreen;
-    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
-}
-
-#box000_001 {
-    position: relative;     /* Important for absolute positioning context */
-    left: 50%;
-    top: 50%;
-    width: 150px;
-    height: 150px;
-    transform: translate(-50%, -50%); /* Center the element */
-    z-index: 3;
-    border: 1px solid black;
-    background-color: lightgreen;
-    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
-}
-
-#box000_002 {
-    position: relative;     /* Important for absolute positioning context */
-    right: 100px;
-    bottom: 100px;
-    width: 100px;
-    height: 200px;
-    border: 1px solid black;
-    overflow: hidden;   /* hide content that extends outside the box */
-    z-index: 2;
-    background-color: lightgreen;
-    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
-}

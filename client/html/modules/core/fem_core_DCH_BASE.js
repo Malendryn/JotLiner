@@ -39,6 +39,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
         dch.parent = parent;
         if (dch.hasDiv) {                                   // is dch a visible object that needs a <div> to render in? 
             dch.div = document.createElement("div");        // create div
+            dch.div.dchHandlerDiv = true;                   // flag to let me find it from any child
             let parentDiv;
             if (dch.parent == null) {                               // if self has no parent...
                 parentDiv = document.getElementById("docWrapper");  // attach div to outermost <div id="docWrapper">
