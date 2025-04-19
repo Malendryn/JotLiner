@@ -9,11 +9,14 @@
 // ==== FROM fem_core_Functions.js ====================================================================================
 // --------       shutdown(event)          called before server exits entirely.  closes database and does other cleanup
 // -------- async msDelay(ms)              cause a delay of ms,  EG: 'await FF.msDelay(1500);'
-// -------- async makeUUID()               make and return a UUID
-// -------- async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
+// uuid   = async makeUUID()               make and return a UUID
+// hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
 // -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
 // -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
 
+// ==== FROM fem_core_WSockHandler.js ====================================================================================
+// pkt    = makePacket(name)               create and return a new packet
+// pkt    = parsePacket(stream)			   reconstruct a packet instance from the stream
 // ==== FROM fem_core_DocLoader.js ===========================================================================
 // return   async fcLoader.load(sr)		   load a SINGLE DocComponent from StreamReader and return it
 

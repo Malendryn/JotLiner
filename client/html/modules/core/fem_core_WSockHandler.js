@@ -1,12 +1,11 @@
 
 
-// this could have been done as toplevel code instead of via init() but I wanted to test init out
-export async function init() {
+export async function init() {          // load, init, and establish connection to client before returning (RSTODO RSFIX could fail if remote!)
     return new Promise(async (resolve, reject) => {
-        const wsUrl = "ws://localhost:3000";
+        const wsUrl = "ws://localhost:" + FG.wssPort;
         console.log("WebSocket connecting to ", wsUrl, "...");
         
-        FG.ws = new WebSocket(wsUrl);                   // Connect to the same port as the Express server
+        FG.ws = new WebSocket(wsUrl);                   // Connect to the same port as the Express server  RSTODO RSFIX retry if fail
         
         FG.ws.onopen = () => {
             console.log("WebSocket connection opened");
@@ -21,8 +20,7 @@ export async function init() {
             FG.ws = new WebSocket(wsUrl);               // RE-Connect...
         };
 
-         FG.sendWS = async (packet) => {
-            debugger;
+        FG.sendWS = async (packet) => {
             FG.ws.send(packet);
         }
 
@@ -32,4 +30,5 @@ export async function init() {
         // return;
     });
 };
+
 

@@ -25,23 +25,40 @@ html,body {
     /* overflow: hidden; */
 }
 
+/*/////////////below is the lower view comprising the whole thing, leftside index, sizer bar, and rightside doc view */
 #divMainView {
     position: relative;
     background-color:blueviolet;
     height: 100%;
 }
-
 #divIndexView {
     position: absolute;
     background-color: turquoise;
     left: 0px;
-    width: 100px;   /* see divIndexDocSizer left:px */
+    width: 200px;   /* see divIndexDocSizer left:px */
     top: 0px;
     bottom: 0px;
+    overflow: hidden;   /* hide content that extends outside the box */
+    white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
+}
+#divIndexView > #index-details {
+    background-color: green;
+    padding-left: 4px;
+}
+#divIndexView > #index-details ul {
+    margin-left: 20px;
+    list-style-type: none;
+    padding-left: 0;
+    background-color: lightcyan;
+}
+#divIndexView > #index-details > li {
+    list-style-type: none;
+    padding-left: 0;
+    background-color: rgb(0, 174, 255);
 }
 #divIndexDocSizer {
     position: absolute;
-    left: 100px;    /* see divIndexView width:px */
+    left: 200px;    /* see divIndexView width:px */
     width: 6px;     /* see divDocView left:px */
     top: 0px;
     bottom: 0px;
@@ -53,12 +70,11 @@ html,body {
 #divDocView {
     position: absolute;
     /* background-color: magenta; */
-    left:106px;     /* see divIndexDocSizer width:px */
+    left:206px;     /* see divIndexDocSizer width:px */
     right: 0px;
     top: 0px;
     bottom: 0px;
 }
-
 #docWrapper {
     position: absolute;
     left: 0px;

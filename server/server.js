@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import { WebSocketServer } from 'ws';
+// import { WebSocketServer } from 'ws';
 import path from 'path';
 
 import { fileURLToPath } from 'url';
@@ -9,6 +9,8 @@ import { dirname } from 'path';
 //// Absolute minimum to get the ball rolling /////////////////////////////////////////////////////////////////////////
 globalThis.BG = {}; // global 'Backend Globals' variables   (see csm_core_Globals.js for details)
 globalThis.BF = {}; // global 'Backend Functions' functions (see csm_core_Functions.js for details)
+
+BG.wssPort = 3000;      // must match wssPort in client/index.js
 
 BG.basePath = fileURLToPath(import.meta.url);       // "file:///<somewhere>/server/server.js"
 BG.basePath = dirname(BG.basePath);                 // "file:///<somewhere>/server"
@@ -34,10 +36,7 @@ BF.loadModule = async (modulePath, exitOnFail = true) => {       // load a modul
     });
 };
 
-//// END Absolute minimum to get the ball rolling /////////////////////////////////////////////////////////////////////
 
-
-BG.port = 3000;      // must match port in intex.html's wss port
 
 
 async function start() {
@@ -58,26 +57,28 @@ async function start() {
     const app = express();
     app.use(express.static(path.join(BG.basePath, 'client/html')));
 
-    const server = http.createServer(app);
-    server.listen(BG.port, () => {
-        console.log(`Server listening at http://localhost:${BG.port}`);
+    BG.httpServer = http.createServer(app);
+    BG.httpServer.listen(BG.wssPort, () => {
+        console.log(`Server listening at http://localhost:${BG.wssPort}`);
     });
     
-    const wss = new WebSocketServer({ server });
-    wss.on('connection', (ws) => {
-      console.log('Client connected');
+    await BF.loadModule("./modules/core/bem_core_WSockHandler.js");
+
+    // const wss = new WebSocketServer({ server });
+    // wss.on('connection', (ws) => {
+    //   console.log('Client connected');
     
-      ws.on('message', (message) => {
-        console.log(`Received: ${message}`);
-        ws.send(`Server: ${message}`);
-      });
+    //   ws.on('message', (message) => {
+    //     console.log(`Received: ${message}`);
+    //     ws.send(`Server: ${message}`);
+    //   });
     
-      ws.on('close', () => {
-        console.log('Client disconnected');
-      });
+    //   ws.on('close', () => {
+    //     console.log('Client disconnected');
+    //   });
     
-      ws.send('Welcome!');
-    });
+    //   ws.send('Welcome!');
+    // });
     
     // now we just sit back and let websockets handle everything from here on in
 }

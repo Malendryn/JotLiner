@@ -1,23 +1,21 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
+
+
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-19 ------------------------------------------------------------------------------------------------------------
+* created the basics of constructing->sending->deconstructing packets, chose classes instead of dicts as I can better
+  enforce the structure.  (general use:  FG.makePacket(), then packet.send())
+
+
+
+2025-04-18 ------------------------------------------------------------------------------------------------------------
 * renamed fem_core_TKMHandlers.js to fem_core_TKMEvtHandlers.js and added other events like leftright dragbar etc.
 * got the index/doc resizebar working now, had to work at it!
 * moved the TKM mousemove/up eventlistener add/remove actions inside the mousedown function
 
-
-much todo yet just on sizing!
-still have to decide on what modifier keys (ctrl,alt,  doubletap-ctrl, etc)
-have to add dragsizing when on a corner of the box (not just dragging the whole box)
-  (could do this either when nearest to a corner (say within 8px, LIMITS minsize!)
-       OR by a modifier -- adds complexity )
-  maybe add a click+mod+mousedown that switches us into a 'mode' that is this whole drag/size etc, uses the titlebar
-     with icons for 'move,resize' etc... also shows xylrtb in titlebar and allows direct editing of them
-      a little slower but a LOT more powerful!  
 
 2025-04-18 ------------------------------------------------------------------------------------------------------------
 * found easy way to find handler's toplevel div, by dropping a 'dchHandlerDiv' property on it then climbing the
