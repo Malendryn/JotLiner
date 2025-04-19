@@ -34,7 +34,7 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_Functions.js");        // populate basics of FF
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");     // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");         // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
-    await FF.loadModule("./modules/core/fem_core_TKMHandlers.js");      // Toplevel Kbd/Mouse HandlerFuncs like mousedown to move divs, etc...
+    await FF.loadModule("./modules/core/fem_core_TKMEvtHandlers.js");   // Toplevel Kbd/Mouse HandlerFuncs like mousedown to move divs, etc...
 
     mod = await FF.loadModule("./modules/shared/shared_StreamReader.js");       // done this way so can name as FG=frontend BG=backend
     FG.StreamReader = mod.StreamReader;     // its on FG cuz it's a class, not yet instanced

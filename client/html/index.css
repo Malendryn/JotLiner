@@ -31,19 +31,29 @@ html,body {
     height: 100%;
 }
 
-#divLeftView {
+#divIndexView {
     position: absolute;
     background-color: turquoise;
     left: 0px;
-    width: 100px;   /* see divRightView left:px */
+    width: 100px;   /* see divIndexDocSizer left:px */
     top: 0px;
     bottom: 0px;
 }
-
-#divRightView {
+#divIndexDocSizer {
+    position: absolute;
+    left: 100px;    /* see divIndexView width:px */
+    width: 6px;     /* see divDocView left:px */
+    top: 0px;
+    bottom: 0px;
+    background-Color: darkgrey;
+}
+#divIndexDocSizer:hover {
+    cursor:col-resize;
+}
+#divDocView {
     position: absolute;
     /* background-color: magenta; */
-    left:100px;     /* see divLeftView width:px */
+    left:106px;     /* see divIndexDocSizer width:px */
     right: 0px;
     top: 0px;
     bottom: 0px;
