@@ -1,27 +1,38 @@
+// globalThis.WS = {} must be defined already.  (see index.js or server.js)
+
+WS.__waitList = {};  // dict of packetId: [TimeInserted, callback]
 
 
 export async function init() {          // load, init, and establish connection to client before returning (RSTODO RSFIX could fail if remote!)
     return new Promise(async (resolve, reject) => {
-        const wsUrl = "ws://localhost:" + FG.wssPort;
+        const wsUrl = "ws://localhost:" + WS.wssPort;
         console.log("WebSocket connecting to ", wsUrl, "...");
         
-        FG.ws = new WebSocket(wsUrl);                   // Connect to the same port as the Express server  RSTODO RSFIX retry if fail
-        
-        FG.ws.onopen = () => {
+        WS.ws = new WebSocket(wsUrl);               // Connect to the same port as the Express server  RSTODO RSFIX retry if fail
+        // WS.ws.binaryType = 'arraybuffer';           // always force arraybuffer (uint8array)
+
+        WS.ws.onopen = () => {
             console.log("WebSocket connection opened");
         };
         
-        FG.ws.onmessage = (event) => {
-            console.log("PktRcvd=", event.data);
+        WS.ws.onmessage = (event) => {
+            process(event.data);                      // NOTE we use event.data here, but data.toString() on nodeServer! 
         };
         
-        FG.ws.onclose = () => {
+        WS.ws.onclose = () => {
             console.log("WebSocket connection closed, reconnecting...");
-            FG.ws = new WebSocket(wsUrl);               // RE-Connect...
+            WS.ws = new WebSocket(wsUrl);               // RE-Connect...
         };
 
-        FG.sendWS = async (packet) => {
-            FG.ws.send(packet);
+        WS.send = (pkt) => {
+            debugger; const stream = JSON.stringify(this);
+            const ss = pkt.constructor.name + "|" + stream;
+            WS.ws.send(ss);
+        }
+
+        WS.sendExpect = (pkt, callback) => {     // send packet and expect a response, fire callback(pkt) which MAY BE A 'new Error()' !
+            debugger; WS.__waitList[pkt.__id] = [Date.now(), callback];
+            WS.send(this);
         }
 
         resolve(this);
@@ -32,3 +43,19 @@ export async function init() {          // load, init, and establish connection 
 };
 
 
+
+function process(data) {
+    const pkt = WS.parsePacket(data);
+
+    debugger; if ("__r" in pkt) {                     // is it a response packet?
+        if (pkt.__id in WS.__waitList) {    // is it in waitList?  if not, probably timed out
+            debugger; let callback = WS.__waitList[pkt.__id][1];
+            delete WS.__waitList[pkt.__id];
+            callback(pkt);
+        }
+        // if we got here just toss the packet as a timed-out packet
+    } else {
+        debugger; pkt.process();        
+    }
+   debugger; 
+}

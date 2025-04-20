@@ -7,10 +7,11 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 //// Absolute minimum to get the ball rolling /////////////////////////////////////////////////////////////////////////
-globalThis.BG = {}; // global 'Backend Globals' variables   (see csm_core_Globals.js for details)
-globalThis.BF = {}; // global 'Backend Functions' functions (see csm_core_Functions.js for details)
+globalThis.BG  = {}; // global 'Backend Globals' variables   (see bem_core_Globals.js for details)
+globalThis.BF  = {}; // global 'Backend Functions' functions (see bem_core_Functions.js for details)
+globalThis.WS  = {}; // WebSocket and Packet transmit/receive CLASSES, funcs, etc
 
-BG.wssPort = 3000;      // must match wssPort in client/index.js
+WS.wssPort = 3000;      // must match wssPort in client/index.js
 
 BG.basePath = fileURLToPath(import.meta.url);       // "file:///<somewhere>/server/server.js"
 BG.basePath = dirname(BG.basePath);                 // "file:///<somewhere>/server"
@@ -43,43 +44,19 @@ async function start() {
     await BF.loadModule("./modules/core/bem_core_Globals.js");      // load globals first, cuz everything lives off globals, and connect it to globalThis.SG
     await BF.loadModule("./modules/core/bem_core_Functions.js");    // load functions next, and connect it to globalThis.SF
 
-// RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO RSTODO track all ws connections for broadcasting purposes
-
-  // BG.dbRoot = path.join(__dirname, "db");
-  // await BG.loadModule("./modules/bem_Functions.mjs");
-
-  // await BF.loadModule("./modules/db_sqlite3/bem_dbBASE.mjs");
-  // await BF.loadModule("./modules/db_sqlite3/bem_db_server.mjs");
-
-    // let module = await BF.loadModule("./modules/core/bem_core_WSockHandler.js");
-    // module._init(8888);   // fire up websocket server
+    await BF.loadModule("../client/html/modules/shared/shared_PacketDefs.js");   // load the known SHARED baseline packet definitions
+    await BF.loadModule("./modules/core/bem_core_PacketHandlers.js");            // load the serverside handlers for incoming packets
 
     const app = express();
     app.use(express.static(path.join(BG.basePath, 'client/html')));
 
-    BG.httpServer = http.createServer(app);
-    BG.httpServer.listen(BG.wssPort, () => {
-        console.log(`Server listening at http://localhost:${BG.wssPort}`);
+    WS.httpServer = http.createServer(app);
+    WS.httpServer.listen(WS.wssPort, () => {
+        console.log(`Server listening at http://localhost:${WS.wssPort}`);
     });
     
     await BF.loadModule("./modules/core/bem_core_WSockHandler.js");
 
-    // const wss = new WebSocketServer({ server });
-    // wss.on('connection', (ws) => {
-    //   console.log('Client connected');
-    
-    //   ws.on('message', (message) => {
-    //     console.log(`Received: ${message}`);
-    //     ws.send(`Server: ${message}`);
-    //   });
-    
-    //   ws.on('close', () => {
-    //     console.log('Client disconnected');
-    //   });
-    
-    //   ws.send('Welcome!');
-    // });
-    
     // now we just sit back and let websockets handle everything from here on in
 }
 

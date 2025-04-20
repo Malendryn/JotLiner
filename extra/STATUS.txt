@@ -4,18 +4,23 @@
 
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-19 ------------------------------------------------------------------------------------------------------------
+* added FF.registerPacketClass() as a better means of registering packet classes than I had earlier
+* added process() to baseclass, to be overridden by the client or serverside, to handle that end of the processing
+  so that a single packetclass can be handled differently depending on which side is receiving/processing it
+      see new files [bf]_em_core_PacketHandlers.js
+* packetsystem now sends/recieves and reconstructs classes that extend PacketBASE that are largely 'self-aware'
+  and can largely handle themselves at the receiving end.
+* started adding the basics of a sendExpect on client side that stores {packetId: [timeInitiated,callback]}
+
 2025-04-19 ------------------------------------------------------------------------------------------------------------
 * created the basics of constructing->sending->deconstructing packets, chose classes instead of dicts as I can better
   enforce the structure.  (general use:  FG.makePacket(), then packet.send())
-
-
 
 2025-04-18 ------------------------------------------------------------------------------------------------------------
 * renamed fem_core_TKMHandlers.js to fem_core_TKMEvtHandlers.js and added other events like leftright dragbar etc.
 * got the index/doc resizebar working now, had to work at it!
 * moved the TKM mousemove/up eventlistener add/remove actions inside the mousedown function
-
 
 2025-04-18 ------------------------------------------------------------------------------------------------------------
 * found easy way to find handler's toplevel div, by dropping a 'dchHandlerDiv' property on it then climbing the

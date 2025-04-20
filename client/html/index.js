@@ -3,9 +3,10 @@ globalThis.FG  = {}; // global 'Frontend Globals' variables   (see fem_core_Glob
 FG.VERSION = "1.0";
 globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Functions.js for details)
 globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Shared.js for details)
-globalThis.DCH = {}; // document component handler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
+globalThis.DCH = {}; // DocumentComponentHandler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
+globalThis.WS  = {}; // WebSocket and Packet transmit/receive CLASSES, funcs, etc
 
-FG.wssPort = 3000;     // must match port in server/server.js
+WS.wssPort = 3000;     // must match port in server/server.js
 
 FF.loadModule = async (modulePath) => {
     return new Promise(async (resolve, reject) => {
@@ -58,12 +59,16 @@ window.addEventListener('load', async function() {
 // RSTEST END of doc streamreading/displaying
 
 // RSTEST BEGIN of making/sending/parsing wss packets
-    const qq = FF.makePacket("PacketTest");
-    qq.send();
-    let zz = JSON.stringify(qq);
-    let rr = FF.parsePacket("PacketTest|" + zz);
-    rr.send();
+    const qq = WS.makePacket("GetDoc");
+    qq.docId="TESTDOC.txt";
+    debugger; let xx = WS.sendExpect(gotDoc);
 // RSTEST END of making/sending/parsing wss packets
 });
 
 
+function gotDoc(pkt) {
+    if (pkt instanceof Error) {
+        debugger;
+    }
+    debugger;
+}

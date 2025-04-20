@@ -1,3 +1,4 @@
+file:///mnt/local/git/project.jotliner/server/modules/core/bem_core_WSockHandler.js {"mtime":1745095197746,"ctime":1743362359172,"size":1839,"etag":"3e4n9b8a01sa","orphaned":false,"typeId":""}
 // globalThis.WS = {} must be defined already.  (see index.js or server.js)
 
 export async function init() {                      // load, init, and establish wss before returning
@@ -46,7 +47,10 @@ WS.send = (ws, pkt) => {
 
 
 function process(ws, data) {
-    const pkt = WS.parsePacket(data);
-    pkt.process(ws);
-    debugger;
+    debugger; const pkt = WS.parsePacket(data);
+    const response = pkt.process(ws);
+    if (response) {
+        debugger; pkt.__r == 1;     // so client knows without doubt this is a response packetf
+        WS.send(ws, pkt);
+    }
 }
