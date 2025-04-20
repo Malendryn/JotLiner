@@ -25,14 +25,14 @@ export async function init() {          // load, init, and establish connection 
         };
 
         WS.send = (pkt) => {
-            debugger; const stream = JSON.stringify(this);
+            const stream = JSON.stringify(pkt);
             const ss = pkt.constructor.name + "|" + stream;
             WS.ws.send(ss);
         }
 
         WS.sendExpect = (pkt, callback) => {     // send packet and expect a response, fire callback(pkt) which MAY BE A 'new Error()' !
-            debugger; WS.__waitList[pkt.__id] = [Date.now(), callback];
-            WS.send(this);
+            WS.__waitList[pkt.__id] = [Date.now(), callback];
+            WS.send(pkt);
         }
 
         resolve(this);
@@ -47,9 +47,9 @@ export async function init() {          // load, init, and establish connection 
 function process(data) {
     const pkt = WS.parsePacket(data);
 
-    debugger; if ("__r" in pkt) {                     // is it a response packet?
+    if ("__r" in pkt) {                     // is it a response packet?
         if (pkt.__id in WS.__waitList) {    // is it in waitList?  if not, probably timed out
-            debugger; let callback = WS.__waitList[pkt.__id][1];
+            let callback = WS.__waitList[pkt.__id][1];
             delete WS.__waitList[pkt.__id];
             callback(pkt);
         }
@@ -57,5 +57,4 @@ function process(data) {
     } else {
         debugger; pkt.process();        
     }
-   debugger; 
 }

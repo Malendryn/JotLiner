@@ -45,30 +45,30 @@ window.addEventListener('load', async function() {
 
     await FF.newDoc();        // initialize system with an empty document  (unneeded as .load below does it now)
 
-// RSTEST BEGIN of doc streamreading/displaying 
-// first lets load a test document from the __TESTDOC__.js file
-    let module = await FF.loadModule("./__TESTDOC__.js");   // describes minimal document format as well as implements and returns a test doc
-    let doc    = module.doc;                                // extract the test doc from the module
-    let sr     = new FG.StreamReader(doc);                  // turn it into a StreamReader
+// // RSTEST BEGIN of doc streamreading/displaying ///////////////////////////////////////////////////////////////////////
+// // first lets load a test document from the __TESTDOC__.js file
+//     let module = await FF.loadModule("./__TESTDOC__.js");   // describes minimal document format as well as implements and returns a test doc
+//     let doc    = module.doc;                                // extract the test doc from the module
+//     let sr     = new FG.StreamReader(doc);                  // turn it into a StreamReader
 
-// now lets test an actual loading and rendering of it
-    FG.docRoot = await FF.DocLoader.loadDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
-
-    await FG.docRoot.render();
-
-// RSTEST END of doc streamreading/displaying
+// // now lets test an actual loading and rendering of it
+//     FG.docRoot = await FF.DocLoader.loadDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
+//     await FG.docRoot.render();
+// // RSTEST END of doc streamreading/displaying /////////////////////////////////////////////////////////////////////////
 
 // RSTEST BEGIN of making/sending/parsing wss packets
-    const qq = WS.makePacket("GetDoc");
-    qq.docId="TESTDOC.txt";
-    debugger; let xx = WS.sendExpect(gotDoc);
+    const pkt = WS.makePacket("GetDoc");
+    pkt.docId = "TESTDOC.txt";
+    debugger; let xx = WS.sendExpect(pkt, gotDoc);
 // RSTEST END of making/sending/parsing wss packets
 });
 
 
-function gotDoc(pkt) {
-    if (pkt instanceof Error) {
+async function gotDoc(pkt) {
+    debugger; if (pkt instanceof Error) {
         debugger;
     }
-    debugger;
+    let sr = new FG.StreamReader(pkt.doc);
+    FG.docRoot = await FF.DocLoader.loadDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
+    await FG.docRoot.render();
 }
