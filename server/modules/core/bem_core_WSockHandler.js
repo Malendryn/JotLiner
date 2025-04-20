@@ -46,7 +46,10 @@ WS.send = (ws, pkt) => {
 
 
 function process(ws, data) {
-    const pkt = WS.parsePacket(data);
-    pkt.process(ws);
-    debugger;
+    debugger; const pkt = WS.parsePacket(data);
+    const response = pkt.process(ws);
+    if (response) {
+        debugger; pkt.__r == 1;     // so client knows without doubt this is a response packetf
+        WS.send(ws, pkt);
+    }
 }
