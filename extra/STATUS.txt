@@ -4,6 +4,9 @@
 
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
+* reorganized the directories so that the entire 'envrc' handling system has been moved UP out of the git repo level
+  which should make the project more 'github-friendly' as what's in git is now only what's relevant to the project
+  
 2025-04-19 ------------------------------------------------------------------------------------------------------------
 * added FF.registerPacketClass() as a better means of registering packet classes than I had earlier
 * added process() to baseclass, to be overridden by the client or serverside, to handle that end of the processing
