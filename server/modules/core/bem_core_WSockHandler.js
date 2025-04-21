@@ -21,7 +21,7 @@ export async function init() {                      // load, init, and establish
                 // });
 // end EXAMPLE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-                process(ws, data);
+                process(ws, data);      // no await here to prevent bottlenecking
             });
 
             ws.on('close', () => {                  // remove connection from array
@@ -39,17 +39,18 @@ export async function init() {                      // load, init, and establish
 
 
 WS.send = (ws, pkt) => {
-    debugger; const stream = JSON.stringify(this);
+    const stream = JSON.stringify(pkt);
     const ss = pkt.constructor.name + "|" + stream;
     ws.send(ss);
 }
 
 
-function process(ws, data) {
-    debugger; const pkt = WS.parsePacket(data);
-    const response = pkt.process(ws);
+async function process(ws, data) {
+    const pkt = WS.parsePacket(data);
+    const response = await pkt.process();  
     if (response) {
-        debugger; pkt.__r == 1;     // so client knows without doubt this is a response packetf
-        WS.send(ws, pkt);
+        response.__id = pkt.__id;       // put original id into response packet
+        response.__r = 1;               // and add '__r' so client knows without doubt this is a response packet
+        WS.send(ws, response);
     }
 }
