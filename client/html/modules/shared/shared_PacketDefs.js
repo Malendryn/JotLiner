@@ -1,4 +1,4 @@
-// globalThis.WS = {} must be defined already.  (see index.js or server.js)
+// globalThis.WS = {} is defined already.  (see index.js or server.js)
 
 WS.__classes = {};    // these HAVE to go on FG cuz they get lost when we exit loadModule EVEN THO they're only ever used in THIS module
 WS.__nextNewPacketID = 1;   // likewise with this var
@@ -39,8 +39,8 @@ class PacketBASE {
 
 
 /////////////////////////////////Packets//////////////////////////////////////////////////
-WS.registerPacketClass(class Error extends PacketBASE {
-    msg;    // msg indicating what the error was
+WS.registerPacketClass(class Fault extends PacketBASE {
+    msg;    // msg indicating what the fault was
 });
 
 WS.registerPacketClass(class GetDoc extends PacketBASE {

@@ -1,4 +1,4 @@
-// globalThis.WS = {} must be defined already.  (see index.js or server.js)
+// globalThis.WS = {} is defined already.  (see index.js or server.js)
 
 WS.__waitList = {};  // dict of packetId: [TimeInserted, callback]
 
@@ -18,7 +18,7 @@ export async function init() {          // load, init, and establish connection 
         WS.ws.onmessage = (event) => {
             process(event.data);                      // NOTE we use event.data here, but data.toString() on nodeServer! 
         };
-        
+
         WS.ws.onclose = () => {
             console.log("WebSocket connection closed, reconnecting...");
             WS.ws = new WebSocket(wsUrl);               // RE-Connect...

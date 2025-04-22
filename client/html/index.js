@@ -1,12 +1,12 @@
 
 globalThis.FG  = {}; // global 'Frontend Globals' variables   (see fem_core_Globals.js for details)
-FG.VERSION = "1.0";
 globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Functions.js for details)
 globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Shared.js for details)
 globalThis.DCH = {}; // DocumentComponentHandler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
 globalThis.WS  = {}; // WebSocket and Packet transmit/receive CLASSES, funcs, etc
 
-WS.wssPort = 3000;     // must match port in server/server.js
+FG.VERSION = "1.0";     // system version (primarily for importing/exporting docs and docdata)
+WS.wssPort = 3000;      // must match port in server/server.js
 
 FF.loadModule = async (modulePath) => {
     return new Promise(async (resolve, reject) => {
@@ -37,38 +37,40 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");     // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");
 
-    mod = await FF.loadModule("./modules/shared/shared_StreamReader.js");       // done this way so can name as FG=frontend BG=backend
-    FG.StreamReader = mod.StreamReader;     // its on FG cuz it's a class, not yet instanced
-
-    mod = await FF.loadModule("./modules/shared/shared_DocLoader.js"); // FG.DocLoader -- loads DocComponents from a str
-    FF.DocLoader = new mod.DocLoader();     // its on FF cuz it's already instanced, not a raw class
-
     await FF.newDoc();        // initialize system with an empty document  (unneeded as .load below does it now)
 
 // // RSTEST BEGIN of doc streamreading/displaying ///////////////////////////////////////////////////////////////////////
 // // first lets load a test document from the __TESTDOC__.js file
 //     let module = await FF.loadModule("./__TESTDOC__.js");   // describes minimal document format as well as implements and returns a test doc
 //     let doc    = module.doc;                                // extract the test doc from the module
-//     let sr     = new FG.StreamReader(doc);                  // turn it into a StreamReader
+//     let sr     = new FG.DocParser(doc);                  // turn it into a DocParser
 
 // // now lets test an actual loading and rendering of it
-//     FG.docRoot = await FF.DocLoader.loadDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
+//     FG.docRoot = await FF.DocImporter.importDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
 //     await FG.docRoot.render();
 // // RSTEST END of doc streamreading/displaying /////////////////////////////////////////////////////////////////////////
 
 // RSTEST BEGIN of making/sending/parsing wss packets
     const pkt = WS.makePacket("GetDoc");
     pkt.docId = "TESTDOC.txt";
-    debugger; let xx = WS.sendExpect(pkt, gotDoc);
+    let xx = WS.sendExpect(pkt, gotDoc);
 // RSTEST END of making/sending/parsing wss packets
 });
 
 
 async function gotDoc(pkt) {
-    debugger; if (pkt instanceof Error) {
+    if (pkt instanceof WS.__classes["Fault"]) {
         debugger;
     }
-    let sr = new FG.StreamReader(pkt.doc);
-    FG.docRoot = await FF.DocLoader.loadDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
-    await FG.docRoot.render();
+
+    let imp = await FF.loadModule("./modules/core/fem_core_DocImporter.js");
+    imp = new imp.DocImporter();
+
+    await imp.attach(pkt.doc, null);  // now attach it to the system as new root doc!
+//X    await FG.docRoot.render();
+
+    let exp = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
+    exp = new exp.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
+    let str = await exp.export(FG.docRoot);
+    console.log(str);
 }

@@ -1,35 +1,28 @@
 
 class DCH_BOX extends FG.DCH_BASE {
-    hasDiv    = true;     // see baseclass
-
-    children = [];          // the children handlers inside this box
-
+// this component has children[]
 
     async construct() {
         // debugger;
     }
 
 
-    async loadDoc(sr) {      // this loader loads the 'out of band' stuff not specifically inside a component
-        let numChildren = parseInt(await sr.readNext());
-        while (numChildren-- > 0) {
-            let tmp = await FF.DocLoader.loadDoc(sr, this);    // load a child object
-            this.children.push(tmp);                              // and finally add it to the children of this box
-        }
+    async importData(data) {    // populate this component with data
+        // debugger;
     }
 
 
-    async unloadDoc() {     // this loader loads the 'out of band' stuff not specifically inside a component
-        debugger; return "";
+    async exportData() {       // return data to be preserved/exported as a {}
+        // debugger; return {};
     }
 
     
-    async render() {
-        for (const child of this.children) {
-            await child.render();
-        }
-    }
+    // async render() {
+    //     for (const child of this.children) {
+    //         await child.render();
+    //     }
+    // }
 };
-export { DCH_BOX as DCH };      // always export 'as DCH' for docloader to attach to globalThis.DCH
+export { DCH_BOX as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH
 
 

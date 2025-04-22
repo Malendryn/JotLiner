@@ -81,11 +81,11 @@ function mousedown(evt) {
     m.targetEl = /*discovered el goes here*/evt.target;
     let handlerDiv = m.targetEl;
     try {
-        while (handlerDiv.hasOwnProperty("dchHandlerDiv") != true) { // climb the branch to find the right parent
+        while (handlerDiv.hasOwnProperty("dchHandler") != true) { // climb the branch to find the right parent
             handlerDiv = handlerDiv.parentNode;
         }
     }
-    catch (err) {} // couldn't find a dchHandlerDiv, therefore this element does not belong to my doc
+    catch (err) {} // couldn't find a dchHandler, therefore this element does not belong to my doc
 
     if (!handlerDiv) {
         mouseOp = null;

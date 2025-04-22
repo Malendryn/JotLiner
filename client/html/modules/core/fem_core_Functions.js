@@ -17,8 +17,6 @@
 // ==== FROM fem_core_WSockHandler.js ====================================================================================
 // pkt    = makePacket(name)               create and return a new packet
 // pkt    = parsePacket(stream)			   reconstruct a packet instance from the stream
-// ==== FROM fem_core_DocLoader.js ===========================================================================
-// return   async fcLoader.load(sr)		   load a SINGLE DocComponent from StreamReader and return it
 
 // ==== FROM ????????????????????? ====================================================================================
 // --------       logout()                 detach and forget current user and go back to login screen
@@ -69,13 +67,6 @@ FF.makeHash = async (txt) => {
 }
 
 
-FF.DocLoader = class DocLoader {
-	constructor(doc) {
-		this.doc = doc;
-	}
-};
-
-
 FF.clearDoc = async() => {
 // RSTODO create/call handler detachers here while entire tree and html is all still present
 	if (FG.docRoot) {
@@ -85,6 +76,7 @@ FF.clearDoc = async() => {
 // then nuke it all!
 	const div = document.getElementById("docWrapper");  // attach div to outermost <div id="docWrapper">
 	div.innerHTML = "";									// blowout any existing rendering
+	FG.docRoot = null;
 }
 
 
@@ -93,14 +85,14 @@ FF.newDoc = async () => {
 
 // then create a new doc by adding a single BOX handler as the docRoot
 	const dch = await FG.DCH_BASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel BOX
-	// dch.div.style.position    = "absolute";
-	dch.div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.div.style.top/bottom/etc during unloadDoc()
-	dch.div.style.top    = "0px";	// set here cuz .create() didn't get a StreamReader passed to it
-	dch.div.style.right  = "0px";
-	dch.div.style.bottom = "0px";
-	dch.div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
-	//	dch.div.style.overflow = "hidden";
-	//	dch.div.style.whiteSpace = "nowrap";		// unnecessary in a BOX as everything inside it is more divs
+	// dch._div.style.position    = "absolute";
+	dch._div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch._div.style.top/bottom/etc during exportDoc()
+	dch._div.style.top    = "0px";	// set here cuz .create() didn't get a DocParser passed to it
+	dch._div.style.right  = "0px";
+	dch._div.style.bottom = "0px";
+	dch._div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
+	//	dch._div.style.overflow = "hidden";
+	//	dch._div.style.whiteSpace = "nowrap";		// unnecessary in a BOX as everything inside it is more divs
 	//
 	FG.docRoot = dch;
 };

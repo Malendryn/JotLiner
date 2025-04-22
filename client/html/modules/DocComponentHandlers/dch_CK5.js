@@ -1,7 +1,5 @@
 
 class DCH_CKEditor5 extends FG.DCH_BASE {     // https://ckeditor.com/docs/ckeditor5/latest/index.html
-    hasDiv    = true;  // see baseclass
-
     el;                 // becomes childof this.div and is another  "div"  (see construct())
 
 
@@ -20,22 +18,22 @@ class DCH_CKEditor5 extends FG.DCH_BASE {     // https://ckeditor.com/docs/ckedi
     }
 
 
-    async loadDoc(sr) {
-        debugger; this.el.innerHTML = await sr.readChunk();
+    async importData(data) {    // populate this component with data
+        this.el.innerHTML = data["C"];        // C for content
     }
     
     
-    async unloadDoc() {     // this loader loads the 'out of band' stuff not specifically inside a component
-        debugger; return "";
+    async exportData() {       // return data to be preserved/exported as a {}
+        debugger; return { "C" : this.el.innerHTML };
     }
     
     
-    async render() {
-// we don't use render cuz this.el.innerHTML handles all that for us automatically
-// --however-- another way is to set this.txt = await sr.readChunk() in loadDoc() above, and then here
-// use this.el.innerHTML = this.txt
-// but this.el already fully handles the textology entirely so we can get away with 
-// storing the content directly in it, instead of storing it on this object AND inside this.el
-    }
+//     async render() {
+// // we don't use render cuz this.el.innerHTML handles all that for us automatically
+// // --however-- another way is to set this.txt = await sr.readChunk() in importDoc() above, and then here
+// // use this.el.innerHTML = this.txt
+// // but this.el already fully handles the textology entirely so we can get away with 
+// // storing the content directly in it, instead of storing it on this object AND inside this.el
+//     }
 };
-export { DCH_CKEditor5 as DCH };      // always export 'as DCH' for docloader to attach to globalThis.DCH
+export { DCH_CKEditor5 as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH

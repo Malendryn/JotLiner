@@ -1,12 +1,43 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
-
-
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+* added addListener(), removeListenerById(id), removeListenerByEA(el,action), removeAllListeners() to DCH_BASE
+* added destroy() and destruct() to DCH_BASE
+* renamed DCH_BASE.div to ._div to better clarify 'belongs to me'
+
+2025-04-22 ------------------------------------------------------------------------------------------------------------
+* re-documented the new fileformat in extra/DocFileFormat.odt  (new format starts with "@1.0;" instead of "V=3;1.0")
+* created DocExporter which caused recreating DocLoader+DocParser as DocImporter for comparability
+* changed <div.dchHandlerDiv=true>  to <div.dchHandler=handler>
+* replaced shared_docParser.js with fem_core_DocImporter.js which handles loading entire docs or just components too
+* added fem_core_DocExporter.js that is successfully streaming the objects to an output stream!
+
+* the importer/exporter ops are a little quirky in that the importer actually attaches to/replaces existing doc but
+  the exporter only turns it into a stringStream.
+
+TODO:  attachHandler, detachHandler, detachHandlers
+
+2025-04-21 ------------------------------------------------------------------------------------------------------------
+* once again revamped entire doc structure, now during the DocParser we use readNext (almost exclusively JUST to read the VER)
+  followed by a series of readComponent() which returns {cname, style, data}
+* new loader format is now working.  It puts new limitations on how objects load but it gives more control back to the
+  loader, it also moves the loading of children to the loader so that components like 'BOX' don't do it internally any more.
+
+Now I just have to rewrite the entire documentation!
+
+2025-04-20 ------------------------------------------------------------------------------------------------------------
+* Eureka!  We have a full websock cycle of 'backendStart, frontendStart, F2B askfor doc, B2F deliver doc, frontendRender!
+
+2025-04-20 ------------------------------------------------------------------------------------------------------------
 * reorganized the directories so that the entire 'envrc' handling system has been moved UP out of the git repo level
   which should make the project more 'github-friendly' as what's in git is now only what's relevant to the project
-  
+
+We seem to have been successful in moving things around without breaking anything, however loading vscode seems to no
+longer keep individual track of our main project window location.  (it still remembers what files were opened tho and
+even if files are open in detached windows, only the main window's location is semi-lost)  so I'll just have to live
+with that.
+
+
 2025-04-19 ------------------------------------------------------------------------------------------------------------
 * added FF.registerPacketClass() as a better means of registering packet classes than I had earlier
 * added process() to baseclass, to be overridden by the client or serverside, to handle that end of the processing

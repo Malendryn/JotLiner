@@ -1,8 +1,8 @@
 on my local machine the full path to the git toplevel is:
-/mnt/local/envrc/node/project.jotliner
-/mnt/local/              is my general purpose 'local' project and utility mountpoint
-/mnt/local/envrc/        houses a bunch of different .envrc-controlled subdirs for handling different projects
-/mnt/local/envrc/node/   has .envrc and .envrc_home rigged for vscode and tuned for nodejs, js, and html projects
+/mnt/local/envrc/node/project.jotliner  houses .git
+/mnt/local/                             is my general purpose 'local' project and utility mountpoint
+/mnt/local/envrc/                       houses a bunch of different .envrc-controlled subdirs for handling different projects
+/mnt/local/envrc/node/                  has .envrc and .envrc_home rigged for vscode and tuned for nodejs, js, and html projects
                                
 
 
