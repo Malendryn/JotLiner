@@ -5,12 +5,12 @@
 
 
 class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
-    el;                 // becomes childof this.div and is a "div" that is "contexteditable"  (see construct())
+    el;                 // becomes childof this._div and is a "div" that is "contexteditable"  (see construct())
 
 
     async construct() {
         this.el = document.createElement("div");
-        this.div.appendChild(this.el);
+        this._div.appendChild(this.el);
         this.el.style.position = "absolute";
         this.el.style.left = "0px";
         this.el.style.top = "0px";

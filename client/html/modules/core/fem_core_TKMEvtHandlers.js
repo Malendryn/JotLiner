@@ -76,7 +76,7 @@ function mousedown(evt) {
     let m = mouseOp;   // just for brevity below
 
 //RSTODO WHEN moving a handled element and not its contents, 
-//     HERE we have to walk 'mouseOp.targetEl' UP to the this.div object that 'owns' the contents of the handler
+//     HERE we have to walk 'mouseOp.targetEl' UP to the this._div object that 'owns' the contents of the handler
 //     and THAT becomes the el to move (seperate from the mouseOp.targetEl so mousemove ?)
     m.targetEl = /*discovered el goes here*/evt.target;
     let handlerDiv = m.targetEl;

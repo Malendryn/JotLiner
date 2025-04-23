@@ -55,6 +55,7 @@ window.addEventListener('load', async function() {
     pkt.docId = "TESTDOC.txt";
     let xx = WS.sendExpect(pkt, gotDoc);
 // RSTEST END of making/sending/parsing wss packets
+    addCustomContextMenu();
 });
 
 
@@ -73,4 +74,50 @@ async function gotDoc(pkt) {
     exp = new exp.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
     let str = await exp.export(FG.docRoot);
     console.log(str);
+}
+
+function addCustomContextMenu() {
+    debugger; const customContextMenu = document.getElementById('customContextMenu');
+
+    window.addEventListener('contextmenu', function(e) {     
+        e.preventDefault(); // Prevent the browser's default context menu
+  
+        customContextMenu.style.left = e.clientX + 'px';           // Position the custom menu at the mouse coordinates
+        customContextMenu.style.top  = e.clientY + 'px';
+        customContextMenu.style.display = 'block';                 // Show the custom menu
+  
+        document.addEventListener('click', closeContextMenu);      // Add listener to close the menu if clicked outside
+    });
+
+    function closeContextMenu(event) {
+        // if (!customContextMenu.contains(event.target)) {
+            customContextMenu.style.display = 'none';
+            document.removeEventListener('click', closeContextMenu);
+        // }
+    }
+  
+    customContextMenu.addEventListener('click', function(e) {    // Handle clicks on the custom menu items
+        const clickedItem = e.target.closest('li');
+        if (clickedItem) {
+            const action = clickedItem.getAttribute('data-action');
+            if (action) {
+                console.log(`Clicked on: ${action}`);
+                switch (action) {                                     // 'go do' whatever was clicked
+                        case 'option1':
+                            console.log("option1 clicked");
+                            break;
+                        case 'option2':
+                            console.log("option2 clicked");
+                            break;
+                        case 'option3':
+                            console.log("option3 clicked");
+                            break;
+                        case 'anotherOption':
+                            alert("another option clicked");
+                            break;
+                }
+            }
+            closeContextMenu(e);            // finally, close(hide) menu
+        }
+    });
 }

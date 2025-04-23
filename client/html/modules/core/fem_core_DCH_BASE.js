@@ -111,19 +111,19 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     static __nextListenerId = 1;
     
     addListener = function(el, action, callback, opts=undefined) {
-        debugger; let id = this.__nextListenerId++;
-        this.__registeredEventListeners.push([id, this, el, action, callback, opts]);
+        debugger; let id = FG.DCH_BASE.__nextListenerId++;
+        FG.DCH_BASE.__registeredEventListeners.push([id, this, el, action, callback, opts]);
         el.addEventListener(action, callback.bind(this), opts); // so the callback knows what dchCmop it's working with
         return id;
     }
 
     
     removeListenerById = function(id) {
-        debugger; for (let idx = 0; idx < this.__registeredEventListeners.length; idx++) {
-            let tmp = this.__registeredEventListeners[idx];
+        debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
+            let tmp = FG.DCH_BASE.__registeredEventListeners[idx];
             if (tmp[0] == id) {
-                el.removeEventListener(tmp[2], tmp[3]);             // unlisten
-                this.__registeredEventListeners.splice(idx, 1);    // and remove
+                el.removeEventListener(tmp[2], tmp[3]);            // unlisten
+                FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
                 return true;
             }
         }
@@ -132,11 +132,11 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     
     
     removeListenerByEA = function(el, action) {
-        debugger; for (let idx = 0; idx < this.__registeredEventListeners.length; idx++) {
-            let tmp = this.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
+        debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
+            let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
             if (tmp[1] == this && tmp[2] == el && tmp[3] == action) {
-                el.removeEventListener(tmp[2], tmp[3]);             // unlisten
-                this.__registeredEventListeners.splice(idx, 1);    // and remove
+                el.removeEventListener(tmp[2], tmp[3]);            // unlisten
+                FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
                 return true;
             }
         }
@@ -145,11 +145,11 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     
     
     removeAllListeners = function() {
-        debugger; for (let idx = this.__registeredEventListeners.length - 1; idx >= 0; idx--) {
-            let tmp = this.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
+        debugger; for (let idx = FG.DCH_BASE.__registeredEventListeners.length - 1; idx >= 0; idx--) {
+            let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
             if (tmp[1] == this) {
                 el.removeEventListener(tmp[2], tmp[3]);             // unListen
-                this.__registeredEventListeners.splice(idx, 1);    // and remove
+                FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
             }
         }
     }

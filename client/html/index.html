@@ -7,9 +7,21 @@
         <meta name="license" content="This work is licensed under the ISC License. (See LICENSE.txt)" />
         <title>JotLiner Client</title>
         <link rel="stylesheet" href="index.css">
+        <link rel="stylesheet" href="contextMenu.css">
     </head>
 
     <body>
+
+        <div id="customContextMenu">
+            <ul>
+                <li data-action="option1">Option 1</li>
+                <li data-action="option2">Option 2</li>
+                <li data-action="option3">Option 3</li>
+                <li data-action="separator" style="border-top: 1px solid #ccc; margin: 5px 0;"></li>
+                <li data-action="anotherOption">Another Option</li>
+            </ul>
+        </div>
+          
         <div id="divTitleBar"> <!--show currentbook<if at bookpage>-->
             <span id="spanCurBook">Book: 
                 <select id="ddsCurBook">

@@ -1,11 +1,11 @@
 
 class DCH_TXA extends FG.DCH_BASE {
-    el;                 // becomes childof this.div and is a "textarea"  (see construct())
+    el;                 // becomes childof this._div and is a "textarea"  (see construct())
 
 
     async construct() {
         this.el = document.createElement("textarea");
-        this.div.appendChild(this.el);
+        this._div.appendChild(this.el);
         this.el.style.position = "absolute";
         this.el.style.left = "0px";
         this.el.style.top = "0px";

@@ -37,7 +37,10 @@ class StringReader {
         }
         const end = Math.min(this.idx + len, this.str.length);
         let data = this.str.substring(this.idx, end);
-        this.idx = end;
+        // this.idx = end;                      // this works but potentially wastes a lot of memory by leaving many copies around
+        this.str = this.str.substring(end);     // so instead we'll shrink the string each time we pull an el
+        this.idx = 0;
+
         if (isBase64) {              // rstodo MOVE THIS to the 'attachComponent' below
             data = atob(data);
         }

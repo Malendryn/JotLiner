@@ -3,7 +3,13 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 * added addListener(), removeListenerById(id), removeListenerByEA(el,action), removeAllListeners() to DCH_BASE
 * added destroy() and destruct() to DCH_BASE
-* renamed DCH_BASE.div to ._div to better clarify 'belongs to me'
+* renamed DCH_BASE.div to ._div to better clarify 'belongs to DCH_BASE'
+* removed the .render() off DCH_BASE as I'm starting to think I don't need it.
+
+* placed a rudimentary rightclick-context menu into index.js and 'contextMenu.js'  all of which needs renaming+tweaking
+  just wanted to prove it works AND that I could hook it in at the window level
+  
+Need dropdown menus, topbar dropdowns,  topbar icons, ...
 
 2025-04-22 ------------------------------------------------------------------------------------------------------------
 * re-documented the new fileformat in extra/DocFileFormat.odt  (new format starts with "@1.0;" instead of "V=3;1.0")
@@ -26,7 +32,7 @@ TODO:  attachHandler, detachHandler, detachHandlers
 Now I just have to rewrite the entire documentation!
 
 2025-04-20 ------------------------------------------------------------------------------------------------------------
-* Eureka!  We have a full websock cycle of 'backendStart, frontendStart, F2B askfor doc, B2F deliver doc, frontendRender!
+* Eureka!  We have a full websock cycle of 'backendStart, frontendStart, F-->B askfor doc, B-->F deliver doc, frontendRender!
 
 2025-04-20 ------------------------------------------------------------------------------------------------------------
 * reorganized the directories so that the entire 'envrc' handling system has been moved UP out of the git repo level

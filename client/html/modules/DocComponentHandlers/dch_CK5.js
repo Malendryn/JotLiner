@@ -1,11 +1,11 @@
 
 class DCH_CKEditor5 extends FG.DCH_BASE {     // https://ckeditor.com/docs/ckeditor5/latest/index.html
-    el;                 // becomes childof this.div and is another  "div"  (see construct())
+    el;                 // becomes childof this._div and is another  "div"  (see construct())
 
 
     async construct() {
         debugger; this.el = document.createElement("div");
-        this.div.appendChild(this.el);
+        this._div.appendChild(this.el);
         this.el.style.position = "absolute";
         this.el.style.left = "0px";
         this.el.style.top = "0px";

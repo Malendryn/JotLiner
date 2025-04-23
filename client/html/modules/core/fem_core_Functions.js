@@ -67,10 +67,9 @@ FF.makeHash = async (txt) => {
 }
 
 
-FF.clearDoc = async() => {
-// RSTODO create/call handler detachers here while entire tree and html is all still present
+FF.clearDoc = async() => {	// detach all listeners and remove entire document tree
 	if (FG.docRoot) {
-		FG.docRoot.detachHandlers();
+		FG.docRoot.destroy();
 	}
 
 // then nuke it all!
