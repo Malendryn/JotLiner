@@ -11,17 +11,6 @@
     </head>
 
     <body>
-
-        <div id="customContextMenu">
-            <ul>
-                <li data-action="option1">Option 1</li>
-                <li data-action="option2">Option 2</li>
-                <li data-action="option3">Option 3</li>
-                <li data-action="separator" style="border-top: 1px solid #ccc; margin: 5px 0;"></li>
-                <li data-action="anotherOption">Another Option</li>
-            </ul>
-        </div>
-          
         <div id="divTitleBar"> <!--show currentbook<if at bookpage>-->
             <span id="spanCurBook">Book: 
                 <select id="ddsCurBook">
@@ -31,6 +20,11 @@
             </span>
         </div>
         <div id="divToolbar"> (divToolBar) <!-- in here is where we put fancy gadgets and such -->
+            <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
+            <img src="icons/bold-96.png" style="width:24px;height:24px;">
+            <img src="icons/italic-52.png" style="width:24px;height:24px;">
+            <img src="icons/underline-64.png" style="width:24px;height:24px;">
+            <img src="icons/strikethrough-64.png" style="width:24px;height:24px;">
         </div>
             <div id="divMainView">   <!-- here is the core viewport of any loaded page -->
                 <div id="divIndexView"><!--where the index will go-->
@@ -45,8 +39,8 @@
                 <details>
                     <summary>Subsection 1.3</summary>
                     <ul>
-                    <li>Sub-subsection 1.3.1</li>
-                    <li>Sub-subsection 1.3.2</li>
+                        <li>Sub-subsection 1.3.1</li>
+                        <li>Sub-subsection 1.3.2</li>
                     </ul>
                 </details>
                 </li>
@@ -70,6 +64,21 @@
                 <div id="divIndexDocSizer"><!--the resizing dragbar between index and document--></div>
             </div>
         </div>
+
+<div id="customContextMenu">
+    <ul style="margin:0px;">
+        <li data-action="export">Export</li>
+        <li data-action="option2">Option 2</li>
+        <ul>
+            <li>Subsection 1.1</li>
+            <li>Subsection 1.2</li>
+        </ul>
+        <li data-action="option3">Option 3</li>
+        <li data-action="separator" style="border-top: 1px solid #ccc; margin: 5px 0;"></li>
+        <li data-action="anotherOption">Another Option</li>
+    </ul>
+</div>
+
     </body>
     <script src="index.js"></script>
 </html>

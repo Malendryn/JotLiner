@@ -1,6 +1,8 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-24 ------------------------------------------------------------------------------------------------------------
+* got the database creator working and creating the extra, docList, and doc tables
+
+2025-04-23 ------------------------------------------------------------------------------------------------------------
 * added addListener(), removeListenerById(id), removeListenerByEA(el,action), removeAllListeners() to DCH_BASE
 * added destroy() and destruct() to DCH_BASE
 * renamed DCH_BASE.div to ._div to better clarify 'belongs to DCH_BASE'
@@ -8,7 +10,7 @@
 
 * placed a rudimentary rightclick-context menu into index.js and 'contextMenu.js'  all of which needs renaming+tweaking
   just wanted to prove it works AND that I could hook it in at the window level
-  
+
 Need dropdown menus, topbar dropdowns,  topbar icons, ...
 
 2025-04-22 ------------------------------------------------------------------------------------------------------------

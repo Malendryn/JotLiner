@@ -96,15 +96,18 @@ function addCustomContextMenu() {
         // }
     }
   
-    customContextMenu.addEventListener('click', function(e) {    // Handle clicks on the custom menu items
+    customContextMenu.addEventListener('click', async function(e) {    // Handle clicks on the custom menu items
         const clickedItem = e.target.closest('li');
         if (clickedItem) {
             const action = clickedItem.getAttribute('data-action');
             if (action) {
                 console.log(`Clicked on: ${action}`);
                 switch (action) {                                     // 'go do' whatever was clicked
-                        case 'option1':
-                            console.log("option1 clicked");
+                        case 'export':
+                            let exp = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
+                            exp = new exp.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
+                            let str = await exp.export(FG.docRoot);
+                            console.log(str);
                             break;
                         case 'option2':
                             console.log("option2 clicked");

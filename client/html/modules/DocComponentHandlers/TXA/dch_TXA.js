@@ -19,12 +19,12 @@ class DCH_TXA extends FG.DCH_BASE {
 
 
     async importData(data) {    // populate this component with data
-        this.el.innerHTML = data["C"];        // C for content
+        this.el.value = data["C"];        // C for content
     }
     
     
     async exportData() {       // return data to be preserved/exported as a {}
-        return { "C" : this.el.innerHTML };
+        return { "C" : this.el.value };
     }
     
 

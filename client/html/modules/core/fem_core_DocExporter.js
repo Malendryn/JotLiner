@@ -5,8 +5,7 @@ export class DocExporter {
 //  str = detach(dch)  detach/delete dch+children from doc entirely! (call export() seperately first to keep it! )
 
     async export(dch) {
-        let str = "@" + FG.VERSION + ";";        // start by sticking the version in, /always/
-        str += await this._export(dch);          // turn the dch into a stream
+        let str = await this._export(dch);          // turn the dch into a stream
         return str;
     }
 
@@ -38,7 +37,7 @@ export class DocExporter {
         for (const key in data) {
             str += this._elToStr(key, data[key]);       // append all dch's private data to the str
         }
-        str = this._elToStr(cName, str);               // wrap it all with the cName
+        str = this._elToStr(cName, str) + "\n";         // wrap it all with the cName and throw in a \n for readability
         for (let idx = 0; idx < dch.children.length; idx++) {
             const child = dch.children[idx];
             str += await this._export(child);
@@ -48,7 +47,9 @@ export class DocExporter {
 
 
     _elToStr(key, val) {
-        if (typeof(val) != "string") {
+        if (typeof(val) === undefined) {            // undefined not supported so change it to a null  (RSTODO consider throwing error instead?)
+            val = null;
+        } else if (typeof(val) != "string") {
             val = val.toString();
         }
         function testB64(str) {

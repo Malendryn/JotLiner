@@ -11,6 +11,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     parent;         // parent component of this component (or null if topLevel)
     _div = null;    // OWNEDBY BASE! ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
                     // the parent of every other element created by this component (autocreated during create())
+    _path = "";     // relative path to this module's subdir (so module can access its own icons, etc...)
     children = [];  // IF POPULATED exporter will automatically handle it, likewise during creating/importing component
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,12 +45,14 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 // NOTE it is perfectly valid for 'el' to be 'document' or 'window' and it will get auto-removed when dch is removed
 
     static async create(dchName, parent=null, style=null) {
+        const path = "./modules/DocComponentHandlers/" + dchName;
         if (!DCH.hasOwnProperty(dchName)) {          // load the module(plugin) if not already loaded
-            const dch = await FF.loadModule("./modules/DocComponentHandlers/dch_" + dchName + ".js")
+            const dch = await FF.loadModule(path + "/dch_" + dchName + ".js")
             DCH[dchName] = dch.DCH;
         }
         const dch = new DCH[dchName]();         // create handler, do nothing else!
         dch.parent = parent;
+        dch._path = path;
         if (dch.hasDiv) {                                   // is dch a visible object that needs a <div> to render in? 
             dch._div = document.createElement("div");        // create div
             dch._div.dchHandler = dch;                       // flag to let me work with it from any child
@@ -130,7 +133,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
         return false;
     }
     
-    
+
     removeListenerByEA = function(el, action) {
         debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
             let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
