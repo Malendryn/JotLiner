@@ -28,6 +28,8 @@ FF.loadModule = async (modulePath) => {
 
 // RSTODO go look at the older jotliner code, we had detailed funcalls to handle loading and tracking and unloading modules that we NEED to move over to here!
 window.addEventListener('load', async function() {
+    const el = this.document.getElementById("divIndexDocSizer");
+    el._dchMouseOp = "idx<>doc";
     let mod;
     // console.log(this.document.baseURI);
     await FF.loadModule("./modules/core/fem_core_Globals.js");          // populate basics of FG
@@ -68,16 +70,22 @@ async function gotDoc(pkt) {
     imp = new imp.DocImporter();
 
     await imp.attach(pkt.doc, null);  // now attach it to the system as new root doc!
-//X    await FG.docRoot.render();
 
-    let exp = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
-    exp = new exp.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
-    let str = await exp.export(FG.docRoot);
-    console.log(str);
+    // debugger; await FG.docRoot.destroy();
+    // debugger; await imp.attach(pkt.doc, null);  // now attach it to the system as new root doc!
+
+
+    // let exp = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
+    // exp = new exp.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
+    // let str = await exp.export(FG.docRoot);
+    // console.log(str);
 }
 
+
+
 function addCustomContextMenu() {
-    debugger; const customContextMenu = document.getElementById('customContextMenu');
+    console.log("index.js:addCustomContextMenu");
+    const customContextMenu = document.getElementById('customContextMenu');
 
     window.addEventListener('contextmenu', function(e) {     
         e.preventDefault(); // Prevent the browser's default context menu

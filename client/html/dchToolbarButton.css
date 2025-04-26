@@ -1,0 +1,28 @@
+.dchButton {
+    /* Basic button styling (optional) */
+    /* padding: 10px; */
+    /* border: none; */
+    width: 30px;
+    height: 30px;
+    border: 1px dashed blue;
+    padding: 0px;
+    cursor: pointer;
+    display: inline-block;
+    background-color: white;
+  }
+
+  .dchButton:hover img {
+    filter: brightness(110%); /* Slightly brighter on hover (released) */
+    filter: contrast(110%);
+  }
+
+  .dchButton:active img {
+    filter: brightness(90%); /* Slightly darker on active (pressed) */
+    filter: contrast(90%);
+    background-color: lightgrey;
+  }
+  .dchButton img {
+    width: 24px;
+    height: 24px;
+    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
+  }

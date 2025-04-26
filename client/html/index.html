@@ -8,6 +8,7 @@
         <title>JotLiner Client</title>
         <link rel="stylesheet" href="index.css">
         <link rel="stylesheet" href="contextMenu.css">
+        <link rel="stylesheet" href="dchToolbarButton.css">
     </head>
 
     <body>
@@ -19,15 +20,9 @@
                 </select>
             </span>
         </div>
-        <div id="divToolbar"> (divToolBar) <!-- in here is where we put fancy gadgets and such -->
-            <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
-            <img src="icons/bold-96.png" style="width:24px;height:24px;">
-            <img src="icons/italic-52.png" style="width:24px;height:24px;">
-            <img src="icons/underline-64.png" style="width:24px;height:24px;">
-            <img src="icons/strikethrough-64.png" style="width:24px;height:24px;">
-        </div>
-            <div id="divMainView">   <!-- here is the core viewport of any loaded page -->
-                <div id="divIndexView"><!--where the index will go-->
+        <div id="divToolbar"></div> <!-- where we put fancy gadgets and such -->
+        <div id="divMainView">      <!-- core viewport of any loaded page (<index><dragbar><doc> divs)-->
+            <div id="divIndexView"> <!-- where the index will go-->
 <ul id="index-details">
     <li>
         <details open>
@@ -58,10 +53,10 @@
     </li>
 </ul>
                 </div>
+                <div id="divIndexDocSizer"><!--the resizing dragbar between index and document--></div>
                 <div id="divDocView">
                     <div id="docWrapper"><!--Where the document gets displayed--></div>
                 </div>
-                <div id="divIndexDocSizer"><!--the resizing dragbar between index and document--></div>
             </div>
         </div>
 

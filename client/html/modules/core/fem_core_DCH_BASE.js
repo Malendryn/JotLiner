@@ -7,10 +7,13 @@
 
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
-    hasDiv = true;  // true = create 'this._div' @ construction AND read styles from stream when created via DocImporter
+    hasDiv = true;      // true = create 'this._div' @ construction AND read styles from stream when created via DocImporter
+    hasToolbar = false; // true = create this._bar' @ construction
     parent;         // parent component of this component (or null if topLevel)
     _div = null;    // OWNEDBY BASE! ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
                     // the parent of every other element created by this component (autocreated during create())
+    _bar = null;    // OWNEDBY BASE! ... if hasDiv==true, this is handle to an 'absolute' <div> to build a toolbar in.
+                    // user 'owns' content, (use this.addListener this.removeListenerBy<choice>())
     _path = "";     // relative path to this module's subdir (so module can access its own icons, etc...)
     children = [];  // IF POPULATED exporter will automatically handle it, likewise during creating/importing component
 
@@ -35,7 +38,6 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     
     //           destroy(); // recursive, calls this.destruct(), then removes all listeners, then destroys it
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // listener add/remove functions --------------------------------------------------------------------------------------
     //  id   = addListener(el, action, callback, opts=undefined)
@@ -43,6 +45,11 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     //  succ = removeListenerByEA(el, action)
     //         removeAllListeners()
 // NOTE it is perfectly valid for 'el' to be 'document' or 'window' and it will get auto-removed when dch is removed
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// internal functions,  do not override! ------------------------------------------------------------------------------
+    //XXX  __onDCHGotFocus(evt)  called whenever this._div or any childof gets focus
+    //XXX  __onDCHLostFocus(evt) called whenever this._div or any childof lost focus
 
     static async create(dchName, parent=null, style=null) {
         const path = "./modules/DocComponentHandlers/" + dchName;
@@ -54,8 +61,10 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
         dch.parent = parent;
         dch._path = path;
         if (dch.hasDiv) {                                   // is dch a visible object that needs a <div> to render in? 
-            dch._div = document.createElement("div");        // create div
-            dch._div.dchHandler = dch;                       // flag to let me work with it from any child
+            dch._div = document.createElement("div");       // create div
+            dch._div.tabIndex = -1;                         // doing this makes the ._div focussable but not tabbable
+            dch._div._dchHandler = dch;                     // flag to let me work with it from any child
+            dch._div._dchMouseOp = "dchComponent";          // if this was clicked we're looking to operate on the dch <div> itself
             let parentDiv;
             if (dch.parent == null) {                               // if self has no parent...
                 parentDiv = document.getElementById("docWrapper");  // attach div to outermost <div id="docWrapper">
@@ -84,18 +93,35 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
                     dch._div.style.whiteSpace = "nowrap";
                 //RSTEMP.end
             }
+            // dch.addListener(dch._div, "focus",    dch.__onDCHGotFocus);     // detect when ._div got focus
+            // dch.addListener(dch._div, "focusin",  dch.__onDCHGotFocus);     // detect when anything inside ._div got focus
+
+            // dch.addListener(dch._div, "blur",     dch.__onDCHLostFocus);    // detect when ._div lost focus
+            // dch.addListener(dch._div, "focusout", dch.__onDCHLostFocus);    // detect when anything inside ._div lost focus
         }
+        if (dch.hasToolbar) {
+            dch._bar = document.createElement("div");
+            dch._bar._dchHandler = dch;                      // same for the _bar
+            dch._bar._dchMouseOp = "toolBtn";
+            dch._bar.style.position = "absolute";
+            dch._bar.style.inset = "0px 0px 0px 0px";       // top, right, bottom, left
+            dch._bar.style.backgroundColor = "rgb(155, 253, 161)";
+
+            let parentDiv = document.getElementById("divToolbar");
+            parentDiv.appendChild(dch._bar);                // add the _bar as a direct child of "divToolBar"
+        }
+        
         dch.construct();
         return dch;
     }
-
 
     async importData(data) {Object.assign(this, data); }   // *overridable* populate this component with data
     async exportData()     {}                              // *overridable* return data to be preserved/exported as a {}
 
 
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
-        debugger; for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy all children first
+        console.log("fem_core_DCH_BASE.js:destroy");
+        for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy all children first
             this.children[idx].destroy();
         }
         this.removeAllListeners();      // remove all listeners registered to this dch
@@ -107,6 +133,12 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
                 }                
             }
         }
+        if (this.hasDiv && this._div) {
+            this._div.remove();
+        }
+        if (this.hasToolbar && this._bar) {
+            this._bar.remove();
+        }
     }
 
 
@@ -114,9 +146,9 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     static __nextListenerId = 1;
     
     addListener = function(el, action, callback, opts=undefined) {
-        debugger; let id = FG.DCH_BASE.__nextListenerId++;
+        let id = FG.DCH_BASE.__nextListenerId++;
         FG.DCH_BASE.__registeredEventListeners.push([id, this, el, action, callback, opts]);
-        el.addEventListener(action, callback.bind(this), opts); // so the callback knows what dchCmop it's working with
+        el.addEventListener(action, callback/*.bind(this)*/, opts); // so the callback knows what dchComp it's working with
         return id;
     }
 
@@ -125,7 +157,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
         debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
             let tmp = FG.DCH_BASE.__registeredEventListeners[idx];
             if (tmp[0] == id) {
-                el.removeEventListener(tmp[2], tmp[3]);            // unlisten
+                tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
                 FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
                 return true;
             }
@@ -138,7 +170,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
         debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
             let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
             if (tmp[1] == this && tmp[2] == el && tmp[3] == action) {
-                el.removeEventListener(tmp[2], tmp[3]);            // unlisten
+                tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
                 FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
                 return true;
             }
@@ -147,14 +179,23 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     }
     
     
-    removeAllListeners = function() {
-        debugger; for (let idx = FG.DCH_BASE.__registeredEventListeners.length - 1; idx >= 0; idx--) {
+    removeAllListeners = function() {   //        console.log("fem_core_DCH_BASE.js:removeAllListeners");
+        for (let idx = FG.DCH_BASE.__registeredEventListeners.length - 1; idx >= 0; idx--) {
             let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
             if (tmp[1] == this) {
-                el.removeEventListener(tmp[2], tmp[3]);             // unListen
+                tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
                 FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
             }
         }
     }
+
+
+    // __onDCHGotFocus(evt) {
+    //     console.log("gotFocus", evt);
+    // }
+    // __onDCHLostFocus(evt) {
+    //     console.log("lostFocus", evt);
+    // }
+
 }; // end class
 
