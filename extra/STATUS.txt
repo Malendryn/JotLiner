@@ -12,8 +12,17 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
+* renamed ._bar to ._tBar as it felt too 'generalized'
+* moved loading handlers to index.js (via ws "GetDCHList") so they're available right up front for 'new editor' menu
+    consequently -- removed the autoload feature in DCH_BASE.create
+        There's still an issue of defining the order of modules in 'new editor' menu but we can address that later
+            for now we just use the iter-order of the DCH{} object
+* added these statics to the DCH_ZZZ classes so we know how to display them in the 'new editor' menu:
+    static menuDesc = "Simple RichText editor"
+    static menuTip  = "A RichText-like editor built using a contexteditable <div>"
+
 2025-04-25 ------------------------------------------------------------------------------------------------------------
-* got the toolbar working as a 30px high this._bar div the dch can do anything it wants inside of.  
+* got the toolbar working as a 30px high 'this._tBar' div that a dch can do anything it wants inside of.  
 * tested this.addListener and this.removeAllListeners
 * tested FG.docRoot.destroy() and it properly follows chain of unlistening, unhooking, and deleting self+all children
 * got toolbars to show when a dch is clicked on.  However this introduced the 'wierd bug' where if I click on a box
@@ -29,7 +38,7 @@
 * renamed DCH_BASE.div to ._div to better clarify 'belongs to DCH_BASE'
 * removed the .render() off DCH_BASE as I'm starting to think I don't need it.
 
-* placed a rudimentary rightclick-context menu into index.js and 'contextMenu.js'  all of which needs renaming+tweaking
+* placed a rudimentary rightclick-context menu into index.js, all of which needs renaming+tweaking
   just wanted to prove it works AND that I could hook it in at the window level
 
 Need dropdown menus, topbar dropdowns,  topbar icons, ...

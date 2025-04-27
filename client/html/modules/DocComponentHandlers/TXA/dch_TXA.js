@@ -2,6 +2,8 @@
 class DCH_TXA extends FG.DCH_BASE {
     el;                 // becomes childof this._div and is a "textarea"  (see construct())
 
+    menuName() { debugger; return "<textarea> element"; }
+    menuDesc() { debugger; return "A simple <textarea> editor"; }
 
     async construct() {
         this.el = document.createElement("textarea");

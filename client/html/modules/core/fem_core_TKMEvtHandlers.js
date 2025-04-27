@@ -9,48 +9,13 @@ document.addEventListener('keyup',   keyup,   true);
 //// Toplevel MouseHandler stuff below here ///////////////////////////////////////////////////////////////////////////
 let mouseOp = null; // 'mouseOp' = mouse Operation (presently only for click+drag of divHandlers)
 
-// const dIDDel2 = document.getElementById("divIndexDocSizer");
-// dIDDel2.addEventListener('mousedown', onDIDDMouseDown);
-
-// function onDIDDMouseDown(evt) {
-//     evt.stopPropagation();
-//     evt.preventDefault();
-//     document.addEventListener('mousemove', mousemove, true);
-//     document.addEventListener('mouseup',   mouseup,   true);
-
-//     const style = getComputedStyle(evt.target);
-
-//     mouseOp = { 
-//         type:     "idx<>doc",
-//         startX:    evt.screenX,
-//         idxEl:     document.getElementById("divIndexView"),    // handle to divIndexView
-//         targetEl:  evt.target,                                 // handle to divIndexDocSizer
-//         docEl:     document.getElementById("divDocView"),      // handle to divDocView
-//         dBarLeft:  parseInt(style.left),                       // leftPx and widthPx of dragbar
-//         dBarWidth: parseInt(style.width),
-//     };
-
-//     mouseOp.targetEl.style.cursor = "grabbing";
-// }
-
-// function onDIDDMouseMove(evt) {
-//     if (m.dBarLeft != -999999) {
-//     }
-// }
-
-// function onDIDDMouseUp(evt) {
-//     evt.stopPropagation();
-//     evt.preventDefault();
-//     m.dragLeft = -999999;
-//     mouseOp.targetEl.style.cursor = "";
-// }
-
 
 function keydown(evt) {
     // evt.ctrlKey,  evt.key, etc...
 }
 function keyup(evt) {
 }
+
 
 function mousedown(evt) {
 //RSTODO WHEN moving a handled element and not its contents, 
@@ -66,13 +31,19 @@ function mousedown(evt) {
         return;
     }
 
-    if (op == "toolBtn") {          // toolbar buttons handle themselves
+// known ops:
+//   "dchToolBtn"     // the <div> containing buttons dropdowns etc in the <divToolbar> at top of screen
+//   "idx<>doc"       // the <divIndexDocSizer> dragbar between the <divIndexView> and the <divDocView>
+//   "dchComponent"   // parent of any <el> inside a dch <div> (found by walking up the parents until encountered)
+
+    if (op == "dchToolBtn") {          // toolbar buttons handle themselves
         return;
     }
 
     // evt.stopPropagation();
     // evt.preventDefault();
 
+// record info for the "idx<>doc" dragbar or for the "dchComponent"
     let m = {                       // create and init 'global' mouseOp object
         op:          op,            // record the _dchMouseOp.
         startX:      evt.screenX,   // initial evt.screenX and Y (when mouse was pressed)
@@ -86,19 +57,28 @@ function mousedown(evt) {
         dchHandler:  div?._dchHandler,   // the actual dch (or undefined if this isn't a dch-related op IE: index<>doc sizebar)
     };
 
-    if (op == "dchComponent") {                                     // if it's a dch operation we clicked on-or-in
-        let div = document.getElementById("divToolbar");
-        for (let idx = 0; idx < div.children.length; idx++) {       // display the appropriate toolbar
-            let tmp = div.children[idx];
-            if (tmp._dchHandler == m.dchHandler) {  // if this toolDiv was inserted by this dch...
-                tmp.style.display = "block";
-            } else {
-                tmp.style.display = "none";
+    if (m.op == "idx<>doc") {                       // if it was the idx<>doc resizer that was clicked on...
+        let style = getComputedStyle(m.targetEl);
+        m.dragBarLeft = parseInt(style.left);
+        m.dragBarWidth = parseInt(style.width);
+        m.targetEl.style.cursor = "grabbing";
+    } else if (op == "dchComponent") {              // if it's a dch operation we clicked on-or-in
+        if (!(evt.ctrlKey && evt.altKey)) {                         // if ctrl+alt not down, ...
+            let div = document.getElementById("divToolbar");
+            for (let idx = 0; idx < div.children.length; idx++) {   // display the appropriate toolbar
+                let tmp = div.children[idx];
+                if (tmp._dchHandler == m.dchHandler) {
+                    tmp.style.display = "block";
+                } else {
+                    tmp.style.display = "none";
+                }
             }
-        }
-        if (!evt.ctrlKey || !evt.altKey) {                  // if ctrl+alt not down, we're done! 
             return;
         }
+
+        evt.stopPropagation();
+        evt.preventDefault();
+
         m.divRect = {           // gather some 'moving/shaping' info
             lrMode: "",         // "L", "R", or "LR"
             tbMode: "",         // "T", "B", or "TB"
@@ -117,23 +97,9 @@ function mousedown(evt) {
         if (m.targetEl.style.top)    {  m.divRect.tbMode += "T"; m.divRect.top    = parseInt(m.targetEl.style.top);    }
         if (m.targetEl.style.bottom) {  m.divRect.tbMode += "B"; m.divRect.bottom = parseInt(m.targetEl.style.bottom); }
         if (m.targetEl.style.height) {  m.divRect.tbMode += "H"; m.divRect.height = parseInt(m.targetEl.style.height); }  // not used, only care about TB
-
-        for (let idx = 0; idx < div.children.length; idx++) {
-            let tmp = div.children[idx];
-            if (tmp._dchHandler == m.dchHandler) {  // if this toolDiv was inserted by this dch...
-                tmp.style.display = "block";
-            } else {
-                tmp.style.display = "none";
-            }
-        }
-    } else if (m.op == "idx<>doc") {                       // if it was the index<>doc resizer that was clicked on...
-        let style = getComputedStyle(m.targetEl);
-        m.dragBarLeft = parseInt(style.left);
-        m.dragBarWidth = parseInt(style.width);
-        mouseOp.targetEl.style.cursor = "grabbing";
     }
 
-    mouseOp = m;                                    // setup/capture mousemove and mouseup to continue handling this op
+    mouseOp = m;    // assign m to mouseOp to continue handling this op
     document.addEventListener('mousemove', mousemove, true);
     document.addEventListener('mouseup',   mouseup,   true);
 }
@@ -188,7 +154,7 @@ function mouseup(evt) {
     let m = mouseOp;
     mouseOp = null;
 
-    // if (m.op != "dchComponent") {  // if was a toolBtn or idx<>doc dragbar just return
+    // if (m.op != "dchComponent") {  // if was a dchToolBtn or idx<>doc dragbar just return
     //     return;
     // }
 
@@ -206,14 +172,5 @@ function mouseup(evt) {
     //         }
     //     }
     // }
-}
-
-
-
-
-
-
-function clicky(event) {
-    console.log("click=", event.target, true);
 }
 

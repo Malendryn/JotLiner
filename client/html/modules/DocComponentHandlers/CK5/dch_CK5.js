@@ -2,6 +2,8 @@
 class DCH_CKEditor5 extends FG.DCH_BASE {     // https://ckeditor.com/docs/ckeditor5/latest/index.html
     el;                 // becomes childof this._div and is another  "div"  (see construct())
 
+    menuName() { debugger; return "CK5 based editor"; }
+    menuDesc() { debugger; return "An editor based on CK5 (see https://ckeditor.com/docs/ckeditor5/latest/index.html)"; }
 
     async construct() {
         debugger; this.el = document.createElement("div");

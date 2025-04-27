@@ -5,6 +5,9 @@ class DCH_DOC extends FG.DCH_BASE {
     ver = FG.VERSION;
     uuid = null;
 
+    menuName() { debugger; return null; }
+    menuDesc() { debugger; return null; }
+
     async construct() {
         this.uuid = FF.makeUUID();                          // WILL be replaced if importData()
         this._div = document.getElementById("docWrapper");  // so children[] have something to attach to

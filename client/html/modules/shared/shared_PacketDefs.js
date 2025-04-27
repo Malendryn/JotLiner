@@ -43,8 +43,14 @@ WS.registerPacketClass(class Fault extends PacketBASE {
     msg;    // msg indicating what the fault was
 });
 
-WS.registerPacketClass(class GetDoc extends PacketBASE {
+
+WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
     docId;     // <->  id/name/uuid of doc to get
     doc;       // <--  doc-as-string (possibly uuencoded) OR RSTODO we wrap this in a toJSON and fromJSON
+});
+
+
+WS.registerPacketClass(class GetDCHList extends PacketBASE { // get list of all available DocComponentHandlers
+    list;      // <--  ["DOC","BOX"] etc... 
 });
 

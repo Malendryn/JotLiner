@@ -21,7 +21,7 @@ export async function init() {          // load, init, and establish connection 
 
         WS.ws.onclose = () => {
             console.log("WebSocket connection closed, reconnecting...");
-            WS.ws = new WebSocket(wsUrl);               // RE-Connect...
+            WS.ws = new WebSocket(wsUrl);             // RE-Connect...
         };
 
         WS.send = (pkt) => {
@@ -30,7 +30,7 @@ export async function init() {          // load, init, and establish connection 
             WS.ws.send(ss);
         }
 
-        WS.sendExpect = (pkt, callback) => {     // send packet and expect a response, fire callback(pkt) which MAY BE A 'new Error()' !
+        WS.sendExpect = async (pkt, callback) => {     // send packet and expect a response, fire callback(pkt) which MAY BE A 'new Error()' !
             WS.__waitList[pkt.__id] = [Date.now(), callback];
             WS.send(pkt);
         }

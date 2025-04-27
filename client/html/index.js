@@ -36,10 +36,9 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_Functions.js");        // populate basics of FF
     await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");         // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
     await FF.loadModule("./modules/core/fem_core_TKMEvtHandlers.js");   // Toplevel Kbd/Mouse HandlerFuncs like mousedown to move divs, etc...
+    await FF.loadModule("./modules/core/fem_core_DCHContextMenu.js");   // Generic context menu handler for DCH (and toplevel) objects
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");     // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");
-
-    await FF.newDoc();        // initialize system with an empty document  (unneeded as .load below does it now)
 
 // // RSTEST BEGIN of doc streamreading/displaying ///////////////////////////////////////////////////////////////////////
 // // first lets load a test document from the __TESTDOC__.js file
@@ -52,13 +51,31 @@ window.addEventListener('load', async function() {
 //     await FG.docRoot.render();
 // // RSTEST END of doc streamreading/displaying /////////////////////////////////////////////////////////////////////////
 
-// RSTEST BEGIN of making/sending/parsing wss packets
-    const pkt = WS.makePacket("GetDoc");
+    const pkt = WS.makePacket("GetDCHList");        // first thing we have to do is get the list of DCH handlers
+    WS.sendExpect(pkt, gotDCHList);
+});
+
+
+async function gotDCHList(pkt) {
+    for (const dchName of pkt.list) {           // DONT use pkt.list.forEach() here cuz 'await' won't work inside loop
+        const path = "./modules/DocComponentHandlers/" + dchName;
+        if (!DCH.hasOwnProperty(dchName)) {     // load the module(plugin) if not already loaded
+            console.log(">", dchName);
+            let dch = await FF.loadModule(path + "/dch_" + dchName + ".js")
+            dch = dch.DCH;                      // get class out of module, discard module
+            dch._path = path;                   // set path to module's dir so module can load its own files/icons if needed
+            console.log("<", dchName);
+            DCH[dchName] = dch;
+        }
+    }
+
+    await FF.newDoc();        // initialize system with an empty document (AFTER DCH modules are loaded cuz 'DOC')
+
+// RSTODO at this point technically we're done but for testing lets load a doc immediately
+    pkt = WS.makePacket("GetDoc");
     pkt.docId = "TESTDOC.txt";
     let xx = WS.sendExpect(pkt, gotDoc);
-// RSTEST END of making/sending/parsing wss packets
-    addCustomContextMenu();
-});
+}
 
 
 async function gotDoc(pkt) {
@@ -83,52 +100,3 @@ async function gotDoc(pkt) {
 
 
 
-function addCustomContextMenu() {
-    console.log("index.js:addCustomContextMenu");
-    const customContextMenu = document.getElementById('customContextMenu');
-
-    window.addEventListener('contextmenu', function(e) {     
-        e.preventDefault(); // Prevent the browser's default context menu
-  
-        customContextMenu.style.left = e.clientX + 'px';           // Position the custom menu at the mouse coordinates
-        customContextMenu.style.top  = e.clientY + 'px';
-        customContextMenu.style.display = 'block';                 // Show the custom menu
-  
-        document.addEventListener('click', closeContextMenu);      // Add listener to close the menu if clicked outside
-    });
-
-    function closeContextMenu(event) {
-        // if (!customContextMenu.contains(event.target)) {
-            customContextMenu.style.display = 'none';
-            document.removeEventListener('click', closeContextMenu);
-        // }
-    }
-  
-    customContextMenu.addEventListener('click', async function(e) {    // Handle clicks on the custom menu items
-        const clickedItem = e.target.closest('li');
-        if (clickedItem) {
-            const action = clickedItem.getAttribute('data-action');
-            if (action) {
-                console.log(`Clicked on: ${action}`);
-                switch (action) {                                     // 'go do' whatever was clicked
-                        case 'export':
-                            let exp = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
-                            exp = new exp.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
-                            let str = await exp.export(FG.docRoot);
-                            console.log(str);
-                            break;
-                        case 'option2':
-                            console.log("option2 clicked");
-                            break;
-                        case 'option3':
-                            console.log("option3 clicked");
-                            break;
-                        case 'anotherOption':
-                            alert("another option clicked");
-                            break;
-                }
-            }
-            closeContextMenu(e);            // finally, close(hide) menu
-        }
-    });
-}

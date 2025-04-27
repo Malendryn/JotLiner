@@ -13,7 +13,10 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
 
     el;                 // becomes childof this._div and is a "div" that is "contexteditable"  (see construct())
 
-    states = {
+    menuName() { debugger; return "Simple RichText editor"; }
+    menuDesc() { debugger; return "A RichText-like editor built using a contexteditable <div>"; }
+
+    states = {              // RSTODO current state of buttons based on where cursor is
         "bold": false,
         "italic": false,
         "underline": false,
@@ -34,33 +37,33 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         let btn, img;
         btn = document.createElement("button");         // create a dchToolbarButton for Bold, Italic, and Underline
         btn.className = "dchButton";
-        this._bar.appendChild(btn);                // add it to the toolbar
+        this._tBar.appendChild(btn);                // add it to the toolbar
         img = document.createElement("img");            // create a 24x24px img to put on button
-        img.src = this._path + "/icons/bold-96.png";    //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
+        img.src = DCH_CTE._path + "/icons/bold-96.png";    //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
         btn.appendChild(img);
         this.addListener(btn, "click", this.onToolBtnBold);
 
         btn = document.createElement("button");
         btn.className = "dchButton";
-        this._bar.appendChild(btn);
+        this._tBar.appendChild(btn);
         img = document.createElement("img");
-        img.src = this._path + "/icons/italic-52.png";
+        img.src = DCH_CTE._path + "/icons/italic-52.png";
         btn.appendChild(img);
         this.addListener(btn, "click", this.onToolBtnItalic);
 
         btn = document.createElement("button");
         btn.className = "dchButton";
-        this._bar.appendChild(btn);
+        this._tBar.appendChild(btn);
         img = document.createElement("img");
-        img.src = this._path + "/icons/underline-64.png";
+        img.src = DCH_CTE._path + "/icons/underline-64.png";
         btn.appendChild(img);
         this.addListener(btn, "click", this.onToolBtnUnderline);
 
         btn = document.createElement("button");
         btn.className = "dchButton";
-        this._bar.appendChild(btn);
+        this._tBar.appendChild(btn);
         img = document.createElement("img");
-        img.src = this._path + "/icons/strikethrough-64.png";
+        img.src = DCH_CTE._path + "/icons/strikethrough-64.png";
         btn.appendChild(img);
         this.addListener(btn, "click", this.onToolBtnStrikethrough);
     }

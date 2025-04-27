@@ -8,16 +8,17 @@
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
     hasDiv = true;      // true = create 'this._div' @ construction AND read styles from stream when created via DocImporter
-    hasToolbar = false; // true = create this._bar' @ construction
+    hasToolbar = false; // true = create this._tBar' @ construction
     parent;         // parent component of this component (or null if topLevel)
     _div = null;    // OWNEDBY BASE! ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
                     // the parent of every other element created by this component (autocreated during create())
-    _bar = null;    // OWNEDBY BASE! ... if hasDiv==true, this is handle to an 'absolute' <div> to build a toolbar in.
+    _tBar = null;   // OWNEDBY BASE! ... if hasDiv==true, this is handle to an 'absolute' <div> to build a toolbar in.
                     // user 'owns' content, (use this.addListener this.removeListenerBy<choice>())
-    _path = "";     // relative path to this module's subdir (so module can access its own icons, etc...)
     children = [];  // IF POPULATED exporter will automatically handle it, likewise during creating/importing component
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    static _path = ""; // relative path to this module's subdir (so module can access its own icons, etc...)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-must-implement functions -------------------------------------------------------------------------------------
     //        async construct(data=null)     // called by static create() after <div> created and styles applied
                                              // if data != null then it contains a {} of data to be put on the object
@@ -25,9 +26,12 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     //        async destruct()               // detach and destroy all <el> added by construct() (but not this._div)
 
     //        async importData(data)         // populate this component with data{} (calls Object.assign if NOT overridden)
-    // data = async exportData()             // return data to be preserved/exported as a {}
+    // text = async exportData()             // return data to be preserved/exported as a {}
     
-    //X        async render()                 // render object into its own 'this._div' docElement (called every time any change occurs)
+    //X       async render()                 // render object into its own 'this._div' docElement (called every time any change occurs)
+
+    // text = menuName();       // get text to show in the 'new editor' menu  (return null if handler NOT in new menu)
+    // text = menuTooltip();    // get tooltip to display in 'new editor' menu when hovered over
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create/destroy helper functions ------------------------------------------------------------------------------------
@@ -52,14 +56,13 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     //XXX  __onDCHLostFocus(evt) called whenever this._div or any childof lost focus
 
     static async create(dchName, parent=null, style=null) {
-        const path = "./modules/DocComponentHandlers/" + dchName;
-        if (!DCH.hasOwnProperty(dchName)) {          // load the module(plugin) if not already loaded
-            const dch = await FF.loadModule(path + "/dch_" + dchName + ".js")
-            DCH[dchName] = dch.DCH;
-        }
+        // const path = "./modules/DocComponentHandlers/" + dchName;        // modules are now preloaded in index.js (cuz 'menu')
+        // debugger; if (!DCH.hasOwnProperty(dchName)) {          // load the module(plugin) if not already loaded
+        //     const dch = await FF.loadModule(path + "/dch_" + dchName + ".js")
+        //     DCH[dchName] = dch.DCH;
+        // }
         const dch = new DCH[dchName]();         // create handler, do nothing else!
         dch.parent = parent;
-        dch._path = path;
         if (dch.hasDiv) {                                   // is dch a visible object that needs a <div> to render in? 
             dch._div = document.createElement("div");       // create div
             dch._div.tabIndex = -1;                         // doing this makes the ._div focussable but not tabbable
@@ -100,15 +103,15 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
             // dch.addListener(dch._div, "focusout", dch.__onDCHLostFocus);    // detect when anything inside ._div lost focus
         }
         if (dch.hasToolbar) {
-            dch._bar = document.createElement("div");
-            dch._bar._dchHandler = dch;                      // same for the _bar
-            dch._bar._dchMouseOp = "toolBtn";
-            dch._bar.style.position = "absolute";
-            dch._bar.style.inset = "0px 0px 0px 0px";       // top, right, bottom, left
-            dch._bar.style.backgroundColor = "rgb(155, 253, 161)";
+            dch._tBar = document.createElement("div");
+            dch._tBar._dchHandler = dch;                      // same for the _tBar
+            dch._tBar._dchMouseOp = "dchToolBtn";
+            dch._tBar.style.position = "absolute";
+            dch._tBar.style.inset = "0px 0px 0px 0px";       // top, right, bottom, left
+            dch._tBar.style.backgroundColor = "rgb(155, 253, 161)";
 
             let parentDiv = document.getElementById("divToolbar");
-            parentDiv.appendChild(dch._bar);                // add the _bar as a direct child of "divToolBar"
+            parentDiv.appendChild(dch._tBar);                // add the _tBar as a direct child of "divToolBar"
         }
         
         dch.construct();
@@ -136,8 +139,8 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
         if (this.hasDiv && this._div) {
             this._div.remove();
         }
-        if (this.hasToolbar && this._bar) {
-            this._bar.remove();
+        if (this.hasToolbar && this._tBar) {
+            this._tBar.remove();
         }
     }
 
