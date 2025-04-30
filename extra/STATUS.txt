@@ -27,7 +27,7 @@ background-color as we cant do that when phasing...!)   so think of a way...
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-30 ------------------------------------------------------------------------------------------------------------
 * got rid of "DOC" dch on account of toplevel object MUST have a '_div' in order for ctrl+alt operations to work
 * docs now start with '@n.n;uuuuuuuu-uuuu-iiii-dddd-xxxxxxxxxxxx;' INCLUDING copypastes in case we copypaste across
       installs
@@ -36,8 +36,8 @@ background-color as we cant do that when phasing...!)   so think of a way...
 * finally got started on the leftpane index system
     added fem_core_divIndexViewHandler.js which allows 
         ✓ drag-drop for reordering     works on screen but still doesnt affect DB or id-ordering
-        ~ leftclick for sel/show       selects item but doesnt yet show it in the docView
-        ~ rightclick for contextMenu   funcall fires but no context menu to show yet.
+        ✓ leftclick for sel/show       selects item but doesnt yet show it in the docView
+        ✓ rightclick for contextMenu   funcall fires but no context menu to show yet.
 
 2025-04- ------------------------------------------------------------------------------------------------------------
 * changed DCH_BASE.children to recognize 'null' as meaning cannot have children and [] as can have.
