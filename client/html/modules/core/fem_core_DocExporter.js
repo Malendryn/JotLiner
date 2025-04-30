@@ -6,7 +6,12 @@ export class DocExporter {
 
     async export(dch) {
         let str = await this._export(dch);                      // turn the dch into a stream
-        return "@" + FG.VERSION + ";" + FG.docUuid + ";\n" + str;
+        let ss = "@" + FG.VERSION + ";";
+        if (dch == FG.docRoot) {        // add the uuid only if exporting entire document
+            ss += FG.docUuid;           // else just add the ; and leave uuid blank
+        }
+
+        return ss + ";\n" + str;
     }
 
 

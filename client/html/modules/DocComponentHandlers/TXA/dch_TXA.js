@@ -2,7 +2,7 @@
 class DCH_TXA extends FG.DCH_BASE {
     el;                 // becomes childof this._div and is a "textarea"  (see construct())
 
-    static menuName    = "<textarea> element";
+    static menuText    = "&lt;textarea&gt; element";
     static menuTooltip = "A simple <textarea> editor";
 
     async construct() {

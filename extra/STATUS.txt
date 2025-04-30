@@ -26,7 +26,16 @@ background-color as we cant do that when phasing...!)   so think of a way...
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-30 ------------------------------------------------------------------------------------------------------------
+* 'flattened' the dchContextMenu so it's no longer multitier (wasn't really multitier anyway!)
+* sort'a genericized the dchContextMenu too so it now takes a [list] and a callback
+* modded the dch element contextMenu so it now works in-part!  create dchComponent, export, now work from it!
+
+
+
+HOWTO genericise the DCHContextMenu ?  (and maybe rename it to ... divContextMenu?)
+  (it basically uses a <ul><li> internally so this should be easy!)
+
 2025-04-30 ------------------------------------------------------------------------------------------------------------
 * got rid of "DOC" dch on account of toplevel object MUST have a '_div' in order for ctrl+alt operations to work
 * docs now start with '@n.n;uuuuuuuu-uuuu-iiii-dddd-xxxxxxxxxxxx;' INCLUDING copypastes in case we copypaste across

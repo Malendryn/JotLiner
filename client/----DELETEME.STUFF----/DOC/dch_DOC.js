@@ -7,7 +7,7 @@ class DCH_DOC extends FG.DCH_BASE {
     ver = FG.VERSION;
     uuid = null;
 
-    static menuName    = null;
+    static menuText    = null;
     static menuTooltip = null;
 
     async construct() {

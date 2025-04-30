@@ -9,7 +9,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
 
     el;                 // becomes childof this._div and is a "div" that is "contexteditable"  (see construct())
 
-    static menuName    = "Simple RichText editor";
+    static menuText    = "Simple RichText editor";
     static menuTooltip = "A RichText-like editor built using a contexteditable <div>";
 
     states = {              // RSTODO current state of buttons based on where cursor is

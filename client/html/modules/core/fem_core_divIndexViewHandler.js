@@ -18,6 +18,27 @@ tmp.innerHTML = `
 </ul>
 `;
 
+const dchIndexMenuEntries = [
+//   callId,      name,                 tooltip
+    ["insertNew", "Insert New Document", "Insert a new document above the current cursor"]
+    ["indent",    "> Indent Document",   "Make document a child of the document above it"],
+    ["dedent",    "< Dedent Document",   "Move document up to parent's level"],
+    ["",          "",                    ""],       // this will appear as a seperator line
+    ["export",    "Export Document",     "Export document to a local file"],
+    ["",          "",                    ""],       // this will appear as a seperator line
+    ["delete",    "Delete Document",     "Delete document under cursor"],
+];
+    
+
+const style = window.getComputedStyle(tmp);
+let bgColor = style.backgroundColor;
+bgColor = FF.parseRgba(bgColor);
+bgColor.r = Math.max(0, bgColor.r - 24);
+bgColor.g = Math.max(0, bgColor.g - 24);
+bgColor.b = Math.max(0, bgColor.b - 24);
+
+bgColor = "rgb(" + bgColor.r + "," + bgColor.g + "," + bgColor.b + ")";
+
 let list = document.getElementById("divIndexViewUL");   // change from "divIndexView" above, to new inner <ul> element
 const listItems       = list.querySelectorAll('li');      // get all the <li> elements in the <ul>
 
@@ -27,7 +48,7 @@ let placeholder       = document.createElement('div');    // create the thin-bla
 placeholder.className = 'placeholder';
 
 listItems.forEach(item => {
-    item.addEventListener('dragstart',   onDragStart);
+    item.addEventListener('dragstart',   onDragStart);  // RSTODO improve on this, use the single document level listener instead
     item.addEventListener('dragover',    onDragOver);
     // item.addEventListener('drop',        onDrop);
     item.addEventListener('dragend',     onDragEnd);
@@ -35,23 +56,20 @@ listItems.forEach(item => {
     item.addEventListener('contextmenu', onRightClick);
 });
 
-
 function setSelected(evt) {
     evt.preventDefault();
     if (curSelectedItem) {
         curSelectedItem.style.backgroundColor = "";
     }
     curSelectedItem = evt.target;
-    curSelectedItem.style.backgroundColor = "blue";
+    curSelectedItem.style.backgroundColor = bgColor; //"lightslategrey";
 }
 
-function onLeftClick(evt) {
-    console.log(evt.target.innerHTML);
+function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
     setSelected(evt);
 }
 
-function onRightClick(evt) {
-    console.log(evt.target.innerHTML);
+function onRightClick(evt) {     // desel any sel,  sel current one under mouse, then open a context menu
     setSelected(evt);
 }
 

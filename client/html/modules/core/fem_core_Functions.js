@@ -13,6 +13,7 @@
 // hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
 // -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
 // -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
+// {}     =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
 
 // ==== FROM fem_core_WSockHandler.js ====================================================================================
 // pkt    = makePacket(name)               create and return a new packet
@@ -95,6 +96,42 @@ FF.newDoc = async () => {
 	// //
 	FG.docRoot = dch;
 };
+
+
+FF.parseRgba = function (rgbString) {     // turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
+    // Check if the input is a valid rgb or rgba string
+    if (!rgbString.startsWith('rgb')) {
+        return null; // Or throw an error:  throw new Error('Invalid RGB string');
+    }
+  
+    // Remove 'rgb(' and ')' or 'rgba(' and ')'
+    let colorValues = rgbString.substring(rgbString.indexOf('(') + 1, rgbString.lastIndexOf(')')).split(',');
+  
+    //check if the alpha channel exists
+    const hasAlpha = rgbString.startsWith('rgba');
+    const expectedValues = hasAlpha? 4: 3;
+    if(colorValues.length !== expectedValues){
+        return null; //Or throw an error
+    }
+  
+    // Convert the values to numbers.  Use parseFloat to handle decimals in rgba.
+    const r = parseInt(colorValues[0].trim(), 10);
+    const g = parseInt(colorValues[1].trim(), 10);
+    const b = parseInt(colorValues[2].trim(), 10);
+    const a = hasAlpha ? parseFloat(colorValues[3].trim()) : 1; // Default alpha is 1 if not provided
+  
+    // Check if the parsed values are valid
+    if (
+        isNaN(r) || r < 0 || r > 255 ||
+        isNaN(g) || g < 0 || g > 255 ||
+        isNaN(b) || b < 0 || b > 255 ||
+        (hasAlpha && (isNaN(a) || a < 0 || a > 1))
+    ) {
+        return null; // Or throw an error: throw new Error('Invalid RGB/RGBA values');
+    }
+  
+    return hasAlpha? { r, g, b, a } : { r, g, b }; // Return as an object
+}
 
 
 // export async function init() {

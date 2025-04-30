@@ -3,7 +3,7 @@ class DCH_BOX extends FG.DCH_BASE {
 
     children = [];      // changing to [] to allow children
 
-    static menuName    = "Box container";
+    static menuText    = "Box container";
     static menuTooltip = "A rectangle that other editor can be put inside of";
 
     async construct() {

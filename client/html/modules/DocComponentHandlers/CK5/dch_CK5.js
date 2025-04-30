@@ -2,7 +2,7 @@
 class DCH_CKEditor5 extends FG.DCH_BASE {     // https://ckeditor.com/docs/ckeditor5/latest/index.html
     el;                 // becomes childof this._div and is another  "div"  (see construct())
 
-    static menuName    = "CK5 based editor";
+    static menuText    = "CK5 based editor";
     static menuTooltip = "An editor based on CK5 (see https://ckeditor.com/docs/ckeditor5/latest/index.html)";
 
     async construct() {

@@ -19,8 +19,8 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 
     static _path = ""; // relative path to this module's subdir (so module can access its own icons, etc...)
 
-    static menuName    = null; // text to show in 'add editor' menu (skipped if null)
-    static menuTooltip = null; // tooltip to show when hovering over menuName
+    static menuText    = null; // text to show in 'add editor' menu (skipped if null)
+    static menuTooltip = null; // tooltip to show when hovering over menuText
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-must-implement functions -------------------------------------------------------------------------------------
@@ -33,9 +33,6 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     // text = async exportData()             // return data to be preserved/exported as a {}
     
     //X       async render()                 // render object into its own 'this._div' docElement (called every time any change occurs)
-
-    // text = menuName();       // get text to show in the 'new editor' menu  (return null if handler NOT in new menu)
-    // text = menuTooltip();    // get tooltip to display in 'new editor' menu when hovered over
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create/destroy helper functions ------------------------------------------------------------------------------------
