@@ -13,6 +13,8 @@ export async function init() {          // load, init, and establish connection 
 
         WS.ws.onopen = () => {
             console.log("WebSocket connection opened");
+            resolve(this);
+            return;
         };
         
         WS.ws.onmessage = (event) => {
@@ -35,9 +37,7 @@ export async function init() {          // load, init, and establish connection 
             WS.send(pkt);
         }
 
-        resolve(this);
-        return;
-        // reject(err); // ifError
+        // resolve(this);       // moved to .onopen()   so we await til its truly open before continuing
         // return;
     });
 };

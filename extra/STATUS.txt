@@ -3,6 +3,20 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
+
+TODO: make toplevel BOX  'hard-fixed' and unchangable!  (no modding anchors)
+    we can just use if (dch == FG.docRoot) {then nochange allowed}
+
+TODO instead of opening a dialog for anchor editing, lets just overwrite the toolbar with the <--> <----> <--> LWR anchors
+    and overwrite the <divIndex> with the THB anchors, that'll work nicely as we no longer have to worry about a dlg
+    being in-the-way all the time AND gives us plenty of room to add more gadgets in the index area for things like
+    'border 1px dashed black; background-color' and stuff like that
+        We have 2 dialogs for handling anchors,  both are temps only, index.html:popDlgDCHAnchor and 
+        'popDlgDCHAnchor.html in the --deleteme-- dir'..  we are NOT USING the --deleteme-- one and we're 
+
+TODO see if we can animate selected box so it 'blinks' or fades/phases while editing  (but caution when setting things like
+background-color as we cant do that when phasing...!)   so think of a way...
+
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
@@ -12,6 +26,26 @@
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
 2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04- ------------------------------------------------------------------------------------------------------------
+* got rid of "DOC" dch on account of toplevel object MUST have a '_div' in order for ctrl+alt operations to work
+* docs now start with '@n.n;uuuuuuuu-uuuu-iiii-dddd-xxxxxxxxxxxx;' INCLUDING copypastes in case we copypaste across
+      installs
+* also made sure toplevel BOX is always top:0;left:0;right:0;bottom:0;
+
+* finally got started on the leftpane index system
+    added fem_core_divIndexViewHandler.js which allows 
+        ✓ drag-drop for reordering     works on screen but still doesnt affect DB or id-ordering
+        ~ leftclick for sel/show       selects item but doesnt yet show it in the docView
+        ~ rightclick for contextMenu   funcall fires but no context menu to show yet.
+
+2025-04- ------------------------------------------------------------------------------------------------------------
+* changed DCH_BASE.children to recognize 'null' as meaning cannot have children and [] as can have.
+* have a contextmenu working now that shows 'add Editor' 'change anchors' 'delete' and 'export'
+    it's crude as it doesn't show all children but it DOES work!
+    it also doesnt position itself fully within the window if I open it when the mouse is down low
+
+ 2025-04- ------------------------------------------------------------------------------------------------------------
 * renamed ._bar to ._tBar as it felt too 'generalized'
 * moved loading handlers to index.js (via ws "GetDCHList") so they're available right up front for 'new editor' menu
     consequently -- removed the autoload feature in DCH_BASE.create

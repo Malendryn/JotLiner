@@ -10,6 +10,7 @@ FG.baseURL       = window.location.origin;  // EG: "http://localhost:3000"
 FG.ws            = null;     // WebSocket connector to localServer
 FG.DCH_BASE      = null;     // base class from which ALL DocComponentHandlers must inherit from
 FG.docRoot       = null;     // the currently loaded document as a tree of handlers
+FG.docUuid       = null;     // uuid of either newDoc or loaded doc
 
 /*  RSTODO:
 FG.ViewBASE     = null,     // base class for all views loaded via FF.loadView()
@@ -25,17 +26,3 @@ FG.ch_outline   = null,     // CanvasHandler for leftside 'outline' canvas of th
 FG.ch_page      = null,     // CanvasHandler for rightside 'page' canvas of the book.html page
         //RSNOTE RSTODO consider making ch_page a BLANK SLATE that other pages become a child of as this is effectively an infinite canvas 
 */
-
-
-
-
-// export async function init() {
-//     return new Promise(async (resolve, reject) => {
-//         debugger;       //dosomething
-//         resolve(this);
-//         return;
-//         // reject(err); // ifError
-//         // return;
-//     });
-// };
-

@@ -83,15 +83,15 @@ FF.newDoc = async () => {
 	await FF.clearDoc();
 
 // then create a new doc by adding a single BOX handler as the docRoot
-	const dch = await FG.DCH_BASE.create("DOC", null, null);	// blowout any loaded handlers and create toplevel DOC object
-	// // dch._div.style.position    = "absolute";
-	// dch._div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch._div.style.top/bottom/etc during exportDoc()
-	// dch._div.style.top    = "0px";	// set here cuz .create() didn't get a DocParser passed to it
-	// dch._div.style.right  = "0px";
-	// dch._div.style.bottom = "0px";
-	// dch._div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
-	// //	dch._div.style.overflow = "hidden";
-	// //	dch._div.style.whiteSpace = "nowrap";		// unnecessary in a BOX as everything inside it is more divs
+	const dch = await FG.DCH_BASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel DOC object
+	FG.docUuid = FF.makeUUID();									// give it a new uuid too
+	dch._div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch._div.style.top/bottom/etc during exportDoc()
+	dch._div.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
+	dch._div.style.right  = "0px";
+	dch._div.style.bottom = "0px";
+	dch._div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
+	// dch._div.style.overflow = "hidden";
+	// dch._div.style.whiteSpace = "nowrap";		// unnecessary in a BOX as everything inside it is more divs
 	// //
 	FG.docRoot = dch;
 };

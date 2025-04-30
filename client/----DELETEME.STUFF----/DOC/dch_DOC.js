@@ -1,12 +1,14 @@
 
 class DCH_DOC extends FG.DCH_BASE {
-    hasDiv = false;
+    hasDiv = false;     // component does not require a <div> to operate within
 
+    children = [];      // changing to [] to allow children
+    
     ver = FG.VERSION;
     uuid = null;
 
-    menuName() { debugger; return null; }
-    menuDesc() { debugger; return null; }
+    static menuName    = null;
+    static menuTooltip = null;
 
     async construct() {
         this.uuid = FF.makeUUID();                          // WILL be replaced if importData()

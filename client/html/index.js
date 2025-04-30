@@ -32,24 +32,14 @@ window.addEventListener('load', async function() {
     el._dchMouseOp = "idx<>doc";
     let mod;
     // console.log(this.document.baseURI);
-    await FF.loadModule("./modules/core/fem_core_Globals.js");          // populate basics of FG
-    await FF.loadModule("./modules/core/fem_core_Functions.js");        // populate basics of FF
-    await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");         // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
-    await FF.loadModule("./modules/core/fem_core_TKMEvtHandlers.js");   // Toplevel Kbd/Mouse HandlerFuncs like mousedown to move divs, etc...
-    await FF.loadModule("./modules/core/fem_core_DCHContextMenu.js");   // Generic context menu handler for DCH (and toplevel) objects
-    await FF.loadModule("./modules/core/fem_core_WSockHandler.js");     // assigns FG.ws and opens FG.ws BEFORE returning
+    await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate basics of FG
+    await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate basics of FF
+    await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");            // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
+    await FF.loadModule("./modules/core/fem_core_TKMEvtHandlers.js");      // Toplevel Kbd/Mouse HandlerFuncs like mousedown to move divs, etc...
+    await FF.loadModule("./modules/core/fem_core_divIndexViewHandler.js"); // handler for the leftside divIndexView
+    await FF.loadModule("./modules/core/fem_core_DCHContextMenu.js");      // Generic context menu handler for DCH (and toplevel) objects
+    await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");
-
-// // RSTEST BEGIN of doc streamreading/displaying ///////////////////////////////////////////////////////////////////////
-// // first lets load a test document from the __TESTDOC__.js file
-//     let module = await FF.loadModule("./__TESTDOC__.js");   // describes minimal document format as well as implements and returns a test doc
-//     let doc    = module.doc;                                // extract the test doc from the module
-//     let sr     = new FG.DocParser(doc);                  // turn it into a DocParser
-
-// // now lets test an actual loading and rendering of it
-//     FG.docRoot = await FF.DocImporter.importDoc(sr, null);                  // load doc (as newDoc cuz null) and all children
-//     await FG.docRoot.render();
-// // RSTEST END of doc streamreading/displaying /////////////////////////////////////////////////////////////////////////
 
     const pkt = WS.makePacket("GetDCHList");        // first thing we have to do is get the list of DCH handlers
     WS.sendExpect(pkt, gotDCHList);
@@ -60,11 +50,11 @@ async function gotDCHList(pkt) {
     for (const dchName of pkt.list) {           // DONT use pkt.list.forEach() here cuz 'await' won't work inside loop
         const path = "./modules/DocComponentHandlers/" + dchName;
         if (!DCH.hasOwnProperty(dchName)) {     // load the module(plugin) if not already loaded
-            console.log(">", dchName);
+            // console.log(">", dchName);
             let dch = await FF.loadModule(path + "/dch_" + dchName + ".js")
             dch = dch.DCH;                      // get class out of module, discard module
             dch._path = path;                   // set path to module's dir so module can load its own files/icons if needed
-            console.log("<", dchName);
+            // console.log("<", dchName);
             DCH[dchName] = dch;
         }
     }
@@ -88,14 +78,17 @@ async function gotDoc(pkt) {
 
     await imp.attach(pkt.doc, null);  // now attach it to the system as new root doc!
 
+// RSTEST to destroy it to make sure it completely did, then reattach it again
     // debugger; await FG.docRoot.destroy();
     // debugger; await imp.attach(pkt.doc, null);  // now attach it to the system as new root doc!
+// RSTEST end
 
-
-    // let exp = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
+// RSTEST to export it and display it on console
+    // debugger; let exp = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
     // exp = new exp.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
     // let str = await exp.export(FG.docRoot);
     // console.log(str);
+// RSTEST end
 }
 
 

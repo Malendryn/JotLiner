@@ -4,24 +4,20 @@
 
 //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
 
-class DCHTool_Button {
-
-};
-
 class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
     hasToolbar = true;
 
     el;                 // becomes childof this._div and is a "div" that is "contexteditable"  (see construct())
 
-    menuName() { debugger; return "Simple RichText editor"; }
-    menuDesc() { debugger; return "A RichText-like editor built using a contexteditable <div>"; }
+    static menuName    = "Simple RichText editor";
+    static menuTooltip = "A RichText-like editor built using a contexteditable <div>";
 
     states = {              // RSTODO current state of buttons based on where cursor is
         "bold": false,
         "italic": false,
         "underline": false,
         "strikethrough":false
-    }
+    }; 
 
     async construct() {
         this.el = document.createElement("div");            // create a div inside ._div and make it contenteditable
@@ -73,15 +69,18 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         console.log("bold");
         // debugger;  await FG.docRoot.destroy();
     }
+
     onToolBtnItalic(evt) {
         evt.preventDefault;
         console.log("italic");
         // debugger;
     }
+
     onToolBtnUnderline(evt) {
         evt.preventDefault;
         debugger;
     }
+
     onToolBtnStrikethrough(evt) {
         evt.preventDefault;
         debugger;
@@ -91,11 +90,9 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         this.el.innerHTML = data["C"];        // C for content
     }
     
-    
     async exportData() {       // return data to be preserved/exported as a {}
         return { "C" : this.el.innerHTML };
     }
-    
     
 //     async render() {
 // // we don't use render cuz this.el.innerHTML handles all that for us automatically

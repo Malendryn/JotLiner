@@ -40,10 +40,7 @@ function mousedown(evt) {
         return;
     }
 
-    // evt.stopPropagation();
-    // evt.preventDefault();
-
-// record info for the "idx<>doc" dragbar or for the "dchComponent"
+// record info for mouseMove ops
     let m = {                       // create and init 'global' mouseOp object
         op:          op,            // record the _dchMouseOp.
         startX:      evt.screenX,   // initial evt.screenX and Y (when mouse was pressed)
@@ -153,24 +150,5 @@ function mouseup(evt) {
 
     let m = mouseOp;
     mouseOp = null;
-
-    // if (m.op != "dchComponent") {  // if was a dchToolBtn or idx<>doc dragbar just return
-    //     return;
-    // }
-
-    // evt.stopPropagation();
-    // evt.preventDefault();
-
-    // if (m.startX == evt.screenX && m.startY == evt.screenY) { // clicked (mouse didn't move)  .. change toolbar to that div!
-    //     let div = document.getElementById("divToolbar");
-    //     for (let idx = 0; idx < div.children.length; idx++) {
-    //         let tmp = div.children[idx];
-    //         if (tmp._dchHandler == m.dchHandler) {  // divs in the toolbar MUST have a _dchHandler attr!
-    //             tmp.style.display = "block";
-    //         } else {
-    //             tmp.style.display = "none";
-    //         }
-    //     }
-    // }
 }
 

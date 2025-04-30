@@ -5,8 +5,8 @@ export class DocExporter {
 //  str = detach(dch)  detach/delete dch+children from doc entirely! (call export() seperately first to keep it! )
 
     async export(dch) {
-        let str = await this._export(dch);          // turn the dch into a stream
-        return str;
+        let str = await this._export(dch);                      // turn the dch into a stream
+        return "@" + FG.VERSION + ";" + FG.docUuid + ";\n" + str;
     }
 
 
@@ -38,11 +38,12 @@ export class DocExporter {
             str += this._elToStr(key, data[key]);       // append all dch's private data to the str
         }
         str = this._elToStr(cName, str) + "\n";         // wrap it all with the cName and throw in a \n for readability
-        for (let idx = 0; idx < dch.children.length; idx++) {
+        let childCt = (dch.children !== null) ? dch.children.length : 0;   // if null, =0, else =length
+        for (let idx = 0; idx < childCt; idx++) {
             const child = dch.children[idx];
             str += await this._export(child);
         }
-        return dch.children.length + ";" + str;         // add in how many children this dch has and return it
+        return childCt + ";" + str;         // prepend with how many children this dch has and return it
     }
 
 

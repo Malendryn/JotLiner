@@ -1,4 +1,4 @@
-#dchContextMenu {
+.dchContextMenu {
     display: none; /* Initially hidden */
     position: absolute;
     background-color: #f9f9f9;
@@ -8,17 +8,17 @@
     z-index: 99999999; /* Ensure it's on top of all other elements */
 }
 
-#dchC ul {
-    list-style: none;
+.dchContextMenu ul {
+    list-style:  none;
     padding: 0;
     margin-left: 20px;
 }
 
-#dchC li {
+.dchContextMenu li {
     padding: 8px 15px;
     cursor: pointer;
 }
 
-#dchC li:hover {
+.dchContextMenu li:hover {
     background-color: #a8a8a8;
 }

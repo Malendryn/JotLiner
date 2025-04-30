@@ -56,22 +56,37 @@ class StringReader {
 
 export class DocImporter {   // create and return a DCH from a stream
     docVer;
+    docUuid;
     sr;
 //    let el = document.getElementById("docWrapper")
 
-    async attach(str, parent)  {       // attach as child of parent._div  (or to "docWrapper" if parent=null)
+    async attach(str, parent)  {        // attach as child of parent._div  (or to "docWrapper" if parent=null)
         this.sr = new StringReader(str);
-        this.docVer = FG.VERSION;     // STARTWITH matching the sysVersion
-        if (str.charAt(0) == '@') {
-            this.docVer = this.sr.readToSem().substr(1);    // read Ver, then substr(1) to skipover the '@'
-            if (this.docVer > FG.VERSION) {
-                debugger;                           // RSTODO throw error, can't read document, need newer software
-            }
+        this.docVer = FG.VERSION;       // STARTWITH matching the sysVersion (so copypaste always compares to proper version)
+        let tmp;
+
+        // ALWAYS read docVer and docUuid even when copypasting (tho when copypasting we discard docUuid)
+        //    cuz we might be copypasting from an older ver to a newer ver
+
+        tmp = this.sr.readToSem();  // read "@n.n;""
+        if (tmp.charAt(0) != '@') {
+            throw new Error("Cannot load document, improperly formatted");
         }
-        if (parent == null) {
-            await FF.clearDoc();        // if no parent, this is toplevel doc, so clear and remove existing
+        this.docVer = tmp.substr(1);    // chopoff "@", save ver as "n.n"
+        if (this.docVer > FG.VERSION) {
+            throw new Error("Document is newer than this software supports");
         }
+        if (parent == null)  {          // if toplevel document (and not just a copypaste subset)
+            await FF.clearDoc();        // when no parent, this is toplevel doc, so clear and remove existing
+        }
+
+        this.docUuid = this.sr.readToSem();  // read "...uuid..."
+
         await this._importNext(parent); // if a parent was passed, add this as child
+        
+        if (parent == null) {
+            FG.docUuid = this.docUuid;
+        }
     }
 
 

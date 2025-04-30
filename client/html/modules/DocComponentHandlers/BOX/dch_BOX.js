@@ -1,9 +1,10 @@
 
 class DCH_BOX extends FG.DCH_BASE {
-// this component has children[]
 
-    menuName() { debugger; return "A Box container"; }
-    menuDesc() { debugger; return "A rectangle that other editor can be put inside of"; }
+    children = [];      // changing to [] to allow children
+
+    static menuName    = "Box container";
+    static menuTooltip = "A rectangle that other editor can be put inside of";
 
     async construct() {
         // debugger;

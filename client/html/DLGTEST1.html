@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <button id="openDialogButton">Open Draggable Dialog in New Window</button>
+    <textarea id="qq">eee</textarea>
+</body>
+    <script>
+        let isOpen = false;
+        function openNewWindow() {
+            if (!isOpen) {
+                isOpen = true;
+                const newWindow = window.open("", "_blank", "width=300,height=200,left=100,top=100");
+                if (newWindow) {
+                    newWindow.document.write(`
+                        <html>
+                        <body>
+                            <button id="closeDialogBtn" class="close-button">Close</button>
+                            <input type="text" placeholder="Enter text..." />
+                        </body>
+                    <script>
+                            function closeDialog() {
+                                console.log(window.opener);
+                                window.opener.onDlgCloseBtn("12321");  // send data back to the opening browser
+                                window.close();
+                            }
+
+                            closeDialogBtn.addEventListener("click", closeDialog);
+                        <\/script>
+                    </html>`);
+                    newWindow.document.close();
+                }
+            }
+        }
+        function onDlgCloseBtn(data) {
+            console.log("data=", data);
+            alert("data=" + data);
+            isOpen = false;             // 'dialog' has been closed, allow new dialogs to open again
+        }
+        const openDialogButton = document.getElementById("openDialogButton");
+        openDialogButton.addEventListener("click", openNewWindow);
+    </script>
+</html>

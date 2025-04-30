@@ -7,16 +7,20 @@
 
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
-    hasDiv = true;      // true = create 'this._div' @ construction AND read styles from stream when created via DocImporter
-    hasToolbar = false; // true = create this._tBar' @ construction
-    parent;         // parent component of this component (or null if topLevel)
-    _div = null;    // OWNEDBY BASE! ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
-                    // the parent of every other element created by this component (autocreated during create())
-    _tBar = null;   // OWNEDBY BASE! ... if hasDiv==true, this is handle to an 'absolute' <div> to build a toolbar in.
-                    // user 'owns' content, (use this.addListener this.removeListenerBy<choice>())
-    children = [];  // IF POPULATED exporter will automatically handle it, likewise during creating/importing component
+    hasDiv = true;          // true = create 'this._div' @ construction AND read styles from stream when created via DocImporter
+    hasToolbar = false;     // true = create this._tBar' @ construction
+
+    parent;          // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
+    _div = null;     // OWNEDBY BASE! ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
+                     // the parent of every other element created by this component (autocreated during create())
+    _tBar = null;    // OWNEDBY BASE! ... if hasDiv==true, this is handle to an 'absolute' <div> to build a toolbar in.
+                     // user 'owns' content, (use this.addListener this.removeListenerBy<choice>())
+    children = null; // if null, !allow children, if [] allows children, (imp/export, create/delete auto-handles it)
 
     static _path = ""; // relative path to this module's subdir (so module can access its own icons, etc...)
+
+    static menuName    = null; // text to show in 'add editor' menu (skipped if null)
+    static menuTooltip = null; // tooltip to show when hovering over menuName
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-must-implement functions -------------------------------------------------------------------------------------
@@ -124,8 +128,10 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
         console.log("fem_core_DCH_BASE.js:destroy");
-        for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy all children first
-            this.children[idx].destroy();
+        if (this.children != null) {                                        // if this dcHandler CAN have children....
+            for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy them (in reverse order cuz 'parent.splice()'
+                await this.children[idx].destroy();
+            }
         }
         this.removeAllListeners();      // remove all listeners registered to this dch
         if (this.parent) {
