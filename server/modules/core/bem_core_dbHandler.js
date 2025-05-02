@@ -43,15 +43,21 @@ class DBHandler {
 
     run = async (sql, params = []) => {
         return new Promise((resolve, reject) => {
+            let errMsg = null, lastId = 0;
             this.db.serialize(() => {
-                this.db.run(sql, params, function (err) {
+                const stmt = this.db.prepare(sql);
+                stmt.run(...params, function (err) {
                     if (err) {
-                        reject(err);
-                        return;
+                        errMsg = err;
                     }
-                    resolve(this);      // returns Statement object, use retval.lastID to get id of any newly inserted recs
-                    return;
+                    lastId = this.lastID;
+                    if (errMsg) {
+                        reject(errMsg);
+                    } else {
+                        resolve(lastId)
+                    }
                 });
+                stmt.finalize();
             })
         });
     }
@@ -127,6 +133,7 @@ export async function init() {
 + ") WITHOUT ROWID;";
         await BG.db.run(sql);                                                           // create table
         await BG.db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // set initial value to '0'
+        await BG.db.run("INSERT INTO extra (key,value) values ('curDocUuid', '')");     // set initial value to ''
     }); // ************************************************************************************************************
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     await BG.db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables
