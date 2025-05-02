@@ -94,7 +94,7 @@ class DBHandler {
             return;
         }
         if (fromVersion != version) {   // if the upgradeFrom version != current DB version, throw an error
-            throw new Error(`DB Version is ${version}, request to upgrade from ${fromVersion} to ${toVersion} failed`)
+            throw new Error(`DB Version is ${version}, FAILED request to upgrade from ${fromVersion} to ${toVersion}`)
         }
 
         await this.run("BEGIN TRANSACTION");
@@ -134,9 +134,9 @@ export async function init() {
 "CREATE TABLE docList"  // cuz 'index' is a reserved word in SQLite3
 + "( id         INTEGER NOT NULL PRIMARY KEY"  // id of entry in index table (used by parent)
 + ", name       TEXT    NOT NULL"  // name of entry in index table
-+ ", docId      TEXT    NOT NULL"  // uuid of entry in doc table
++ ", uuid       TEXT    NOT NULL"  // uuid of entry in doc table
 + ", listOrder  INTEGER NOT NULL"  // ('order'=reserved word in sqlite3) 'display order' of recs in this table (when at same parent level)
-+ ", parent     INTEGER NOT NULL"  // id of parent rec this is a child of
++ ", parent     TEXT    NOT NULL"  // uuid of parent rec this is a child of
 + ");"; // don't add 'WITHOUT ROWID' just to be more compatible/inline-with other SQL language derivatives
         await BG.db.run(sql);
     }); // ************************************************************************************************************
