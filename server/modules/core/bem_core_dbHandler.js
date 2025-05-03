@@ -138,12 +138,12 @@ export async function init() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     await BG.db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables
         sql = 
-"CREATE TABLE docList"  // cuz 'index' is a reserved word in SQLite3
+"CREATE TABLE docTree"
 + "( id         INTEGER NOT NULL PRIMARY KEY"  // id of entry in index table (used by parent)
 + ", name       TEXT    NOT NULL"  // name of entry in index table
 + ", uuid       TEXT    NOT NULL"  // uuid of entry in doc table
 + ", listOrder  INTEGER NOT NULL"  // ('order'=reserved word in sqlite3) 'display order' of recs in this table (when at same parent level)
-+ ", parent     TEXT    NOT NULL"  // uuid of parent rec this is a child of
++ ", parent     TEXT    NOT NULL"  // uuid of parent rec this is a child of, or '' if toplevel
 + ");"; // don't add 'WITHOUT ROWID' just to be more compatible/inline-with other SQL language derivatives
         await BG.db.run(sql);
     }); // ************************************************************************************************************
