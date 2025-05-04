@@ -1,40 +1,53 @@
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+* finally renamed this file from STATUS.txt to CHANGELOG.txt!
 
-TODO: make toplevel BOX  'hard-fixed' and unchangable!  (no modding anchors)
-    we can just use if (dch == FG.docRoot) {then nochange allowed}
+lets get to working on resizing the dch's!
 
-TODO instead of opening a dialog for anchor editing, lets just overwrite the toolbar with the <--> <----> <--> LWR anchors
-    and overwrite the <divIndex> with the THB anchors, that'll work nicely as we no longer have to worry about a dlg
-    being in-the-way all the time AND gives us plenty of room to add more gadgets in the index area for things like
-    'border 1px dashed black; background-color' and stuff like that
-        We have 2 dialogs for handling anchors,  both are temps only, index.html:popDlgDCHAnchor and 
-        'popDlgDCHAnchor.html in the --deleteme-- dir'..  we are NOT USING the --deleteme-- one and we're 
 
-TODO see if we can animate selected box so it 'blinks' or fades/phases while editing  (but caution when setting things like
-background-color as we cant do that when phasing...!)   so think of a way...
+2025-05-03 ------------------------------------------------------------------------------------------------------------
+* fixed issue with loading TESTDOC where it showed the toolbar at doc-load-time
+* doctree now being fetched from server and populating index pane and selecting docs fetches and displays them
+* doctree now also ordered-and-indented
+* WS.NewDoc no longer returns doctree, was easier to keep it seperate to genericize the docTree reloading/displaying ops
 
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-05-03 ------------------------------------------------------------------------------------------------------------
+* renamed table docList to docIndex ... and then to docTree
+* changed FG.docUuid to FG.curDoc={id,name,uuid,listOrder,parent,rootDch}
+* got rid of FG.docRoot, now FG.curDoc.rootDch
+* added FG.docIndex which is now entire docIndex table
+* removed curSelectedLI as it's now available in FG.docTree[idx]
+
+2025-05-02 ------------------------------------------------------------------------------------------------------------
+* fixed up some db design layout problems
+* got basic indexView working (no indent yet, no sorting yet) where it loads from DB!
+* got basic loading of doc when clicking on an indexElement
+      has issue where it puts selection on the CTE box and thereby shows the CTI toolbar atop screen when it shouldnt!
+
+2025-05-02 ------------------------------------------------------------------------------------------------------------
+* cleaned up some toplevel mouse/kbd logic  (now tracks mouse&keystates much better)
+* cleaned up the contextMenu so it now it stays within pagesize
+* added a 'global state' tracker for mouseXY, buttons 0,1,2, and keystates ctrl/alt/shift/meta
+    the thought here is to have better control over where everything is in a more generic way than to track
+    mousedown/move/up and keydown/up all seperately
+* added a 'change 1px solid border' to 'dashed' when ctrl+alt+hover BUT thinking about putting a hollow div over
+     dchdiv instead for better visibility  (but maybe later)
+* added a popupMenu handler
+* renamed a few things for better clarity
+* started adding code to insert new documents and sending it to server, then getting new DocList back from server
+
 2025-04-30 ------------------------------------------------------------------------------------------------------------
 * 'flattened' the dchContextMenu so it's no longer multitier (wasn't really multitier anyway!)
 * sort'a genericized the dchContextMenu too so it now takes a [list] and a callback
 * modded the dch element contextMenu so it now works in-part!  create dchComponent, export, now work from it!
-
-
-
-HOWTO genericise the DCHContextMenu ?  (and maybe rename it to ... divContextMenu?)
-  (it basically uses a <ul><li> internally so this should be easy!)
 
 2025-04-30 ------------------------------------------------------------------------------------------------------------
 * got rid of "DOC" dch on account of toplevel object MUST have a '_div' in order for ctrl+alt operations to work
@@ -48,13 +61,13 @@ HOWTO genericise the DCHContextMenu ?  (and maybe rename it to ... divContextMen
         ✓ leftclick for sel/show       selects item but doesnt yet show it in the docView
         ✓ rightclick for contextMenu   funcall fires but no context menu to show yet.
 
-2025-04- ------------------------------------------------------------------------------------------------------------
+2025-04-28 ------------------------------------------------------------------------------------------------------------
 * changed DCH_BASE.children to recognize 'null' as meaning cannot have children and [] as can have.
 * have a contextmenu working now that shows 'add Editor' 'change anchors' 'delete' and 'export'
     it's crude as it doesn't show all children but it DOES work!
     it also doesnt position itself fully within the window if I open it when the mouse is down low
 
- 2025-04- ------------------------------------------------------------------------------------------------------------
+ 2025-04-27 ------------------------------------------------------------------------------------------------------------
 * renamed ._bar to ._tBar as it felt too 'generalized'
 * moved loading handlers to index.js (via ws "GetDCHList") so they're available right up front for 'new editor' menu
     consequently -- removed the autoload feature in DCH_BASE.create

@@ -1,0 +1,12 @@
+TODO: make toplevel BOX  'hard-fix-positioned' and unchangable!  (no modding anchors so always TRBL=0px)
+    we can just use if (dch == FG.curDoc.rootDch) {then nochange allowed}
+-----------------------------------------------------------------------------------------------------------------------
+TODO instead of opening a dialog for anchor editing, lets just overwrite the toolbar with the <--> <----> <--> LWR anchors
+    and overwrite the <divIndex> with the THB anchors, that'll work nicely as we no longer have to worry about a dlg
+    being in-the-way all the time AND gives us plenty of room to add more gadgets in the index area for things like
+    'border 1px dashed black; background-color' and stuff like that
+        We have 2 dialogs for handling anchors,  both are temps only, index.html:popDlgDCHAnchor and 
+        'popDlgDCHAnchor.html in the --deleteme-- dir'..  we are NOT USING the --deleteme-- one and we're 
+-----------------------------------------------------------------------------------------------------------------------
+TODO see if we can animate selected box so it 'blinks' or fades/phases while editing  (but caution when setting things like
+background-color as we cant do that when phasing...!)   so think of a way...

@@ -15,12 +15,6 @@
 
     <body>
         <div id="divTitleBar"> <!--show currentbook<if at bookpage>-->
-            <span id="spanCurBook">Book: 
-                <select id="ddsCurBook">
-                title="RSTODO change to a homemade canvas so we have full control of font, color, icons, etc...">
-                    <option value="bookManager">Manage Books and Profiles</option>
-                </select>
-            </span>
         </div>
         <div id="divToolbar"></div> <!-- where we put fancy gadgets and such -->
         <div id="divMainView">      <!-- core viewport of any loaded page (<index><dragbar><doc> divs)-->
@@ -31,7 +25,7 @@
                     <div id="docWrapper"><!--Where the document gets displayed--></div>
 <!--------------------------------------------------------------------------------------------------------------->
 
-<div id="popDlgDCHAnchor" style="display:none;">
+<div id="popDlgDCHAnchor" style="display:none;"> <!-- RSDEMO thisis a demo 'dch resizer' dialog using svg to draw arrows -->
     <div id="dchAWDragBar">================= [X]</div>
 
     <svg id="dawInnerBox" width="200" height="200" style="position:absolute;top:100px;left:100px;background-color: rgba(173, 216, 230, 0.5);">

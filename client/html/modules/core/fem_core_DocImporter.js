@@ -56,13 +56,14 @@ class StringReader {
 
 export class DocImporter {   // create and return a DCH from a stream
     docVer;
-    docUuid;
+    docUuid;        // tmp holder for uuid of imported doc
     sr;
-//    let el = document.getElementById("docWrapper")
+    rootDch;
 
     async attach(str, parent)  {        // attach as child of parent._div  (or to "docWrapper" if parent=null)
         this.sr = new StringReader(str);
         this.docVer = FG.VERSION;       // STARTWITH matching the sysVersion (so copypaste always compares to proper version)
+        this.rootDch = null;
         let tmp;
 
         // ALWAYS read docVer and docUuid even when copypasting (tho when copypasting we discard docUuid)
@@ -76,17 +77,17 @@ export class DocImporter {   // create and return a DCH from a stream
         if (this.docVer > FG.VERSION) {
             throw new Error("Document is newer than this software supports");
         }
-        if (parent == null)  {          // if toplevel document (and not just a copypaste subset)
-            await FF.clearDoc();        // when no parent, this is toplevel doc, so clear and remove existing
-        }
+        // if (parent == null)  {          // if toplevel document (and not just a copypaste subset)
+        //     await FF.clearDoc();        // when no parent, this is toplevel doc, so clear and remove existing
+        // }
 
         this.docUuid = this.sr.readToSem();  // read "...uuid..."
 
         await this._importNext(parent); // if a parent was passed, add this as child
-        
-        if (parent == null) {
-            FG.docUuid = this.docUuid;
-        }
+        return this.rootDch;
+        // if (parent == null) {           // if toplevel doc (no longer needed as info already taken from FG.docTree)
+        //     debugger; FG.docUuid = this.docUuid;
+        // }
     }
 
 
@@ -96,10 +97,11 @@ export class DocImporter {   // create and return a DCH from a stream
             return null;
         }
         const dch = await FG.DCH_BASE.create(dchData.cName, parent, dchData.style);  // create handler, assign parent, create <div>, set style
-        if (parent == null) {       // if no parent was passed, this is toplevel doc!
-            FG.docRoot = dch;
-        } else {
-            parent.children.push(dch);       // else add it as a child of the parent
+        if (this.rootDch == null) {         // record the topmost dch for returning
+            this.rootDch = dch;
+        }
+        if (parent) {                       // if parent was passed, attach this to its children
+            parent.children.push(dch);
         }
         await dch.importData(dchData.data);                         // implant the data into the <div>
         for (let idx = 0; idx < dchData.children; idx++) {          // load children of component (if any)

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple HTML Dropdown</title>
+    <style>
+.menubar {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 5px 10px;
+  border-bottom: 1px solid #ccc;
+  font-family: sans-serif;
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.menu-item {
+  position: relative;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background-color: #ddd;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 150px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.menu-item:hover > .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu li {
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.dropdown-menu li:hover {
+  background-color: #eee;
+}
+
+.dropdown-menu li a {
+  color: #333;
+  text-decoration: none;
+  display: block;
+}
+
+.separator {
+  border-top: 1px solid #ccc;
+  margin: 5px 0;
+}
+    </style>
+</head>
+<body>
+    <div class="menubar">
+        <ul class="menu-list">
+          <li class="menu-item">
+            File
+            <ul class="dropdown-menu">
+              <li><a href="#">New</a></li>
+              <li><a href="#">Open</a></li>
+              <li><a href="#">Save</a></li>
+              <li class="separator"></li>
+              <li><a href="#">Exit</a></li>
+            </ul>
+          </li>
+          <li class="menu-item">
+            Edit
+            <ul class="dropdown-menu">
+              <li><a href="#">Undo</a></li>
+              <li><a href="#">Redo</a></li>
+              <li class="separator"></li>
+              <li><a href="#">Cut</a></li>
+              <li><a href="#">Copy</a></li>
+              <li><a href="#">Paste</a></li>
+              <li><a href="#">Delete</a></li>
+            </ul>
+          </li>
+          <li class="menu-item">
+            View
+            <ul class="dropdown-menu">
+              <li><a href="#">Full Screen</a></li>
+              <li><a href="#">Zoom In</a></li>
+              <li><a href="#">Zoom Out</a></li>
+            </ul>
+          </li>
+          <li class="menu-item">
+            Search
+            <ul class="dropdown-menu">
+              <li><a href="#">Find</a></li>
+              <li><a href="#">Find Next</a></li>
+              <li><a href="#">Replace</a></li>
+            </ul>
+          </li>
+          <li class="menu-item">
+            Help
+            <ul class="dropdown-menu">
+              <li><a href="#">About</a></li>
+              <li><a href="#">Documentation</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+</body>
+<script>
+const menuItems = document.querySelectorAll('.menu-item');
+
+menuItems.forEach(item => {
+  item.addEventListener('click', (event) => {
+    const dropdown = item.querySelector('.dropdown-menu');
+    if (dropdown) {
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+      event.stopPropagation(); // Prevent click from closing other menus
+    }
+  });
+});
+
+document.addEventListener('click', () => {
+  const openMenus = document.querySelectorAll('.dropdown-menu[style*="display: block"]');
+  openMenus.forEach(menu => {
+    menu.style.display = 'none';
+  });
+});
+</script>
+</html>

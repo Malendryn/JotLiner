@@ -110,7 +110,8 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
             dch._tBar.style.position = "absolute";
             dch._tBar.style.inset = "0px 0px 0px 0px";       // top, right, bottom, left
             dch._tBar.style.backgroundColor = "rgb(155, 253, 161)";
-
+            dch._tBar.style.display = "none";                // do not display it at creation time!
+            
             let parentDiv = document.getElementById("divToolbar");
             parentDiv.appendChild(dch._tBar);                // add the _tBar as a direct child of "divToolBar"
         }

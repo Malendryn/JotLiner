@@ -5,10 +5,10 @@ export class DocExporter {
 //  str = detach(dch)  detach/delete dch+children from doc entirely! (call export() seperately first to keep it! )
 
     async export(dch) {
-        let str = await this._export(dch);                      // turn the dch into a stream
+        let str = await this._export(dch);  // turn the dch into a stream
         let ss = "@" + FG.VERSION + ";";
-        if (dch == FG.docRoot) {        // add the uuid only if exporting entire document
-            ss += FG.docUuid;           // else just add the ; and leave uuid blank
+        if (dch == FG.curDoc.rootDch) {            // add the uuid only if exporting entire document
+            ss += FG.curDoc.uuid;           // else just add the ; and leave uuid blank
         }
 
         return ss + ";\n" + str;

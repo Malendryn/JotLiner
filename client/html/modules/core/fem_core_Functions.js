@@ -1,31 +1,46 @@
+/***********************************************************************************************************************
+globally available functions to keep the main files cleaner  (GF stands for 'Frontend Functions')
 
-// globally available functions to keep the main files cleaner  (BF stands for 'Backend Functions')
+FF.functions
+retval---?snc? funcname-----------------Description-------------------------------------------------------
+==== FROM index.js =================================================================================================
+module = async loadModule(modulePath)   load and return module, if has an export init(), call that before returning
 
-// FF.functions
-// return---?snc? funcname-----------------Description-------------------------------------------------------
-// ==== FROM index.js =================================================================================================
-// module   async loadModule(modulePath)   load and return module, if has an init(), call that before returning
+==== FROM fem_core_Functions.js ====================================================================================
+--------       shutdown(event)          called before server exits entirely.  closes database and does other cleanup
+-------- async msDelay(ms)              cause a delay of ms,  EG: 'await FF.msDelay(1500);'
+uuid   = async makeUUID()               make and return a UUID
+hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
+-------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
+-------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
+{...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
+{...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 
-// ==== FROM fem_core_Functions.js ====================================================================================
-// --------       shutdown(event)          called before server exits entirely.  closes database and does other cleanup
-// -------- async msDelay(ms)              cause a delay of ms,  EG: 'await FF.msDelay(1500);'
-// uuid   = async makeUUID()               make and return a UUID
-// hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
-// -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
-// -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
-// {}     =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
+==== FROM fem_core_WSockHandler.js ====================================================================================
+pkt    = makePacket(name)               create and return a new packet
+pkt    = parsePacket(stream)			   reconstruct a packet instance from the stream
 
-// ==== FROM fem_core_WSockHandler.js ====================================================================================
-// pkt    = makePacket(name)               create and return a new packet
-// pkt    = parsePacket(stream)			   reconstruct a packet instance from the stream
+==== FROM fem_core_ContextMenu.js ====================================================================================
+action = openContextMenu(entries, callback)
+	entries format is:  
+		let entries = [
+			[ "action", "entryText", "tooltip Text" ],
+			[ "action", "entryText", "tooltip Text" ],
+		];
+	callback format is:
+	    function callback(action)
 
-// ==== FROM ????????????????????? ====================================================================================
-// --------       logout()                 detach and forget current user and go back to login screen
-// -------- async loadView(.jsName)        load a .js child of FG.ViewBASE from within the "views" subdir
-// -------- async loadText(path)           load a text(or html) file (relative to rootPath) and return it
-// -------- async updateTitleBar()         update the topmost titleBar showing curbook
-// -------- async getBookById(bookId)      fetch book rec (from FG.bookList) for this bookId
+==== FROM fem_core_PopupDialog.js ====================================================================================
+FF.openPopup(X, Y, W, H, form, dict, callback)    Generic popup handler
+ 	T/F = callback(isCancel)  (return true to allow <save> else F keeps dialog open)
 
+==== FROM ????????????????????? ====================================================================================
+--------       logout()                 detach and forget current user and go back to login screen
+-------- async loadView(.jsName)        load a .js child of FG.ViewBASE from within the "views" subdir
+-------- async loadText(path)           load a text(or html) file (relative to rootPath) and return it
+-------- async updateTitleBar()         update the topmost titleBar showing curbook
+-------- async getBookById(bookId)      fetch book rec (from FG.bookList) for this bookId
+***********************************************************************************************************************/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,34 +83,26 @@ FF.makeHash = async (txt) => {
 }
 
 
-FF.clearDoc = async() => {	// detach all listeners and remove entire document tree
-	if (FG.docRoot) {
-		FG.docRoot.destroy();
+FF.clearDoc = async() => {
+	if (FG.curDoc) {
+		FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
 	}
 
 // then nuke it all!
-	const div = document.getElementById("docWrapper");  	// blowout any existing rendering
+	const div = document.getElementById("docWrapper");  	// blowout entire existing rendering
 	div.innerHTML = "";
-	FG.docRoot = null;
+    FG.curDoc = null;
 }
 
 
-FF.newDoc = async () => {
-	await FF.clearDoc();
-
-// then create a new doc by adding a single BOX handler as the docRoot
-	const dch = await FG.DCH_BASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel DOC object
-	FG.docUuid = FF.makeUUID();									// give it a new uuid too
-	dch._div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch._div.style.top/bottom/etc during exportDoc()
-	dch._div.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
-	dch._div.style.right  = "0px";
-	dch._div.style.bottom = "0px";
-	dch._div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
-	// dch._div.style.overflow = "hidden";
-	// dch._div.style.whiteSpace = "nowrap";		// unnecessary in a BOX as everything inside it is more divs
-	// //
-	FG.docRoot = dch;
-};
+FF.getDocInfo = function (uuid) {
+	for (let idx = 0; idx < FG.docTree.length; idx++) {
+		if (FG.docTree[idx].uuid == uuid) {
+			return FG.docTree[idx];
+		}
+	}
+	return null;
+}
 
 
 FF.parseRgba = function (rgbString) {     // turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
@@ -135,7 +142,7 @@ FF.parseRgba = function (rgbString) {     // turn "rgb(1,2,3)" or "rgba(1,2,3,4)
 
 
 // export async function init() {
-//     return new Promise(async (resolve, reject) => {
+//     return new Promise((resolve, reject) => {
 //         debugger;       //dosomething
 // 		await FF.msDelay(5000);
 //         resolve(this);
@@ -145,121 +152,42 @@ FF.parseRgba = function (rgbString) {     // turn "rgb(1,2,3)" or "rgba(1,2,3,4)
 //     });
 // };
 
-
-
-/*
-RSTODO this stuff here is NOT CORE FUNCTIONS so move them somewhere else!
-
-
-// we load views from .js rather than .view files so that we can code them with intellisense and highlighting
-
-const _cssList = [];	// list of .css entries in header to remove when unloading page
-FF.loadView = async (src) => {
-	if (FG.curView) {
-		if (!await FG.curView._beforeUnload()) {	// if unload returned false
-			return;
-		}
-		for (let idx = 0; idx < _cssList.length; ++idx) {
-			_cssList[idx].remove();
-		}
-		_cssList.length = 0;
-	}
-	FG.curView = null;									// in case import fails
-	let clazz;
+function __getFileLineInfo(err) {
 	try {
-		clazz = await FF.loadModule("views/" + src);	// get the module
-	} catch (err) {
-		console.log(`Could not load view ${src}, reason=${err.message}`)
-		process.exit(1);
-	}
-	clazz = clazz.default;								// get the class from within the module
-	FG.curView = await clazz.create();					// create the class and call .onCreate() if present
-	if ("getCssList" in FG.curView) {
-		let css = await FG.curView.getCssList();
-		if (!Array.isArray(css)) {
-			css = [css];
-		}
-		for (let idx = 0; idx < css.length; ++idx) {
-			const el = document.createElement("link");
-//			el.id = "cssInjectedId" + idx;
-			el.rel = "stylesheet";
-			el.type = "text/css";
-			el.href = css[idx];
-			el.crossOrigin = "";	// to prevent CORS errors
-			document.head.appendChild(el);
-			_cssList.push(el);
-		}
-	}
-	const tbar = document.getElementById('divToolbar');
-	if ("getToolbarHTML" in FG.curView) {
-		const innerHTML = await FG.curView.getToolbarHTML();	// fetch and instance the innerHTML
-		tbar.innerHTML = innerHTML;
-	}
-	if ("getMainViewHTML" in FG.curView) {
-		const innerHTML = await FG.curView.getMainViewHTML();	// fetch and instance the innerHTML
-		document.getElementById('divMainView').innerHTML = innerHTML;
-	}
-
-
-//	document.addEventListener("beforeunload", FG.curView._beforeUnload);	//trap the unload event  (useless cuz async...)
-	if ("onLoad" in FG.curView) {
-		FG.curView.onLoad();								// and finally call the .onLoad() if present
-	}
-}
-
-
-FF.loadText = async (src) => {
-	return new Promise((resolve, reject) => {
-		fetch(src)
-		.then(async (response) => {
-			if (!response.ok) {
-				throw new Error(`Could not load '${path}', reason=${err.message}`);
+		throw err;
+	} catch (error) {
+		// Split the stack trace to find the line that initiated the current script
+		const stackLines = error.stack.split('\n');
+		// The line we are interested in is the one that contains the script's URL
+		let currentScriptLine = null;
+		let skip = 1;
+		for (let i = 0; skip >= 0 && i < stackLines.length; i++) {
+			if (stackLines[i].indexOf('@') > -1 || stackLines[i].indexOf('at ') > -1) {
+				currentScriptLine = stackLines[i];
+				--skip;	// skip 1st one found as that's THIS file!
 			}
-			const text = await response.text();
-			resolve(text);
-		}).catch((err) => {
-			throw new Error(`Could not load '${path}', reason=${err.message}`);
-		});
-	});
-}
-
-
-FF.getBookById = function (bookId) {
-	for (let idx = 0; idx < FG.bookList.length; ++idx) {
-		if (bookId == FG.bookList[idx].bookId) {
-			return FG.bookList[idx];
 		}
+	
+		if (skip == -1 && currentScriptLine) { 
+			let filename = currentScriptLine.substring(currentScriptLine.lastIndexOf('/') + 1);
+			filename = filename.substring(0, filename.indexOf(')'));
+			// let url = currentScriptLine.match(/(https?:\/\/[^/]+)?(\/[^:]+)/);
+			// if (url && url.length > 2) {
+			// 	const path = url[2];
+			// 	const filename = path.substring(path.lastIndexOf('/') + 1);
+			// 	return filename;
+			// } else if (currentScriptLine.indexOf("blob:") > -1) {
+			// 	let url = currentScriptLine.match(/(blob:\/\/[^/]+)/);
+			// 	if (url && url.length > 0) {
+			// 		return "<notfound>.js"; //Cannot get the name of the script.
+			// 	}
+			// }
+			return filename;
+		}
+		return "<?noFileInfo?>.???";
 	}
 }
 
-
-FF.updateTitleBar = async function() {
-// used to hide/show the book dropdown in the titlebar, now just updates the booklist
-	await populateDdsCurBook();		// this is only place this func is ever called so NOT attached to FF
+FF.__FILE__ = function() {
+	return __getFileLineInfo(new Error());
 }
-
-
-async function populateDdsCurBook() {	// only called from FF.updateTitleBar() so NOT attached to FF
-    const el = document.getElementById("ddsCurBook");
-    el.innerHTML = "";
-    let found = false;
-    for (let idx = 0; idx < FG.bookList.length; ++idx) {
-        const option = new Option(FG.bookList[idx].bookName, FG.bookList[idx].bookId);
-        if (FG.bookList[idx].bookId == await FG.sessionInfo.getCurBookId()) {
-            option.selected = true;
-            found = true;
-        }
-        el.add(option);
-    }
-    let option;
-    option = new Option("---------------------------------");
-    option.disabled = true;
-    el.add(option);
-    option = new Option("Manage Books and Profiles", "bookManager");
-    if (!found) {
-        option.selected = true;
-    }
-    el.add(option);
-}
-
-*/

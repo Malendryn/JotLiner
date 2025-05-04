@@ -7,22 +7,16 @@
 FG.VERSION; //  ="1.0";     // SET AT TOP OF "index.js", NOT HERE !!!!  (used to compare and upgrade docs when loading)
 
 FG.baseURL       = window.location.origin;  // EG: "http://localhost:3000"
-FG.ws            = null;     // WebSocket connector to localServer
-FG.DCH_BASE      = null;     // base class from which ALL DocComponentHandlers must inherit from
-FG.docRoot       = null;     // the currently loaded document as a tree of handlers
-FG.docUuid       = null;     // uuid of either newDoc or loaded doc
 
-/*  RSTODO:
-FG.ViewBASE     = null,     // base class for all views loaded via FF.loadView()
+FG.ws            = null;     // WebSocket connector to localServer      (see fem_core_WSockHandler.js)
 
-FG.bookList     = [],	    // array of books from FIPC.fetchBookList()
+FG.DCH_BASE      = null;     // BASECLASS from which ALL DocComponentHandlers must inherit from
 
-FG.sessionInfo  = null,     // new SessionInfo(),  has get/setters for all sessionInfo data like curBookId, etc..
+FG.docTree       = [];       // [{id,uuid,name,listOrder,parent,li}[,...]] ordered list of .dia "docTree" table
+                                // note that li is not from the db but is added during showDocTree()
+FG.curDoc        = null;     // null or {uuid,rootDch}
 
-FG.curView      = null,     // current loaded view (instance of class ViewBASE)
+FG.DocImporter   = null;     // CLASS to import a stringstream into a doc (see fem_core_DocImporter.js)
+FG.DocExporter   = null;     // CLASS to export a doc to a stringstream   (see fem_core_DocExporter.js)
 
-// when book.html is loaded:
-FG.ch_outline   = null,     // CanvasHandler for leftside 'outline' canvas of the book.html page
-FG.ch_page      = null,     // CanvasHandler for rightside 'page' canvas of the book.html page
-        //RSNOTE RSTODO consider making ch_page a BLANK SLATE that other pages become a child of as this is effectively an infinite canvas 
-*/
+FG.kmStates      = {};       // kbd and mouse states at any instant in time (see fem_core_TKMEvtHandlers.js)

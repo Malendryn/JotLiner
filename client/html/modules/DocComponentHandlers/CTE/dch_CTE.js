@@ -67,7 +67,6 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
     async onToolBtnBold(evt) {
         evt.preventDefault;
         console.log("bold");
-        // debugger;  await FG.docRoot.destroy();
     }
 
     onToolBtnItalic(evt) {
