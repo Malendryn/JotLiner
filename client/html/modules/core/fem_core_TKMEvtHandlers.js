@@ -5,13 +5,12 @@ document.addEventListener('mousemove', mousemove, true);
 document.addEventListener('mouseup',   mouseup,   true);
 document.addEventListener('keydown', keydown, true);
 document.addEventListener('keyup',   keyup,   true);
-const divDW = document.getElementById("docWrapper");
+const divDW = document.getElementById("divDocView");
 divDW.addEventListener("mouseleave", mouseleave, true);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Toplevel MouseHandler stuff below here ///////////////////////////////////////////////////////////////////////////
-let mouseOp = null; // 'mouseOp' = mouse Operation (presently only for click+drag of divHandlers)
 
 
 // so if I click AND HOLD left/middle/right mousebutton then I keep getting key and mouse events even when I leave the 
@@ -33,59 +32,137 @@ FG.kmStates = {
 };
 
 function mouseleave(evt) {
-    console.log("left");
+    // console.log("left");
 }
 
 
-function onStateChange(orig, changes) {
-// RSBEGIN logic to display ctrl+alt+hovered DCHrect with dashed-lines
-//    consider drawing a new rect over the DCHRect so that 
-//     1) it shows 'outside/!hidden' over the BOX its in
-//     2) we wont have to track the condition of the original DCH style data
-// * ALSO gotta get the resize by grabbing walls/corners working too!
+function dragMaskDiv() {
+    let kmask = FG.kmStates.mask;
+    const deltaX = FG.kmStates.clientX - kmask.startX;
+    const deltaY = FG.kmStates.clientY - kmask.startY;
 
-// we don't actually use 'changes' here, we may never!  but it's good to have on hand just in case!
+    if (kmask.lrMode.includes("L")) {
+        kmask.el.style.left = (kmask.left  + deltaX) + "px";
+        kmask.divGhost.style.left = (kmask.divGhostLeft  + deltaX) + "px";
+    }
+    if (kmask.lrMode.includes("R")) {
+        kmask.el.style.right = (kmask.right - deltaX) + "px";
+        kmask.divGhost.style.left = (kmask.divGhostLeft + deltaX) + "px";
+    }
+    if (kmask.tbMode.includes("T")) {
+        kmask.el.style.top = (kmask.top     + deltaY) + "px";
+        kmask.divGhost.style.top = (kmask.divGhostTop     + deltaY) + "px";
+    }
+    if (kmask.tbMode.includes("B")) {
+        kmask.el.style.bottom = (kmask.bottom  - deltaY) + "px";
+        kmask.divGhost.style.top = (kmask.divGhostTop + deltaY) + "px";
+    }
+}
 
-    let oldCmd = (orig.keyCtrl && orig.keyAlt);                  // get old and new <RSTODO configurable> commandStates
+
+function doCmdStateDrawing(orig, changes) { // only called when FG.kmStates.mask = set
+    let kmask = FG.kmStates.mask;
+    let el = null;
+
+    if (FG.kmStates.btnLeft) {  // if mouseLeft down, use existing el
+        el = kmask.el;
+    } else {                    // else find el to use
+        const list = document.elementsFromPoint(FG.kmStates.clientX, FG.kmStates.clientY);
+        for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
+            const tmp = list[idx];
+            if (tmp._dchMouseOp == "dchComponent") {
+                if (tmp._dchHandler != FG.curDoc.rootDch) {          // do not allow them to select/move the docRoot!
+                    el = tmp;
+                }
+                break;
+            }
+        }
+    }
+
+    if (!el || el != kmask.el) {
+        if (kmask.divGhost) {
+            const div = document.getElementById("divDocView");
+            div.removeChild(FG.kmStates.mask.divGhost);
+            delete FG.kmStates.mask.divGhost;
+        }
+    }
+    kmask.el = el;      // track the element we're ghosting too so we know if we moved off it
+
+    if (el && !FG.kmStates.mask.divGhost) {     // we're over an element but no ghost was created yet
+        let rect = el.getBoundingClientRect();
+        // let rect = window.getComputedStyle(el);
+        let ghost = document.createElement("div");
+        ghost.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
+        ghost.style.left    = rect.x + "px";
+        ghost.style.top     = rect.y + "px";
+        ghost.style.width   = rect.width + "px";
+        ghost.style.height  = rect.height + "px";
+        ghost.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
+        let div = document.getElementById("divDocView");
+        div.insertBefore(ghost, kmask.divMask);    // insert new div UNDER the divMask
+        kmask.divGhost = ghost;
+        kmask.divGhostLeft = rect.x;
+        kmask.divGhostTop  = rect.y;
+        kmask.startX = FG.kmStates.clientX;     // capture info about mouse startpos and boxsizing info
+        kmask.startY = FG.kmStates.clientY;
+        kmask.lrMode = "";
+        kmask.tbMode = "";
+        if (el.style.left)  {  kmask.lrMode += "L"; kmask.left  = parseInt(el.style.left);  }
+        if (el.style.right) {  kmask.lrMode += "R"; kmask.right = parseInt(el.style.right); }
+        if (el.style.width) {  kmask.lrMode += "W"; kmask.width = parseInt(el.style.width); }     // not used, only care about LR
+
+        if (el.style.top)    {  kmask.tbMode += "T"; kmask.top    = parseInt(el.style.top);    }
+        if (el.style.bottom) {  kmask.tbMode += "B"; kmask.bottom = parseInt(el.style.bottom); }
+        if (el.style.height) {  kmask.tbMode += "H"; kmask.height = parseInt(el.style.height); }  // not used, only care about TB
+
+    }
+    if (FG.kmStates.btnLeft && kmask.el && (changes.clientX || changes.clientY)) {       // if leftclickHold and mouse position changed...
+        dragMaskDiv();
+    }
+}
+
+
+function onStateChange(orig, changes) { // detect commandState change and create a faux invis window over entire divDocView
+    let oldCmd = (orig.keyCtrl && orig.keyAlt);                  // get old and new <RSTODO configurable> commandStates (currently ctrl+alt)
     let newCmd = (FG.kmStates.keyCtrl && FG.kmStates.keyAlt);
     if (oldCmd != newCmd) {                                // if commandState changed
         if (newCmd) {                                      // if commandState started     
-            const el = document.getElementById()
-            FG.kmStates.maskDiv = document.createElement("div");
-        }
-        if (!newCmd) {                                       // if commandState stopped
-            if (orig.dch)        { orig.dch._div.style.borderStyle        = "solid";    }
+            const div = document.getElementById("divDocView");
+            const el = document.createElement("div");
+            el.style.position = "absolute";
+            el.style.inset = "0px";
+            div.appendChild(el);
+            FG.kmStates.mask = {divMask:el};
         } else {
-            if (orig.dch != FG.kmStates.dch && orig.dch) { // if WAS over a dch and it's not the same one as now
-                orig.dch._div.style.borderStyle = "solid";    
+            if (FG.kmStates.mask) {
+                if (FG.kmStates.mask.divGhost) {
+                    const div = document.getElementById("divDocView");
+                    div.removeChild(FG.kmStates.mask.divGhost);
+                }
+                if (FG.kmStates.mask.divMask) {
+                    const div = document.getElementById("divDocView");
+                    div.removeChild(FG.kmStates.mask.divMask);
+                }
+                delete FG.kmStates.mask;
             }
-            if (FG.kmStates.dch) { FG.kmStates.dch._div.style.borderStyle = "dashed";   }
         }
     }
-// RSEND logic
-
-    // console.log(`changed!  ${JSON.stringify(changes)}`);
+    if (FG.kmStates.mask) {      // if we're doing commandState gfx
+        doCmdStateDrawing(orig, changes);
+    }
 }
-
-// const style = window.getComputedStyle(tmp);     // get curbackgrd color and darken it by rgb 24,24,24
-// let bgColor = style.backgroundColor;
-// bgColor = FF.parseRgba(bgColor);
-// bgColor.r = Math.max(0, bgColor.r - 24);
-// bgColor.g = Math.max(0, bgColor.g - 24);
-// bgColor.b = Math.max(0, bgColor.b - 24);
-// bgColor = "rgb(" + bgColor.r + "," + bgColor.g + "," + bgColor.b + ")";
 
 
 function setKeyState(states) {
     let orig = Object.assign({}, FG.kmStates);       // clone the original FG.kmStates before changing them
-    let changes = [];
+    let changes = {};
     for (const key in states) {                         // get a list of ONLY what changed
         if (FG.kmStates[key] != states[key]) {
             FG.kmStates[key] = states[key];             // if changed, update FG.kmStates AND push into changes[] 
-            changes.push(key);
+            changes[key] = states[key];
         }
     }
-    if (changes.length) {
+    if (Object.keys(changes).length) {
         onStateChange(orig, changes);           // if anything changed, call the handler
     }
 }
@@ -93,16 +170,16 @@ function setKeyState(states) {
 //RSTODO CHANGETO-NEW-WAY: use document.elementsFromPoint and drill-down-from-top to find first dch-controlled one
 function setMouseState(states, target) {
     let orig = Object.assign({}, FG.kmStates);       // clone the original FG.kmStates before changing them
-    let changes = [];
+    let changes = {};
     if (target != FG.kmStates.target) {         // since this stuff is mildly intensive do it only when element mouse is over changed
         FG.kmStates.target = target;
-        changes.push("target");
+        changes["target"] = target;
         while (target && (target?._dchMouseOp) === undefined) {  // climb <el> parents to find _dchMouseOp
             target = target.parentNode;
         }
         let dch = (target) ? target._dchHandler : null;
         if (dch != orig.dch) {
-            changes.push("dch");
+            changes["dch"] = dch;
             FG.kmStates.dch = dch;
         }
     }
@@ -110,10 +187,10 @@ function setMouseState(states, target) {
     for (const key in states) {                   // get a list of what changed
         if (FG.kmStates[key] != states[key]) {
             FG.kmStates[key] = states[key];
-            changes.push(key);
+            changes[key] = states[key];
         }
     }
-    if (changes.length) {
+    if (Object.keys(changes).length) {
         onStateChange(orig, changes);           // if anything changed, call the handler
     }
 }
@@ -137,6 +214,8 @@ function keyup(evt) {
     setKeyState(states);
 }
 
+
+let sizerStartPos = null;         // 'sizerStartPos' = mouse Operation (presently only for click+drag of divHandlers)
 function mousedown(evt) {
     const states = {};
     if      (evt.button == 0) {  states["btnLeft"]  = true; }
@@ -144,116 +223,43 @@ function mousedown(evt) {
     else if (evt.button == 2) {  states["btnRight"] = true; }
     setMouseState(states, evt.target);
 
-    if (evt.button != 0) {  // ONLY care about leftmouse button
-        return;
-    }
-
-    let div = evt.target;                                   // get the <el> under mouseclick
-    let op;
-    while (div && (op = div?._dchMouseOp) === undefined) {  // climb <el> parents to find _dchMouseOp
-        div = div.parentNode;
-    }
-
-    if (!op) {                      // if <el> not associated with a _dchMouseOp, ...
-        return;
-    }
-
-// known _dchMouseOps:
-//   "dchToolBtn"     // the <div> containing buttons dropdowns etc in the <divToolbar> at top of screen
-//   "idx<>doc"       // the <divIndexDocSizer> dragbar between the <divIndexView> and the <divDocView>
-//   "dchComponent"   // parent of any <el> inside a dch <div> (found by walking up the parents until encountered)
-
-    if (op == "dchToolBtn") {       // toolbar buttons handle themselves
-        return;
-    }
-
-// record info for mouseMove ops
-    let m = {                       // create and init 'global' mouseOp object
-        op:          op,            // record the _dchMouseOp.
-        startX:      evt.screenX,   // initial evt.screenX and Y (when mouse was pressed)
-        startY:      evt.screenY,
-        altKey:      evt.altKey,    // keystates AT moment of mousedown
-        ctrlKey:     evt.ctrlKey,
-        metaKey:     evt.metaKey,
-        shiftKey:    evt.shiftKey,
-
-        targetEl:    div,                // the div(NOT the dch) that had the _dchMouseOp on it
-        dchHandler:  div?._dchHandler,   // the actual dch (or undefined if this isn't a dch-related op IE: index<>doc sizebar)
-    };
-
-    if (m.op == "idx<>doc") {                       // if it was the idx<>doc resizer that was clicked on...
-        let style = getComputedStyle(m.targetEl);
-        m.dragBarLeft = parseInt(style.left);
-        m.dragBarWidth = parseInt(style.width);
-        m.targetEl.style.cursor = "grabbing";
-    } else if (op == "dchComponent") {              // if it's a dch operation we clicked on-or-in
-        if (!(evt.ctrlKey && evt.altKey)) {                         // if ctrl+alt not down, ...
-            let div = document.getElementById("divToolbar");
-            for (let idx = 0; idx < div.children.length; idx++) {   // display the appropriate toolbar
-                let tmp = div.children[idx];
-                if (tmp._dchHandler == m.dchHandler) {
-                    tmp.style.display = "block";
-                } else {
-                    tmp.style.display = "none";
-                }
-            }
-            return;
-        }
-
-        evt.stopPropagation();
-        evt.preventDefault();
-
-        m.divRect = {           // gather some 'moving/shaping' info
-            lrMode: "",         // "L", "R", or "LR"
-            tbMode: "",         // "T", "B", or "TB"
-            left:   0,          // initial vals of rect to move/shape
-            right:  0,
-            width:  0,
-            top:    0,
-            bottom: 0,
-            height: 0,
+    if (evt.target.id == "divIndexDocSizer") {  // record info for mouseMove ops
+        let m = {                       // create and init 'global' sizerStartPos object
+            startX:      evt.screenX,   // initial evt.screenX and Y (when mouse was pressed)
+            startY:      evt.screenY,
         };
 
-        if (m.targetEl.style.left)  {  m.divRect.lrMode += "L"; m.divRect.left  = parseInt(m.targetEl.style.left);  }
-        if (m.targetEl.style.right) {  m.divRect.lrMode += "R"; m.divRect.right = parseInt(m.targetEl.style.right); }
-        if (m.targetEl.style.width) {  m.divRect.lrMode += "W"; m.divRect.width = parseInt(m.targetEl.style.width); }     // not used, only care about LR
+        let style = getComputedStyle(evt.target);
+        m.dragBarLeft = parseInt(style.left);
+        m.dragBarWidth = parseInt(style.width);
+        evt.target.style.cursor = "grabbing";
 
-        if (m.targetEl.style.top)    {  m.divRect.tbMode += "T"; m.divRect.top    = parseInt(m.targetEl.style.top);    }
-        if (m.targetEl.style.bottom) {  m.divRect.tbMode += "B"; m.divRect.bottom = parseInt(m.targetEl.style.bottom); }
-        if (m.targetEl.style.height) {  m.divRect.tbMode += "H"; m.divRect.height = parseInt(m.targetEl.style.height); }  // not used, only care about TB
+        sizerStartPos = m;    // assign m to sizerStartPos to continue handling this op
     }
-
-    mouseOp = m;    // assign m to mouseOp to continue handling this op
-    // document.addEventListener('mousemove', mousemove, true);
-    // document.addEventListener('mouseup',   mouseup,   true);
 }
 
 
 function mousemove(evt) {
     setMouseState({"clientX": evt.clientX, "clientY": evt.clientY}, evt.target);
 
-    if (mouseOp) {
-        const m = mouseOp;
+    if (sizerStartPos) {
+        const m = sizerStartPos;
         const deltaX = (evt.screenX - m.startX);
         const deltaY = (evt.screenY - m.startY);
+        const tmp = m.dragBarLeft + deltaX;
+        if (tmp > 48 && tmp < 1200 ) {       // prevent overshrinking/expanding 
+            const elL = document.getElementById("divIndexView");
+            const elM = document.getElementById("divIndexDocSizer");
+            const elR = document.getElementById("divDocView");
 
-        if (m.op == "dchComponent") {       // if we are dragging a dch's <div>
-            dragDchDiv(m, deltaX, deltaY);
-        } else if (m.op == "idx<>doc") {    // if we are dragging the index<>doc resizer bar
-            dragIdxDocResizer(m, deltaX, deltaY);
-        } else {                            // INVALID _dchMouseOp !!!
-            console.log("fem_core_TKMEvtHandlers.js:mousemove() INVALID _dchMouseOp '" + m.op + "'");
-            return;                         // return and process normally
+            elR.style.left  = (m.dragBarLeft + m.dragBarWidth + deltaX) + "px";  // set left  of divDocView
+            elM.style.left  = (m.dragBarLeft + deltaX) + "px";                   // set left  of divIndexDocSizer
+            elL.style.width = (m.dragBarLeft + deltaX) + "px";                   // set width of divIndexView
         }
-        evt.stopPropagation();
-        evt.preventDefault();
-    } else if ((evt.ctrlKey && evt.altKey)) {  
-        console.log(document.elementsFromPoint(evt.clientX, evt.clientY).length);
-        evt.stopPropagation();
-        evt.preventDefault();
-        return;
-    }
 
+        evt.stopPropagation();
+        evt.preventDefault();
+    }
 }
 
 
@@ -263,46 +269,15 @@ function mouseup(evt) {
     else if (evt.button == 1) {  states["btnMid"]   = false; }
     else if (evt.button == 2) {  states["btnRight"] = false; }
     setMouseState(states, evt.target);
-    if (!mouseOp) {
-        return;
+
+    if (sizerStartPos) {
+        const el = document.getElementById("divIndexDocSizer");
+        el.style.cursor = "";
+        sizerStartPos = null;
     }
-
-    // document.removeEventListener('mousemove', mousemove);
-    // document.removeEventListener('mouseup',   mouseup);
-    mouseOp.targetEl.style.cursor = "";
-
-    let m = mouseOp;
-    mouseOp = null;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function dragDchDiv(m, deltaX, deltaY) {
-    if (m.divRect.lrMode.includes("L")) {
-        m.targetEl.style.left = (m.divRect.left  + deltaX) + "px";
-    }
-    if (m.divRect.lrMode.includes("R")) {
-        m.targetEl.style.right = (m.divRect.right - deltaX) + "px";
-    }
-    if (m.divRect.tbMode.includes("T")) {
-        m.targetEl.style.top = (m.divRect.top     + deltaY) + "px";
-    }
-    if (m.divRect.tbMode.includes("B")) {
-        m.targetEl.style.bottom = (m.divRect.bottom  - deltaY) + "px";
-    }
-}
-
-
-function dragIdxDocResizer(m, deltaX, deltaY) {
-    const tmp = m.dragBarLeft + deltaX;
-    if (tmp > 48 && tmp < 1200 ) {       // prevent overshrinking/expanding 
-        const elL = document.getElementById("divIndexView");
-        const elR = document.getElementById("divDocView");
-
-        elR.style.left    = (m.dragBarLeft + m.dragBarWidth + deltaX) + "px";  // set left  of divDocView
-        m.targetEl.style.left = (m.dragBarLeft + deltaX) + "px";                // set left  of divIndexDocSizer
-        elL.style.width   = (m.dragBarLeft + deltaX) + "px";                // set width of divIndexView
-    }
-}
 
 

@@ -71,7 +71,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
             dch._div._dchMouseOp = "dchComponent";          // if this was clicked we're looking to operate on the dch <div> itself
             let parentDiv;
             if (dch.parent == null) {                               // if self has no parent...
-                parentDiv = document.getElementById("docWrapper");  // attach div to outermost <div id="docWrapper">
+                parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
             } else {
                 parentDiv = dch.parent._div                     // else attach to parent's <div>
             }

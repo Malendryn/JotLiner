@@ -89,7 +89,7 @@ FF.clearDoc = async() => {
 	}
 
 // then nuke it all!
-	const div = document.getElementById("docWrapper");  	// blowout entire existing rendering
+	const div = document.getElementById("divDocView");  	// blowout entire existing rendering
 	div.innerHTML = "";
     FG.curDoc = null;
 }

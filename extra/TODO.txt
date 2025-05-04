@@ -10,3 +10,8 @@ TODO instead of opening a dialog for anchor editing, lets just overwrite the too
 -----------------------------------------------------------------------------------------------------------------------
 TODO see if we can animate selected box so it 'blinks' or fades/phases while editing  (but caution when setting things like
 background-color as we cant do that when phasing...!)   so think of a way...
+-----------------------------------------------------------------------------------------------------------------------
+BUG: there is a minor quirk where if you have c+a down, then click+drag, then with c+a STILL down you click+drag a diff
+object, its starting x/y is a little off and it 'jumps' a short distance.  I haven't yet found what's causing that
+It works fine if you release c+a between moves,  only when you keep c+a down and move 2 or more items
+    (Something to do with all the mousemove stuff in fem_core_TKMEvtHandler.js)

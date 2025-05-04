@@ -12,7 +12,7 @@ class DCH_DOC extends FG.DCH_BASE {
 
     async construct() {
         this.uuid = FF.makeUUID();                          // WILL be replaced if importData()
-        this._div = document.getElementById("docWrapper");  // so children[] have something to attach to
+        this._div = document.getElementById("divDocView");  // so children[] have something to attach to
     }
 
 

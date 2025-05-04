@@ -7,11 +7,15 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-04 ------------------------------------------------------------------------------------------------------------
 * finally renamed this file from STATUS.txt to CHANGELOG.txt!
-
+* got rid of <div id="docWrapper"> inside <div id="divDocView"> as it was redundant, now using divDocView directly
 lets get to working on resizing the dch's!
-
+* reworked ENTIRE ctl+alt dragging system, now greys hovered boxes even if they're partially covered!
+* reworked divIndexDoc dragbar system as well
+    there is a minor quirk where if you have c+a down, then click+drag, then with c+a STILL down you click+drag a diff
+    object, its starting x/y is a little off and it 'jumps' a short distance.  I haven't yet found what's causing that
+* added a TODO.txt file (used to track this in CherryTree but it makes more sense to have it as a .txt in here)
 
 2025-05-03 ------------------------------------------------------------------------------------------------------------
 * fixed issue with loading TESTDOC where it showed the toolbar at doc-load-time

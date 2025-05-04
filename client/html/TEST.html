@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Z-index Example</title>
+<style>
+div {
+  width: 200px;
+  height: 200px;
+  position: absolute; /* Make sure elements are positioned */
+}
+
+#div1 {
+  background-color: red;
+  left: 0;
+  top: 0;
+/*  z-index: 1; /* div1 establishes a stacking context */
+}
+
+#div2 {
+  background-color: green;
+  left: 25px;
+  top: 25px;
+  width: 100px;
+  height: 100px;
+  z-index: 999999999;
+}
+
+#div3 {
+  background-color: blue;
+  left: 75px;
+  top: 75px;
+  width: 100px;
+  height: 100px;
+  z-index: 999999998;
+/*  z-index: 0; */
+}
+</style>
+</head>
+<body>
+  <div id="div1">wrapper
+    <div id="div2">green</div>
+    <div id="div3">Blue</div>
+</div>
+</body>
+</html>
