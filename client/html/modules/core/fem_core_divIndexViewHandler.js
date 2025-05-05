@@ -32,11 +32,17 @@ const indexMenuEntries = [
 ];
     
     
-    
+async function ctxExport() {
+    let exporter = new FG.DocExporter();
+    const str = await exporter.export(FG.curDoc.rootDch);
+    console.log(str);
+}
+
 function onIdxContextMenuAction(action) {
     switch (action) {
-        case "newDocAtSame":    {  openDocInfoPopup(false);   break;  }
-        case "newDocAsChild":   {  openDocInfoPopup(true);    break;  }
+        case "newDocAtSame":    {   openDocInfoPopup(false);    break; }
+        case "newDocAsChild":   {   openDocInfoPopup(true);     break; }
+        case "export":          {   ctxExport();                break; }
     }
 }
 

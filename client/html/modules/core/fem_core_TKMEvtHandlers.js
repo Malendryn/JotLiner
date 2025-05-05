@@ -42,20 +42,95 @@ function dragMaskDiv() {
     const deltaY = FG.kmStates.clientY - kmask.startY;
 
     if (kmask.lrMode.includes("L")) {
-        kmask.el.style.left = (kmask.left  + deltaX) + "px";
-        kmask.divGhost.style.left = (kmask.divGhostLeft  + deltaX) + "px";
+        kmask.el.style.left       = (kmask.left      + deltaX) + "px";
+        kmask.divGhost.style.left = (kmask.divGhostL + deltaX) + "px";
     }
     if (kmask.lrMode.includes("R")) {
-        kmask.el.style.right = (kmask.right - deltaX) + "px";
-        kmask.divGhost.style.left = (kmask.divGhostLeft + deltaX) + "px";
+        kmask.el.style.right      = (kmask.right     - deltaX) + "px";
+        kmask.divGhost.style.left = (kmask.divGhostL + deltaX) + "px";
     }
     if (kmask.tbMode.includes("T")) {
-        kmask.el.style.top = (kmask.top     + deltaY) + "px";
-        kmask.divGhost.style.top = (kmask.divGhostTop     + deltaY) + "px";
+        kmask.el.style.top       = (kmask.top           + deltaY) + "px";
+        kmask.divGhost.style.top = (kmask.divGhostT     + deltaY) + "px";
     }
     if (kmask.tbMode.includes("B")) {
-        kmask.el.style.bottom = (kmask.bottom  - deltaY) + "px";
-        kmask.divGhost.style.top = (kmask.divGhostTop + deltaY) + "px";
+        kmask.el.style.bottom    = (kmask.bottom    - deltaY) + "px";
+        kmask.divGhost.style.top = (kmask.divGhostT + deltaY) + "px";
+    }
+}
+
+
+function sizeMaskDiv() {
+    let kmask = FG.kmStates.mask;
+    const deltaX = FG.kmStates.clientX - kmask.startX;
+    const deltaY = FG.kmStates.clientY - kmask.startY;
+console.log(kmask.nesw, kmask.lrMode, kmask.tbMode); 
+    if (kmask.nesw.includes("w")) {                                         // move west wall
+        if (kmask.lrMode == "LW") {                                   // if el has style.left+style.width
+            kmask.el.style.left       = (kmask.left       + deltaX) + "px";
+            kmask.el.style.width       = (kmask.width     - deltaX) + "px";
+            kmask.divGhost.style.left = (kmask.divGhostL  + deltaX) + "px";
+            kmask.divGhost.style.width = (kmask.divGhostW - deltaX) + "px";
+        }
+        if (kmask.lrMode == "RW") {                                   // if el has style.right+style.width
+            kmask.el.style.width       = (kmask.width     - deltaX) + "px";
+            kmask.divGhost.style.left  = (kmask.divGhostL + deltaX) + "px";
+            kmask.divGhost.style.width = (kmask.divGhostW - deltaX) + "px";
+        }
+        if (kmask.lrMode == "LR") {                                   // if el has style.left+style.right
+            kmask.el.style.left        = (kmask.left      + deltaX) + "px";
+            kmask.divGhost.style.left  = (kmask.divGhostL + deltaX) + "px";
+            kmask.divGhost.style.width = (kmask.divGhostW - deltaX) + "px";
+        }
+    }
+    if (kmask.nesw.includes("n")) {                                         // move north wall
+        if (kmask.tbMode == "TH") {                                   // if el has style.top+style.height
+            kmask.el.style.top          = (kmask.top       + deltaY) + "px";
+            kmask.el.style.height       = (kmask.height    - deltaY) + "px";
+            kmask.divGhost.style.top    = (kmask.divGhostT + deltaY) + "px";
+            kmask.divGhost.style.height = (kmask.divGhostH - deltaY) + "px";
+        }
+        if (kmask.tbMode == "BH") {                                   // if el has style.right+style.height
+            kmask.el.style.height       = (kmask.height    - deltaY) + "px";
+            kmask.divGhost.style.top    = (kmask.divGhostT + deltaY) + "px";
+            kmask.divGhost.style.height = (kmask.divGhostH - deltaY) + "px";
+        }
+        if (kmask.tbMode == "TB") {                                   // if el has style.top+style.right
+            kmask.el.style.top          = (kmask.top       + deltaY) + "px";
+            kmask.divGhost.style.top    = (kmask.divGhostL + deltaY) + "px";
+            kmask.divGhost.style.height = (kmask.divGhostH - deltaY) + "px";
+        }
+    }
+    if (kmask.nesw.includes("e")) {                                         // move east wall
+        if (kmask.lrMode == "LW") {                                   // if el has style.left+style.width
+            kmask.el.style.width       = (kmask.width     + deltaX) + "px";
+            kmask.divGhost.style.width = (kmask.divGhostW + deltaX) + "px";
+        }
+        if (kmask.lrMode == "RW") {                                   // if el has style.right+style.width
+            kmask.el.style.right       = (kmask.right     - deltaX) + "px";
+            kmask.el.style.width       = (kmask.width     + deltaX) + "px";
+            kmask.divGhost.style.width = (kmask.divGhostW + deltaX) + "px";
+        }
+        if (kmask.lrMode == "LR") {                                   // if el has style.left+style.right
+            kmask.el.style.right       = (kmask.right     - deltaX) + "px";
+            kmask.divGhost.style.width = (kmask.divGhostW + deltaX) + "px";
+        }
+    }
+    if (kmask.nesw.includes("s")) {                                         // move north wall
+        if (kmask.tbMode == "TH") {                                   // if el has style.top+style.height
+            kmask.el.style.height       = (kmask.height    + deltaY) + "px";
+            kmask.divGhost.style.height = (kmask.divGhostH + deltaY) + "px";
+        }
+        if (kmask.tbMode == "BH") {                                   // if el has style.right+style.height
+            kmask.el.style.bottom     = (kmask.bottom    - deltaY) + "px";
+            kmask.el.style.height       = (kmask.height    + deltaY) + "px";
+            kmask.divGhost.style.height = (kmask.divGhostH + deltaY) + "px";
+        }
+        if (kmask.tbMode == "TB") {                                   // if el has style.top+style.right
+            kmask.el.style.top          = (kmask.top       + deltaY) + "px";
+            kmask.divGhost.style.top    = (kmask.divGhostL + deltaY) + "px";
+            kmask.divGhost.style.height = (kmask.divGhostH - deltaY) + "px";
+        }
     }
 }
 
@@ -63,33 +138,46 @@ function dragMaskDiv() {
 function doCmdStateDrawing(orig, changes) { // only called when FG.kmStates.mask = set
     let kmask = FG.kmStates.mask;
     let el = null;
+    const div = document.getElementById("divDocView");
 
     if (FG.kmStates.btnLeft) {  // if mouseLeft down, use existing el
-        el = kmask.el;
-    } else {                    // else find el to use
+        if (!orig.btnLeft) {
+            kmask.startX = FG.kmStates.clientX;     // capture info about mouse startpos and boxsizing info
+            kmask.startY = FG.kmStates.clientY;
+        }
+        el = kmask.el;          // ref the dch el for working with below
+    } else {                    // else find dch el to use
         const list = document.elementsFromPoint(FG.kmStates.clientX, FG.kmStates.clientY);
         for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
             const tmp = list[idx];
             if (tmp._dchMouseOp == "dchComponent") {
-                if (tmp._dchHandler != FG.curDoc.rootDch) {          // do not allow them to select/move the docRoot!
-                    el = tmp;
+                if (tmp._dchHandler != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
+                    if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
+                        if (kmask.divGhost) {               // remove any exhisting gost
+                            div.removeChild(FG.kmStates.mask.divGhost);
+                            delete FG.kmStates.mask.divGhost;
+                        }
+                    }
+                    kmask.el = el = tmp;
+                    kmask.nesw = "";    // set this right away to prevent possible tripup later on
                 }
                 break;
             }
         }
     }
 
-    if (!el || el != kmask.el) {
+    if (!el || el != kmask.el) {    // if we were over a dch el but we're not any more
         if (kmask.divGhost) {
-            const div = document.getElementById("divDocView");
             div.removeChild(FG.kmStates.mask.divGhost);
             delete FG.kmStates.mask.divGhost;
         }
     }
-    kmask.el = el;      // track the element we're ghosting too so we know if we moved off it
 
+    let rect;
+    if (el) {
+        rect = el.getBoundingClientRect();
+    }
     if (el && !FG.kmStates.mask.divGhost) {     // we're over an element but no ghost was created yet
-        let rect = el.getBoundingClientRect();
         // let rect = window.getComputedStyle(el);
         let ghost = document.createElement("div");
         ghost.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
@@ -98,13 +186,12 @@ function doCmdStateDrawing(orig, changes) { // only called when FG.kmStates.mask
         ghost.style.width   = rect.width + "px";
         ghost.style.height  = rect.height + "px";
         ghost.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
-        let div = document.getElementById("divDocView");
         div.insertBefore(ghost, kmask.divMask);    // insert new div UNDER the divMask
         kmask.divGhost = ghost;
-        kmask.divGhostLeft = rect.x;
-        kmask.divGhostTop  = rect.y;
-        kmask.startX = FG.kmStates.clientX;     // capture info about mouse startpos and boxsizing info
-        kmask.startY = FG.kmStates.clientY;
+        kmask.divGhostL = rect.x;
+        kmask.divGhostT  = rect.y;
+        kmask.divGhostW = rect.width;
+        kmask.divGhostH = rect.height;
         kmask.lrMode = "";
         kmask.tbMode = "";
         if (el.style.left)  {  kmask.lrMode += "L"; kmask.left  = parseInt(el.style.left);  }
@@ -116,31 +203,70 @@ function doCmdStateDrawing(orig, changes) { // only called when FG.kmStates.mask
         if (el.style.height) {  kmask.tbMode += "H"; kmask.height = parseInt(el.style.height); }  // not used, only care about TB
 
     }
-    if (FG.kmStates.btnLeft && kmask.el && (changes.clientX || changes.clientY)) {       // if leftclickHold and mouse position changed...
-        dragMaskDiv();
+    if (el) {                            // if we're over a dch...
+        if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
+            const slop = 6;              // compute the cursortype (as kmask.nesw)
+            rect.r = rect.x + rect.width - 1;
+            rect.b = rect.y + rect.height - 1;
+            const irect = {
+                x: rect.x + slop,
+                y: rect.y + slop,
+                r: rect.r - slop,
+                b: rect.b - slop,
+            };
+            kmask.nesw = "";
+            if (FG.kmStates.clientY >= rect.y && FG.kmStates.clientY <= irect.y) {
+                kmask.nesw += "n"
+            }
+            if (FG.kmStates.clientY <= rect.b && FG.kmStates.clientY >= irect.b) {
+                kmask.nesw += "s"
+            }
+            if (FG.kmStates.clientX <= rect.r && FG.kmStates.clientX >= irect.r) {
+                kmask.nesw += "e"
+            }
+            if (FG.kmStates.clientX >= rect.x && FG.kmStates.clientX <= irect.x) {
+                kmask.nesw += "w"
+            }
+            
+            if (kmask.nesw.length > 0) {
+                div.style.cursor = kmask.nesw + "-resize";
+            } else {
+                div.style.cursor = "grab";
+            }
+        } else {                            // if mouseLeft IS down...
+            if (kmask.nesw.length > 0) {    // and over an edge or corner...
+                sizeMaskDiv();
+            } else {
+                dragMaskDiv();
+            }
+        }
+    } else {                    // if NOT over a dch...
+        div.style.cursor = "";
     }
 }
 
 
 function onStateChange(orig, changes) { // detect commandState change and create a faux invis window over entire divDocView
+    const div = document.getElementById("divDocView");
     let oldCmd = (orig.keyCtrl && orig.keyAlt);                  // get old and new <RSTODO configurable> commandStates (currently ctrl+alt)
     let newCmd = (FG.kmStates.keyCtrl && FG.kmStates.keyAlt);
     if (oldCmd != newCmd) {                                // if commandState changed
         if (newCmd) {                                      // if commandState started     
-            const div = document.getElementById("divDocView");
             const el = document.createElement("div");
             el.style.position = "absolute";
             el.style.inset = "0px";
             div.appendChild(el);
-            FG.kmStates.mask = {divMask:el};
+            FG.kmStates.mask = {
+                divMask: el,
+            };
         } else {
+            div.style.cursor = "";      // undo all cursor settings when commandState released
+
             if (FG.kmStates.mask) {
                 if (FG.kmStates.mask.divGhost) {
-                    const div = document.getElementById("divDocView");
                     div.removeChild(FG.kmStates.mask.divGhost);
                 }
                 if (FG.kmStates.mask.divMask) {
-                    const div = document.getElementById("divDocView");
                     div.removeChild(FG.kmStates.mask.divMask);
                 }
                 delete FG.kmStates.mask;
@@ -153,40 +279,12 @@ function onStateChange(orig, changes) { // detect commandState change and create
 }
 
 
-function setKeyState(states) {
+function setKMState(states) {
     let orig = Object.assign({}, FG.kmStates);       // clone the original FG.kmStates before changing them
     let changes = {};
     for (const key in states) {                         // get a list of ONLY what changed
         if (FG.kmStates[key] != states[key]) {
             FG.kmStates[key] = states[key];             // if changed, update FG.kmStates AND push into changes[] 
-            changes[key] = states[key];
-        }
-    }
-    if (Object.keys(changes).length) {
-        onStateChange(orig, changes);           // if anything changed, call the handler
-    }
-}
-
-//RSTODO CHANGETO-NEW-WAY: use document.elementsFromPoint and drill-down-from-top to find first dch-controlled one
-function setMouseState(states, target) {
-    let orig = Object.assign({}, FG.kmStates);       // clone the original FG.kmStates before changing them
-    let changes = {};
-    if (target != FG.kmStates.target) {         // since this stuff is mildly intensive do it only when element mouse is over changed
-        FG.kmStates.target = target;
-        changes["target"] = target;
-        while (target && (target?._dchMouseOp) === undefined) {  // climb <el> parents to find _dchMouseOp
-            target = target.parentNode;
-        }
-        let dch = (target) ? target._dchHandler : null;
-        if (dch != orig.dch) {
-            changes["dch"] = dch;
-            FG.kmStates.dch = dch;
-        }
-    }
-
-    for (const key in states) {                   // get a list of what changed
-        if (FG.kmStates[key] != states[key]) {
-            FG.kmStates[key] = states[key];
             changes[key] = states[key];
         }
     }
@@ -202,7 +300,7 @@ function keydown(evt) {
     else if (evt.key == "Alt")     { states["keyAlt"]    = true; }
     else if (evt.key == "Shift")   { states["keyShift"]  = true; }
     else if (evt.key == "Meta")    { states["keyMeta"]   = true; }
-    setKeyState(states);
+    setKMState(states);
 }
 
 function keyup(evt) {
@@ -211,7 +309,7 @@ function keyup(evt) {
     else if (evt.key == "Alt")     { states["keyAlt"]    = false; }
     else if (evt.key == "Shift")   { states["keyShift"]  = false; }
     else if (evt.key == "Meta")    { states["keyMeta"]   = false; }
-    setKeyState(states);
+    setKMState(states);
 }
 
 
@@ -221,7 +319,7 @@ function mousedown(evt) {
     if      (evt.button == 0) {  states["btnLeft"]  = true; }
     else if (evt.button == 1) {  states["btnMid"]   = true; }
     else if (evt.button == 2) {  states["btnRight"] = true; }
-    setMouseState(states, evt.target);
+    setKMState(states);
 
     if (evt.target.id == "divIndexDocSizer") {  // record info for mouseMove ops
         let m = {                       // create and init 'global' sizerStartPos object
@@ -240,7 +338,7 @@ function mousedown(evt) {
 
 
 function mousemove(evt) {
-    setMouseState({"clientX": evt.clientX, "clientY": evt.clientY}, evt.target);
+    setKMState({"clientX": evt.clientX, "clientY": evt.clientY});
 
     if (sizerStartPos) {
         const m = sizerStartPos;
@@ -268,7 +366,7 @@ function mouseup(evt) {
     if      (evt.button == 0) {  states["btnLeft"]  = false; }
     else if (evt.button == 1) {  states["btnMid"]   = false; }
     else if (evt.button == 2) {  states["btnRight"] = false; }
-    setMouseState(states, evt.target);
+    setKMState(states, evt.target);
 
     if (sizerStartPos) {
         const el = document.getElementById("divIndexDocSizer");

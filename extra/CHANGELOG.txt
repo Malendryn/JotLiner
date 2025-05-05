@@ -6,7 +6,14 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-05 ------------------------------------------------------------------------------------------------------------
+* dch resize now fully working! (ctrl+alt+cornerdrag)
+    all the mousecursors are now working
+    leftdrag and topdrag (and consequently topleft angle drag) now working
+
+* BUG: we broke fem_core_divIndexViewHandler.js:openDocInfoPopup by stealing mouse entirely in fem_core_TKMEvtHandlers.js
+* got export working in index pane context menu (primarily to deal with abovementioned BUG for the time being but it
+    was a needed feature anyway)
 2025-05-04 ------------------------------------------------------------------------------------------------------------
 * finally renamed this file from STATUS.txt to CHANGELOG.txt!
 * got rid of <div id="docWrapper"> inside <div id="divDocView"> as it was redundant, now using divDocView directly

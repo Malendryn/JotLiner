@@ -20,3 +20,5 @@ FG.DocImporter   = null;     // CLASS to import a stringstream into a doc (see f
 FG.DocExporter   = null;     // CLASS to export a doc to a stringstream   (see fem_core_DocExporter.js)
 
 FG.kmStates      = {};       // kbd and mouse states at any instant in time (see fem_core_TKMEvtHandlers.js)
+
+// FIX setMouseState()  get rid of setting of FG.kmStates.dch
