@@ -15,7 +15,10 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
 {...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
-
+"txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
+--------       reTimer(callback)        x = reTimer(callback);   x(5000); make timer, that can be set and reset
+--------       autoSave(delay=5000)     uses a reTimer() to autoSave FG.curDoc after (delay) millisecs has passed
+-------- async waitDirty()              spin-wait up to 15 secs while (FG.curdoc && FG.curDoc.dirty)
 ==== FROM fem_core_WSockHandler.js ====================================================================================
 pkt    = makePacket(name)               create and return a new packet
 pkt    = parsePacket(stream)			   reconstruct a packet instance from the stream
@@ -31,9 +34,13 @@ action = openContextMenu(entries, callback)
 	    function callback(action)
 
 ==== FROM fem_core_PopupDialog.js ====================================================================================
-FF.openPopup(X, Y, W, H, form, dict, callback)    Generic popup handler
- 	T/F = callback(isCancel)  (return true to allow <save> else F keeps dialog open)
-
+FF.openPopup(form, dict, callback, preRun=null, postRun=null)    Generic popup handler
+		form ---------------------- "<form><input name="myInput">...</form>" 
+		dict=[dictKey: value] -----	sets formfields with <name="dictKey"> form fields to 
+    T/F=callback(dict)              dict=null if [cancel] else fieldvals if [save], return true=done/false keeps dialog open
+preRun and postRun are callbacks that recieve handle to <form> element right after being displayed
+    so if user wants to add listeners or other things here is how to do it
+postRun is for cleaning up/removing any listeners etc right before closing the dialog
 ==== FROM ????????????????????? ====================================================================================
 --------       logout()                 detach and forget current user and go back to login screen
 -------- async loadView(.jsName)        load a .js child of FG.ViewBASE from within the "views" subdir
@@ -84,14 +91,15 @@ FF.makeHash = async (txt) => {
 
 
 FF.clearDoc = async() => {
-	if (FG.curDoc) {
-		FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
-	}
-
-// then nuke it all!
-	const div = document.getElementById("divDocView");  	// blowout entire existing rendering
-	div.innerHTML = "";
-    FG.curDoc = null;
+    if (FG.curDoc) {
+        if (FG.curDoc.dirty) {
+            FF.autoSave(0);
+            await FF.waitDirty();       // wait until doc save is clean
+            console.log("beep");
+        }
+        await FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
+        FG.curDoc = null;
+    }
 }
 
 
@@ -170,24 +178,72 @@ function __getFileLineInfo(err) {
 	
 		if (skip == -1 && currentScriptLine) { 
 			let filename = currentScriptLine.substring(currentScriptLine.lastIndexOf('/') + 1);
-			filename = filename.substring(0, filename.indexOf(')'));
-			// let url = currentScriptLine.match(/(https?:\/\/[^/]+)?(\/[^:]+)/);
-			// if (url && url.length > 2) {
-			// 	const path = url[2];
-			// 	const filename = path.substring(path.lastIndexOf('/') + 1);
-			// 	return filename;
-			// } else if (currentScriptLine.indexOf("blob:") > -1) {
-			// 	let url = currentScriptLine.match(/(blob:\/\/[^/]+)/);
-			// 	if (url && url.length > 0) {
-			// 		return "<notfound>.js"; //Cannot get the name of the script.
-			// 	}
-			// }
+			filename = filename.substring(0, filename.lastIndexOf(':')); // of 'fname.js:lineno:idx)'return 'fname:lno'      //.indexOf(')'));
 			return filename;
 		}
 		return "<?noFileInfo?>.???";
 	}
 }
-
 FF.__FILE__ = function() {
 	return __getFileLineInfo(new Error());
+}
+
+
+FF.reTimer = function(callback) {
+	let id = 0;
+	const startTimeout = async (delay, dict=null) => {	// delay = -n=kill, 0=callback(dict)Immediate, +n=delay ms then callback(dict)
+		if (id > 0) {                               // kill any current running timer
+			clearTimeout(id);
+			id = 0;
+		}
+        if (delay == 0) {
+            await callback(dict);               // when delay == 0 we await
+        }
+		if (delay > 0) {
+			id = setTimeout(async () => {       // by making this async() in this way we... 
+                callback(dict);
+            }, delay);	// start new timer
+		}
+	}
+	return startTimeout;
+}
+
+
+const autoSaveCallback = async function() {
+    if (FG.curDoc && FG.curDoc.dirty) {
+        let exporter = new FG.DocExporter();
+        const str = await exporter.export(FG.curDoc.rootDch);
+        let pkt = WS.makePacket("SaveDoc")
+        pkt.dict = {
+            uuid:       FG.curDoc.uuid,
+            version:    FG.VERSION,
+            doc:        str,
+        }
+        pkt = WS.sendExpect(pkt);	// send to backend, /maybe/ get a response-or-Fault
+    	FG.curDoc.dirty = false;
+    }
+}
+FF._autoSaveFunc = FF.reTimer(autoSaveCallback);		// '_' cuz this should only ever be called from FF.autoSave() below
+
+FF.autoSave = function(delay=5000) {       // this is not an async function!
+    if (FG.curDoc) {               // if we have a doc and it's not marked dirty    
+        FG.curDoc.dirty = true;    // set dirty flag immediately
+        FF._autoSaveFunc(delay);   // start-or-restart the autosave countdown
+    }
+}
+
+FF.waitDirty = async function() {
+    let tm, end = Date.now() + 15000;   // set end 15secs into the future
+    return new Promise(async (resolve, reject) => {
+        function waitOnDirty() {
+            if (FG.curDoc && FG.curDoc.dirty && Date.now() < end) { // if doc and dirty and notyet15secs...
+                tm(10);                     // spin very fast to not delay 'user experience'
+            } else {
+                resolve();
+                return;
+            }
+        }
+        tm = FF.reTimer(waitOnDirty);
+        tm(10);                             // start the dirtychecker
+    });
 }

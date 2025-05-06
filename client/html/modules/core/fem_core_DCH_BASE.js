@@ -24,6 +24,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-must-implement functions -------------------------------------------------------------------------------------
+// ****NOTE it is CRITICAL that these functions fully complete their ops before returning (async/await)
     //        async construct(data=null)     // called by static create() after <div> created and styles applied
                                              // if data != null then it contains a {} of data to be put on the object
                                              // in here is technically where to add your own <> elements and listeners
@@ -40,7 +41,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
                             // whos parent is parent
                             // and if .hasDiv and style populate div style with style data
                             // finally call this.construct() for post-construction activities
-    
+
     //           destroy(); // recursive, calls this.destruct(), then removes all listeners, then destroys it
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,19 +90,13 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
                         case 'H':   dch._div.style.height = val;   break;
                     }
                 }
-                
-                //RSTEMP get-us-going mods to experiment on the el
-                    dch._div.style.border = "1px solid black";
-                    dch._div.style.backgroundColor = "lightsalmon";
-                    dch._div.style.overflow = "hidden";
-                    dch._div.style.whiteSpace = "nowrap";
-                //RSTEMP.end
+//RSTEMP get-us-going mods to experiment on the el
+dch._div.style.border = "1px solid black";
+dch._div.style.backgroundColor = "lightsalmon";
+dch._div.style.overflow = "hidden";
+dch._div.style.whiteSpace = "nowrap";
+//RSTEMP.end
             }
-            // dch.addListener(dch._div, "focus",    dch.__onDCHGotFocus);     // detect when ._div got focus
-            // dch.addListener(dch._div, "focusin",  dch.__onDCHGotFocus);     // detect when anything inside ._div got focus
-
-            // dch.addListener(dch._div, "blur",     dch.__onDCHLostFocus);    // detect when ._div lost focus
-            // dch.addListener(dch._div, "focusout", dch.__onDCHLostFocus);    // detect when anything inside ._div lost focus
         }
         if (dch.hasToolbar) {
             dch._tBar = document.createElement("div");
@@ -121,11 +116,10 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     }
 
     async importData(data) {Object.assign(this, data); }   // *overridable* populate this component with data
-    async exportData()     {}                              // *overridable* return data to be preserved/exported as a {}
+    async exportData()     { return {}; }                  // *overridable* return data to be preserved/exported as a {}
 
 
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
-        console.log("fem_core_DCH_BASE.js:destroy");
         if (this.children != null) {                                        // if this dcHandler CAN have children....
             for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy them (in reverse order cuz 'parent.splice()'
                 await this.children[idx].destroy();
@@ -184,8 +178,8 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
         }
         return false;
     }
-    
-    
+
+
     removeAllListeners = function() {   //        console.log("fem_core_DCH_BASE.js:removeAllListeners");
         for (let idx = FG.DCH_BASE.__registeredEventListeners.length - 1; idx >= 0; idx--) {
             let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
@@ -195,14 +189,5 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
             }
         }
     }
-
-
-    // __onDCHGotFocus(evt) {
-    //     console.log("gotFocus", evt);
-    // }
-    // __onDCHLostFocus(evt) {
-    //     console.log("lostFocus", evt);
-    // }
-
 }; // end class
 

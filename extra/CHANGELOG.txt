@@ -6,14 +6,25 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+* started building out a popup when "Set Element Styles" is selected from context menu over a dch
+    this popup allows selecting the anchors for the sides and width/height
+    it also shows all the current pixel values of the selected dch and will soon let you change them and update
+      the actual dch in real time
+* things are getting tricky... added a FG.kmStates.modal which is true if any dlg or menu or contextmnu is open to
+    prevent multiple openings and/or current-selections from being changed (prior to this dch was changing when mouseovered
+    while popupDlg was open which was messing things up badly)
+* fixed up a few issues with modality,  added a FG.kmStates.modal t/f flag so if any dialogs/menus are open the rest of
+    the system can prevent actions while open.
+* added FF.autoSave(delay) func that saves current FG.curDoc (if not null) to backend after 5 secs, unless called again
+    in which case it's aborted and a new AutoSave() is called
+* added FF.waitDirty() paired with FF.autoSave() to wait until save is complete and dirty is clear before moving on
+
 2025-05-05 ------------------------------------------------------------------------------------------------------------
 * dch resize now fully working! (ctrl+alt+cornerdrag)
     all the mousecursors are now working
     leftdrag and topdrag (and consequently topleft angle drag) now working
+* removed fem_core_DCHContextMenu.js as it is now absorbed into fem_core_TKMEvtHandlers.js
 
-* BUG: we broke fem_core_divIndexViewHandler.js:openDocInfoPopup by stealing mouse entirely in fem_core_TKMEvtHandlers.js
-* got export working in index pane context menu (primarily to deal with abovementioned BUG for the time being but it
-    was a needed feature anyway)
 2025-05-04 ------------------------------------------------------------------------------------------------------------
 * finally renamed this file from STATUS.txt to CHANGELOG.txt!
 * got rid of <div id="docWrapper"> inside <div id="divDocView"> as it was redundant, now using divDocView directly

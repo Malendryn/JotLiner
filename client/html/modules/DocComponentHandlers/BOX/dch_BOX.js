@@ -17,7 +17,7 @@ class DCH_BOX extends FG.DCH_BASE {
 
 
     async exportData() {       // return data to be preserved/exported as a {}
-        // debugger; return {};
+        return {};
     }
 
     

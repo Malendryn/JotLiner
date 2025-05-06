@@ -1,24 +1,4 @@
 
-
-// RSTODO OBSOLETE RSDELETE just here for show!  SAMPLE RSTODO REMOVE this and add a real handler
-// let tmp = document.getElementById("divIndexView");
-// tmp.innerHTML = `
-// <ul id="divIndexViewUL">
-// <!--                     indent spacer                  arrow-if-children                  text to display -->
-//     <li id="01" draggable="true"><div style="width: 0px;"></div><div style="width:16px;">&gt;</div>Section 1</li>
-//     <li id="02" draggable="true"><div style="width:16px;"></div><div style="width:16px;">    </div>Subsection 1.1</li>
-//     <li id="03" draggable="true"><div style="width:16px;"></div><div style="width:16px;">    </div>Subsection 1.2</li>
-//     <li id="04" draggable="true"><div style="width:16px;"></div><div style="width:16px;">&gt;</div>Subsection 1.3</li>
-//     <li id="05" draggable="true"><div style="width:32px;"></div><div style="width:16px;">    </div>Sub-subsection 1.3.1</li>
-//     <li id="06" draggable="true"><div style="width:32px;"></div><div style="width:16px;">    </div>Sub-subsection 1.3.2</li>
-//     <li id="07" draggable="true"><div style="width:32px;"></div><div style="width:16px;">&gt;</div>Sub-subsection 1.3.2</li>
-//     <li id="08" draggable="true"><div style="width:48px;"></div><div style="width:16px;">    </div>Subsection 1.3.2.1</li>
-//     <li id="09" draggable="true"><div class="entry"><div style="width:48px;"></div><div style="width:16px;">    </div>Subsection 1.3.2.2</div></li>
-// </ul>
-// `;
-// end OBSOLETE
-
-
 const indexMenuEntries = [
 //   action,      entryText,             tooltipText
     ["newDocAtSame",  "New Document",            "Insert a new document below the selected one"],
@@ -35,8 +15,10 @@ const indexMenuEntries = [
 async function ctxExport() {
     let exporter = new FG.DocExporter();
     const str = await exporter.export(FG.curDoc.rootDch);
+    console.log(FF.__FILE__(), "RSTODO");
     console.log(str);
 }
+
 
 function onIdxContextMenuAction(action) {
     switch (action) {
@@ -48,6 +30,7 @@ function onIdxContextMenuAction(action) {
 
 
 FF.newDoc = async () => {
+    await FF.waitDirty();
     await FF.clearDoc();
     
     // then create a new doc by adding a single BOX handler as the docRoot
@@ -58,8 +41,9 @@ FF.newDoc = async () => {
     dch._div.style.bottom = "0px";
     dch._div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
     FG.curDoc = {
-        uuid: FF.makeUUID(),
+        uuid:    FF.makeUUID(),
         rootDch: dch,
+        dirty:   false,
     };
 };
     
@@ -74,6 +58,7 @@ function makeIViewForm(asChild) {
     </form>
 `;
 }
+
 
 function openDocInfoPopup(asChild) {
     let dict = {
@@ -104,13 +89,13 @@ function openDocInfoPopup(asChild) {
             doc:        await exporter.export(FG.curDoc.rootDch),
         }
         pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
-        await FG.loadDocTree();         // go fetch and reconstruct index pane
+        await FF.loadDocTree();         // go fetch and reconstruct index pane
         selectAndLoadDoc(FG.curDoc.uuid);
         return true;
     }
 
     let form = makeIViewForm(asChild);
-    FG.openPopup(240, 40, 400, 200, form, dict, onPopupClose);
+    FF.openPopup(form, dict, onPopupClose);
 }
 
 
@@ -119,13 +104,13 @@ function openIndexContextMenu() {
     if (FG.curDoc == null) {
         tmp.splice(1);   // lose all but newDocAtSame
     }
-    FG.openContextMenu(tmp, onIdxContextMenuAction);
+    FF.openContextMenu(tmp, onIdxContextMenuAction);
 }
 
 
 // begin .js initialization ///////////////////////////////////////////////////////////////////////////////////////////
-let tmp = document.getElementById("divIndexView");
-const style = window.getComputedStyle(tmp);     // get backgrd color of divIndexView and darken it by rgb 24,24,24
+let div = document.getElementById("divIndexView");
+const style = window.getComputedStyle(div);     // get backgrd color of divIndexView and darken it by rgb 24,24,24
 let bgColor = style.backgroundColor;            // keep it in bgColor 'for later' (see selectAndLoadDoc())
 bgColor = FF.parseRgba(bgColor);                // parse the "rgba(24, 36,48, 0.69)"  into {r,g,b,a}
 bgColor.r = Math.max(0, bgColor.r - 24);        // now reduce each r,g,b by 24 making sure it doesn't go negative
@@ -134,22 +119,20 @@ bgColor.b = Math.max(0, bgColor.b - 24);
 bgColor = "rgb(" + bgColor.r + "," + bgColor.g + "," + bgColor.b + ")"; // finally rebuild it into "rgb(r,g,b)"
 
 
-let draggedItem       = null;                             // ptr to <li> currently being dragged
+let draggedItem       = null;                             // ptr to <li> currently being dragged (or null if not)
 let placeholder       = document.createElement('div');    // create the thin-black-line that shows where a dragDrop will go on dragEnd
 placeholder.className = 'placeholder';
 
-let el = document.getElementById("divIndexView");
-el.addEventListener('click',       onLeftClick);      // add left,right click listeners on entire divIndexView
-el.addEventListener("contextmenu", onContextMenu);
+div.addEventListener('click',       onLeftClick);      // add left,right click listeners on entire divIndexView
+div.addEventListener("contextmenu", onContextMenu);
 
 
 async function showDocTree() { // build <UL> to display in left index pane
-    let view = document.getElementById("divIndexView");
-    view.innerHTML = "";     // wipe contents.  (there are no added event listeners to remove so this is safe)
+    let div = document.getElementById("divIndexView");
+    div.innerHTML = "";     // wipe contents.  (there are no added event listeners to remove so this is safe)
     let ul = document.createElement("ul");
     ul.id = "divIndexViewUL";
-    tmp.appendChild(ul);
-    let div;
+    div.appendChild(ul);
  // build and insert <li> elements inside the <ul>
  //   <!--                     indent spacer                  arrow-if-children                  text to display -->
  //   <li id="01" draggable="true"><div style="width: 0px;"></div><div style="width:16px;">&gt;</div>Section 1</li>
@@ -177,25 +160,27 @@ async function showDocTree() { // build <UL> to display in left index pane
         li.id = curr.id.toString();
         li._docUuid = curr.uuid;                // store the docUuid on the <li>
         li.draggable = "true";
-        div = document.createElement("div");    // append '<div style="width: 0px;"></div>'
-        div.style.width = (curr.depth * 16) + "px";
-        li.appendChild(div);
-        div = document.createElement("div");    // append '<div style="width:16px;">&gt;</div>'
-        div.style.width="16px";
+        let tmp = document.createElement("div");    // append '<div style="width: 0px;"></div>'
+        tmp.style.width = (curr.depth * 16) + "px";
+        li.appendChild(tmp);
+        tmp = document.createElement("div");    // append '<div style="width:16px;">&gt;</div>'
+        tmp.style.width="16px";
         if (showArrow) {
-            div.innerHTML = "&gt;";
+            tmp.innerHTML = "&gt;";
         }
-        li.appendChild(div);
-        div = document.createElement("div");    // append 'Document Name'
-        div.innerHTML = curr.name;
-        li.appendChild(div);
+        li.appendChild(tmp);
+        tmp = document.createElement("div");    // append 'Document Name'
+        tmp.innerHTML = curr.name;
+        li.appendChild(tmp);
     }
 }
 
 
-
 async function selectAndLoadDoc(uuid) {
     if (FG.curDoc) {
+        if (FG.curDoc.uuid == uuid) {   // clicked on same entry, ignore
+            return;
+        }
         const info = FF.getDocInfo(FG.curDoc.uuid);
         info.li.style.backgroundColor = "";     // clear bgColor of prior selected element
     }
@@ -203,8 +188,12 @@ async function selectAndLoadDoc(uuid) {
     if (uuid) {
         const info = FF.getDocInfo(uuid);
         if (info) {
-            if (await getDoc(uuid)) {      // if doc loaded, change treeEntry background to bgColor
-                info.li.style.backgroundColor = bgColor;
+            if (FG.curDoc && FG.curDoc.dirty) {
+                FF.autoSave(0);
+                await FF.waitDirty();
+            }
+            if (await getDoc(uuid)) {                       // if doc loaded...
+                info.li.style.backgroundColor = bgColor;    //...change treeEntry background to bgColor
             }
         }
     } else {
@@ -214,7 +203,7 @@ async function selectAndLoadDoc(uuid) {
 
 
 export async function initialize() {    // called from index.js
-    await FG.loadDocTree();             // load-and-show docTree
+    await FF.loadDocTree();             // load-and-show docTree
 
     let pkt = WS.makePacket("GetExtra");   
     pkt.txt = "curDocUuid";
@@ -224,7 +213,7 @@ export async function initialize() {    // called from index.js
 }
 
 
-function getDocTreeClickedUuid(evt) {
+function getDocTreeLIUuid(evt) {
     let target = evt.target;
     while (target && target.nodeName != "LI") { // we clicked on text inside <li> so walk parents to find <li>
         target = target.parentNode;
@@ -240,19 +229,22 @@ function getDocTreeClickedUuid(evt) {
 // start mouse/kdb ops ////////////////////////////////////////////////////////////////////////////////////////////////
 async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
     evt.preventDefault();
-    const uuid = getDocTreeClickedUuid(evt);
-    await selectAndLoadDoc(uuid);
+    if (!FG.kmStates.modal) {
+        const uuid = getDocTreeLIUuid(evt);
+        await selectAndLoadDoc(uuid);
+    }
 }
 
 async function onContextMenu(evt) {     // desel any sel,  sel current one under mouse, then open a context menu
     evt.preventDefault();
-    const uuid = getDocTreeClickedUuid(evt);
-    await selectAndLoadDoc(uuid);
-
-    openIndexContextMenu();
+    if (!FG.kmStates.modal) {
+        const uuid = getDocTreeLIUuid(evt);
+        await selectAndLoadDoc(uuid);
+        openIndexContextMenu();
+    }
 }
 
-function onDragStart(evt) {
+function onDragStart(evt) {             // RSTODO RSFIX RSBUG these are for dragging the leftpane entries up/down in the list, 
     debugger; draggedItem = evt.target;
     evt.dataTransfer.effectAllowed = 'move';
     evt.target.classList.add('dragging');
@@ -303,7 +295,7 @@ function onDragEnd(evt) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // start WS chain /////////////////////////////////////////////////////////////////////////////////////////////////////
-FG.loadDocTree = async function() {         // sets off the following chain of WS db calls...
+FF.loadDocTree = async function() {         // sets off the following chain of WS db calls...
     let pkt = WS.makePacket("GetDocTree")
     pkt = await WS.sendWait(pkt);           // SELECT * from docTree order by parent,listOrder
 
@@ -367,9 +359,11 @@ async function getDoc(uuid) {   // returns T/F if doc loaded. (sets curDoc.uuid 
 
     const imp = new FG.DocImporter();
 
-    FG.curDoc = { uuid: uuid };
-    FG.curDoc.rootDch = await imp.attach(pkt.doc, null);  // now attach it to the system as new root doc!
-
+    FG.curDoc = { 
+        uuid:    uuid, 
+        rootDch: await imp.attach(pkt.doc, null),  // now build-and-attach doc to the system as new root doc!
+        dirty:   false,
+    };
     return true;
 
     // RSTEST to destroy it to make sure it completely did, then reattach it again

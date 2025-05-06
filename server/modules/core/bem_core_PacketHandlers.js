@@ -51,8 +51,7 @@ WS.__classes.GetDoc.prototype.process = async function() { // must use 'function
 }
 
 
-WS.__classes.NewDoc.prototype.process = async function() {    // insert new doc into db,  return with a GetDocTree packet
-    let recId;
+WS.__classes.NewDoc.prototype.process = async function() {    // insert new doc into db,  return with nothing!
     try {
         await BG.db.run("BEGIN TRANSACTION");
         let list = [this.dict.uuid, this.dict.version, this.dict.doc];
@@ -67,6 +66,19 @@ WS.__classes.NewDoc.prototype.process = async function() {    // insert new doc 
     }
     this.dict = {}; // empty the dict for faster returnPkt
     return this;    // send self back cus client called using .sendWait()
-    // const pkt = new WS.__classes["GetDocTree"]();  // create new packet WITHOUT incrementing __id
-    // return await pkt.process();                     // call the normal process() for "GetDocTree" and return it as response to "NewDoc"
+};
+
+
+WS.__classes.SaveDoc.prototype.process = async function() {    // insert new doc into db,  return with a GetDocTree packet
+    try {
+        await BG.db.run("BEGIN TRANSACTION");
+        let list = [this.dict.version, this.dict.doc, this.dict.uuid];
+        await BG.db.run("UPDATE doc SET version=?,content=? WHERE uuid=?", [list]);               // insert the doc
+        await BG.db.run("COMMIT TRANSACTION");
+    } catch (err) {
+        await BG.db.run("ROLLBACK TRANSACTION");
+        return new WS.__classes["Fault"](err.message);
+    }
+    this.dict = {}; // empty the dict for faster returnPkt
+    return this;    // send self back cus client called using .sendExpect()
 };

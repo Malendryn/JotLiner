@@ -55,7 +55,6 @@ function process(data) {
         if (pkt.__id in WS.__waitList) {    // is it in waitList?  if not, probably timed out
             const entry = WS.__waitList[pkt.__id]
             delete WS.__waitList[pkt.__id];
-
             if (entry.resolve) {
                 entry.resolve(pkt);
             } else if (entry.callback) {

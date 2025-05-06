@@ -7,18 +7,18 @@ entries format is:
 callback format is:
     T/F = function callback(action) {}  (return true to allow <save> else F keeps dialog open)
 */
-FG.openContextMenu = function (entries, callback) {
-    let mnu = document.getElementById("dchContextMenu");
+FF.openContextMenu = function (entries, callback) {
+    let mnu = document.getElementById("sysContextMenu");
     if (mnu) {     // if a menu already exists, go home!
         return;
     }
 
     mnu = document.createElement("div");   // create the contextMenu div
-    mnu.id = "dchContextMenu";             // we use id so we don't open more menus if ones already open
-    mnu.className = "dchContextMenu";      // we use className to reuse .css when opening child contextMenus
+    mnu.id = "sysContextMenu";             // we use id so we don't open more menus if ones already open
+    mnu.className = "sysContextMenu";      // we use className to reuse .css when opening child contextMenus
     mnu.style.left = FG.kmStates.clientX + 'px';        // Position the custom menu at the mouse coordinates
     mnu.style.top  = FG.kmStates.clientY + 'px';
-    mnu.style.zIndex = "999999999";
+    // mnu.style.zIndex = "999999999";
     mnu.style.display = 'block';           // Show the custom menu
 
     let ul = document.createElement("ul"); // create the outermost <ul>
@@ -43,6 +43,7 @@ FG.openContextMenu = function (entries, callback) {
     }
 
     document.body.appendChild(mnu);             // menu is built, we can attach it now!
+    FG.kmStates.modal = true;
 
     const bodyRect = document.body.getBoundingClientRect();
     const mnurect = mnu.getBoundingClientRect();   // get sizeof menu AFTER attaching to div
@@ -70,6 +71,7 @@ FG.openContextMenu = function (entries, callback) {
             document.removeEventListener('click', closeContextMenu);
             document.body.removeChild(mnu);
             mnu = null;
+            FG.kmStates.modal = false;
         }
         // // if (!menu.contains(event.target)) {
         //     menu.style.display = 'none';

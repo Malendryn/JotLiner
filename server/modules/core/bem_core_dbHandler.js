@@ -42,23 +42,30 @@ class DBHandler {
 
 
     run = async (sql, params = []) => {
-        return new Promise((resolve, reject) => {
-            let errMsg = null, lastId = 0;
-            this.db.serialize(() => {
-                const stmt = this.db.prepare(sql);
-                stmt.run(...params, function (err) {
-                    if (err) {
-                        errMsg = err;
-                    }
-                    lastId = this.lastID;
-                    if (errMsg) {
-                        reject(errMsg);
-                    } else {
-                        resolve(lastId)
-                    }
-                });
-                stmt.finalize();
+        return new Promise(async (resolve, reject) => {
+            let lastId = 0;
+            this.db.serialize(async () => {
+                try {
+                    const stmt = await this.db.prepare(sql);
+                    // const row = stmt.get(1);
+                    // console.log(row)
+
+                    await stmt.run(...params, function (err) {    // warning! some statements simply crash and exit, unable to try/catch!
+                        if (err) {
+                            reject(err.message);
+                            return;
+                        }
+                        lastId = this.lastID;
+                    });
+                    await stmt.finalize();
+                }
+                catch (err) {
+                    console.log(err.message);
+                    reject(err.message);
+                    return;
+                }
             })
+            resolve(lastId)
         });
     }
 

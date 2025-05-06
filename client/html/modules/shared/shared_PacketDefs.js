@@ -70,7 +70,13 @@ WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from t
                 // <-- uuid of doc returned
     doc;        // <-- doc-as-string (possibly uuencoded) OR RSTODO we wrap this in a toJSON and fromJSON
 });
-WS.registerPacketClass(class NewDoc extends PacketBASE {    // load a doc from the db via its uuid
-    dict;       // --> {name,uuid,listOrder,parent,doc}
+WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
+    dict;       // --> {uuid,version,name,listOrder,parent,doc}
 // <-- returns with a GetDocTree packet instead of this one!
+});
+WS.registerPacketClass(class SaveDoc extends PacketBASE {    // save doc back into the database
+    dict;       // --> {uuid,version,doc}
+    uuid;       // -->  uuid of doc to get 
+                // <-- uuid of doc returned
+    doc;        // <-- doc-as-string (possibly uuencoded) OR RSTODO we wrap this in a toJSON and fromJSON
 });

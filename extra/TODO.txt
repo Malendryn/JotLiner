@@ -1,14 +1,37 @@
-TODO: make toplevel BOX  'hard-fix-positioned' and unchangable!  (no modding anchors so always TRBL=0px)
-    we can just use if (dch == FG.curDoc.rootDch) {then nochange allowed}
 -----------------------------------------------------------------------------------------------------------------------
-TODO instead of opening a dialog for anchor editing, lets just overwrite the toolbar with the <--> <----> <--> LWR anchors
-    and overwrite the <divIndex> with the THB anchors, that'll work nicely as we no longer have to worry about a dlg
-    being in-the-way all the time AND gives us plenty of room to add more gadgets in the index area for things like
-    'border 1px dashed black; background-color' and stuff like that
-        We have 2 dialogs for handling anchors,  both are temps only, index.html:popDlgDCHAnchor and 
-        'popDlgDCHAnchor.html in the --deleteme-- dir'..  we are NOT USING the --deleteme-- one and we're 
+
+
 -----------------------------------------------------------------------------------------------------------------------
-TODO see if we can animate selected box so it 'blinks' or fades/phases while editing  (but caution when setting things like
-background-color as we cant do that when phasing...!)   so think of a way...
+also FG.kmStates.mask has gotten big! 
 -----------------------------------------------------------------------------------------------------------------------
-BUG: we broke fem_core_divIndexViewHandler.js:openDocInfoPopup by stealing mouse entirely in fem_core_TKMEvtHandlers.js
+so, in order to support scrollbars, we can't ever go left/top=negative
+
+we wont have to worry about updating the screen when dragging/sizing the rects, but when they release it we have to
+push everything to the positive until all negatives are zero
+
+we also want the scrollbars to move with us in such a way the screen doesn't move, making it appear that the screen
+grew to the left when in reality everything was shoved to the right
+
+AN ALTERNATIVE is to keep a zTop and zLeft value which is always added to all dch's when drawn.  thereby letting us have
+the illusion of negativity, and then we can have a function somewhere that 'shifts' everything to zero zTop and zLeft out again
+for this we need to add 2 elements to the docHeader for zLeft and zTop so for example:
+    change: @1.0;4dc5b290-2f18-419b-be10-427772d92c70;
+    to:     @1.0;4dc5b290-2f18-419b-be10-427772d92c70;-1000;-3000;
+
+the advantage to this approach is that when someone sets a dch's position, it won't move on them
+-----------------------------------------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+BUG: (?unfixable?) when prog starts, if I ctrl+alt and rightclick in the INDEX frame, I get the 'new document' context menu
+but if I close the menu, then re-press ctrl+alt and rightclick, no menu appears.  this is odd.
+
+it also DOESNT happen if I just hit reload, it ONLY happens if I close and start the program anew
+
+    I found the reason is that the divIndexView (in fact the entire program) does not have focus when it starts, therefore
+    it's not firing keydown/up events, even though mouse events ARE firing.  it doesnt track these keyboard events until I
+    click or right-click on something, and even then the click:evt.keyAlt etc are not valid at this first-time-clicking-event
+        I tried document.body.focus() and div=document.getElementById("divDocView");div.focus() but that didnt work either
+    This does however explain why it works fine on reload, just not on progstart.  cuz on reload it does indeed have focus
+        at start-time
