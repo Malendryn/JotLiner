@@ -1,10 +1,38 @@
 -----------------------------------------------------------------------------------------------------------------------
+PRE-GITHUB Todos
+* add a renameoption (or new document popup but as renamer) to the docTree
+* make docTree submenu items ('>') collapsible
+* make docTree dragdrop work properly!  
 
+* make multiple clients work by listening for autoSave()'s 
+* scrollbars on DCH_BOXes  (see DETAIL: scrollbars below) particularly as this may change doc1.0 format
+* move docs (grag, in/out depth too)
+* front/back depth of dch's within document
+* cut/copy/paste dch's (or delete/copy/move wherein copy/move .cursor('x') the mouseIcon til you click to drop)
+* dch styles (border, background, seethrough,etc)
+* dialogs like colorwheel rgba
+        we will use Pickr (see TEST_Pickr.html)  but we want a local copy so no src="https://..."
+            remember how to handle the MIT licence on it properly!
+* add more 'demo' dch's like 
+    SSH spreadsheet, 
+    IMG pic(gif/jpg/png) although technically CTE does this
+    IDEF0 IDEF0 (also named like this to show that names are not restricted to 3 characters!)
+    DWG (drawing program)
+    CODE codeblock (monospaced, linenumbered)
+    MDN Markdown (Github compatible)
 
 -----------------------------------------------------------------------------------------------------------------------
-also FG.kmStates.mask has gotten big! 
+TODO Future
+* improve contextmenu to allow submenus
+* create menubar (file/edit/help)
+    make that allow submenus
+* UNDO
+* we should consider timestamping the ‘send-expect’ed packet in the queue (we do, actually) and maybe once a sec check for ‘dead’ packets (we don't yet)
+    maybe even adding a ‘timeoutLength’ option too
+    and also a way to cancel-expect so at least on the client side we can say ‘try again’ sooner so we don't end up with two responses
+
 -----------------------------------------------------------------------------------------------------------------------
-so, in order to support scrollbars, we can't ever go left/top=negative
+DETAIL: scrollbars: so, in order to support scrollbars, we can't ever go left/top=negative
 
 we wont have to worry about updating the screen when dragging/sizing the rects, but when they release it we have to
 push everything to the positive until all negatives are zero

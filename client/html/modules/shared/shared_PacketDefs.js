@@ -61,7 +61,6 @@ WS.registerPacketClass(class GetDCHList extends PacketBASE { // get list of all 
 });
 
 
-// see fem_core_divIndexViewHandler.js
 WS.registerPacketClass(class GetDocTree extends PacketBASE { // get docTree table contents
     list;       // <-- [{id,name,docId,listOrder,parent}[,{}...]] etc... 
 });
@@ -79,4 +78,7 @@ WS.registerPacketClass(class SaveDoc extends PacketBASE {    // save doc back in
     uuid;       // -->  uuid of doc to get 
                 // <-- uuid of doc returned
     doc;        // <-- doc-as-string (possibly uuencoded) OR RSTODO we wrap this in a toJSON and fromJSON
+});
+WS.registerPacketClass(class DeleteDoc extends PacketBASE {  // Delete a document from the system
+    uuid;       // -->  uuid of doc to get 
 });

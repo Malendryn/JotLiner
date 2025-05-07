@@ -53,6 +53,15 @@ async function start() {
     const app = express();
     app.use(express.static(path.join(BG.basePath, 'client/html')));
 
+    app.get("/LICENSE", (req,res) => {
+        res.sendFile(path.join(BG.basePath, "LICENSE"), (err) => {
+            if (err) {
+                console.error("Could not send LICENSE file:", err);
+                res.status(500).send("LICENSE file not found");
+            }
+        });
+    });
+
     WS.httpServer = http.createServer(app);
     WS.httpServer.listen(WS.wssPort, () => {
         console.log(`Server listening at http://localhost:${WS.wssPort}`);

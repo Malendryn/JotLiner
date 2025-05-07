@@ -1,3 +1,7 @@
+/////////////////////////////////////////////////////////
+// Licensed under Apache 2.0 - see LICENSE for details //
+/////////////////////////////////////////////////////////
+
 // herein is the base class of all DocumentComponentHandlers
 
 // ALL components are always inside a <div> that is 'absolute', with all measurements done in pixels
@@ -14,7 +18,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     _div = null;     // OWNEDBY BASE! ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
                      // the parent of every other element created by this component (autocreated during create())
     _tBar = null;    // OWNEDBY BASE! ... if hasDiv==true, this is handle to an 'absolute' <div> to build a toolbar in.
-                     // user 'owns' content, (use this.addListener this.removeListenerBy<choice>())
+                     // user 'owns' content, (use this.addListener this.removeDCHListenerBy<choice>())
     children = null; // if null, !allow children, if [] allows children, (imp/export, create/delete auto-handles it)
 
     static _path = ""; // relative path to this module's subdir (so module can access its own icons, etc...)
@@ -46,10 +50,10 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // listener add/remove functions --------------------------------------------------------------------------------------
-    //  id   = addListener(el, action, callback, opts=undefined)
-    //  succ = removeListenerById(id)
-    //  succ = removeListenerByEA(el, action)
-    //         removeAllListeners()
+    //  id   = addDCHListener(el, action, callback, opts=undefined)
+    //  succ = removeDCHListenerById(id)
+    //  succ = removeDCHListenerByEA(el, action)
+    //         removeAllDCHListeners()
 // NOTE it is perfectly valid for 'el' to be 'document' or 'window' and it will get auto-removed when dch is removed
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +96,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
                 }
 //RSTEMP get-us-going mods to experiment on the el
 dch._div.style.border = "1px solid black";
-dch._div.style.backgroundColor = "lightsalmon";
+// dch._div.style.backgroundColor = "lightsalmon";
 dch._div.style.overflow = "hidden";
 dch._div.style.whiteSpace = "nowrap";
 //RSTEMP.end
@@ -125,7 +129,7 @@ dch._div.style.whiteSpace = "nowrap";
                 await this.children[idx].destroy();
             }
         }
-        this.removeAllListeners();      // remove all listeners registered to this dch
+        this.removeAllDCHListeners();      // remove all listeners registered to this dch
         if (this.parent) {
             for (let idx = this.parent.children.length - 1; idx >= 0; idx--) {  // remove 'this' from parent.children
                 if (this.parent.children[idx] == this) {
@@ -146,7 +150,7 @@ dch._div.style.whiteSpace = "nowrap";
     static __registeredEventListeners = [];     // [[id, dch(this), el, action, callback, opts]]
     static __nextListenerId = 1;
     
-    addListener = function(el, action, callback, opts=undefined) {
+    addDCHListener = function(el, action, callback, opts=undefined) {
         let id = FG.DCH_BASE.__nextListenerId++;
         FG.DCH_BASE.__registeredEventListeners.push([id, this, el, action, callback, opts]);
         el.addEventListener(action, callback/*.bind(this)*/, opts); // so the callback knows what dchComp it's working with
@@ -154,7 +158,7 @@ dch._div.style.whiteSpace = "nowrap";
     }
 
     
-    removeListenerById = function(id) {
+    removeDCHListenerById = function(id) {
         debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
             let tmp = FG.DCH_BASE.__registeredEventListeners[idx];
             if (tmp[0] == id) {
@@ -167,7 +171,7 @@ dch._div.style.whiteSpace = "nowrap";
     }
     
 
-    removeListenerByEA = function(el, action) {
+    removeDCHListenerByEA = function(el, action) {
         debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
             let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
             if (tmp[1] == this && tmp[2] == el && tmp[3] == action) {
@@ -180,7 +184,7 @@ dch._div.style.whiteSpace = "nowrap";
     }
 
 
-    removeAllListeners = function() {   //        console.log("fem_core_DCH_BASE.js:removeAllListeners");
+    removeAllDCHListeners = function() {   //        console.log("fem_core_DCH_BASE.js:removeAllDCHListeners");
         for (let idx = FG.DCH_BASE.__registeredEventListeners.length - 1; idx >= 0; idx--) {
             let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
             if (tmp[1] == this) {

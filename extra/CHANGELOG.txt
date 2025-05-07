@@ -4,8 +4,18 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-06 ------------------------------------------------------------------------------------------------------------
+* renamed addListener to addDCHListener to better distinguish it from addEventListener
+    renamed removeListener and friends to removeDCHListener... too
+* fixed bug with contextMenu not closing before popups opened
+* added listOrder functionality to the index pane
+* added delete doc to contextMenu with full support for deleting docTree too, 
+    and renumbering listOrder of all affected records as well
+* got the indexPane drag/drop working again (in appearance only, it does not yet move docs at the database side!)
+* added autoSave() to CTE plugin when any content changes
+* fixed (kindasorta?) the problem with default context menu on rightclick and dragging outside the divDocView by
+     comparing mouseXY with divDocView rect and unsetting ALL buttons if it goes outside
+2025-05-06 ------------------------------------------------------------------------------------------------------------
 * started building out a popup when "Set Element Styles" is selected from context menu over a dch
     this popup allows selecting the anchors for the sides and width/height
     it also shows all the current pixel values of the selected dch and will soon let you change them and update
@@ -18,6 +28,7 @@
 * added FF.autoSave(delay) func that saves current FG.curDoc (if not null) to backend after 5 secs, unless called again
     in which case it's aborted and a new AutoSave() is called
 * added FF.waitDirty() paired with FF.autoSave() to wait until save is complete and dirty is clear before moving on
+* worked out an Apache 2.0 license that I think fits my goals and allows 3rd party plugins in the way I want
 
 2025-05-05 ------------------------------------------------------------------------------------------------------------
 * dch resize now fully working! (ctrl+alt+cornerdrag)

@@ -62,7 +62,6 @@ FF.openContextMenu = function (entries, callback) {
         }
         mnu.style.left = left + "px";
     }
-    // evt.preventDefault(); // Prevent the browser's default context menu
 
     document.addEventListener('click', closeContextMenu);      // Add listener to close the menu if clicked outside
 
@@ -73,9 +72,6 @@ FF.openContextMenu = function (entries, callback) {
             mnu = null;
             FG.kmStates.modal = false;
         }
-        // // if (!menu.contains(event.target)) {
-        //     menu.style.display = 'none';
-        // // }
     }
     
     mnu.addEventListener('click', async function(evt) {    // Handle clicks on the custom menu items
@@ -84,29 +80,12 @@ FF.openContextMenu = function (entries, callback) {
             const action = clickedItem.getAttribute('data-action');
             if (action) {
                 closeContextMenu(evt);            // finally, close(erase) menu
+                setTimeout(() => {      // defer execution until webpage updates (allow contextMenu to finish)
                 // console.log(`Clicked on: ${action}`);
                 callback(action);
+                }, 0);
             }
         }
     });
 }
-
-
-// function popDlgDCHAnchorOpener() {
-//     window.addEventListener("message", onPopDlgDCHAnchorsMsg);
-//     const popWin = window.open("./popDlgDCHAnchor.html", "_blank", "width=400,height=400,left=100,top=100,location=no");
-//     popWin.document.close();
-// }
-
-
-// function onPopDlgDCHAnchorsMsg(evt) {
-//     debugger; if (evt.origin != window.location.origin) {    // just an extra security measure
-//         return;
-//     }
-//     let data = evt.data;
-//     if (data.action == "close") {
-//         window.removeEventListener('message', onPopDlgDCHAnchorsMsg);
-//     }
-// };
-
 

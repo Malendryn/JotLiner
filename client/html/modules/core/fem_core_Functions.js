@@ -225,7 +225,7 @@ const autoSaveCallback = async function() {
 }
 FF._autoSaveFunc = FF.reTimer(autoSaveCallback);		// '_' cuz this should only ever be called from FF.autoSave() below
 
-FF.autoSave = function(delay=5000) {       // this is not an async function!
+FF.autoSave = function(delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
     if (FG.curDoc) {               // if we have a doc and it's not marked dirty    
         FG.curDoc.dirty = true;    // set dirty flag immediately
         FF._autoSaveFunc(delay);   // start-or-restart the autosave countdown

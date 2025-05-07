@@ -12,7 +12,7 @@ const indexMenuEntries = [
 ];
     
     
-async function ctxExport() {
+async function onCtxExport() {
     let exporter = new FG.DocExporter();
     const str = await exporter.export(FG.curDoc.rootDch);
     console.log(FF.__FILE__(), "RSTODO");
@@ -20,11 +20,37 @@ async function ctxExport() {
 }
 
 
+async function onCtxDelete() {
+    const info = FF.getDocInfo(FG.curDoc.uuid);
+    let yes = window.confirm("Delete document '" + info.name + "', are you sure?");
+    if (yes) {
+        let hasChildren = false;
+        for (let idx = 0; idx < FG.docTree.length; idx++) {
+            if (FG.docTree[idx].parent == info.uuid) {
+                hasChildren = true;
+                break;
+            }
+        }
+        if (hasChildren) {
+            let yes = window.confirm("This will delete all children of '" + info.name + "' too.\nAre you SURE?");
+        }
+        if (yes) {
+            let pkt = WS.makePacket("DeleteDoc")
+            pkt.uuid = FG.curDoc.uuid;
+            pkt = await WS.sendWait(pkt)    // delete doc, wait for confirmation
+            await FF.loadDocTree();         // go fetch and reconstruct index pane
+            selectAndLoadDoc(FG.curDoc.uuid);
+        }
+    }
+}
+
+
 function onIdxContextMenuAction(action) {
     switch (action) {
         case "newDocAtSame":    {   openDocInfoPopup(false);    break; }
         case "newDocAsChild":   {   openDocInfoPopup(true);     break; }
-        case "export":          {   ctxExport();                break; }
+        case "export":          {   onCtxExport();              break; }
+        case "delete":          {   onCtxDelete();              break; }
     }
 }
 
@@ -74,7 +100,12 @@ function openDocInfoPopup(asChild) {
             return false;
         }
 
-        let info = FF.getDocInfo(FG.curDoc.uuid);   // get currently selected Doc info for use in pkt.dict.parent below
+        let info;
+        if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
+            info = { uuid:'', parent:'' };
+        } else {
+            info = FG.curDoc && FF.getDocInfo(FG.curDoc.uuid);
+        }
 
         await FF.newDoc();                // initialize system with an empty document and new uuid
 
@@ -84,13 +115,15 @@ function openDocInfoPopup(asChild) {
             name:       dict.docname,   // name of doc
             uuid:       FG.curDoc.uuid, // uuid of doc
             version:    FG.VERSION,     // version of doc
-            listOrder:  0,              // zerobased listorder at current depth
-            parent:     (asChild) ? info.uuid : info.parent,    // set parent to selected, else selecteds parent
+            after:      (asChild) ? ''        : info.uuid,      // ifChild, set after to none, else to selected
+            parent:     (asChild) ? info.uuid : info.parent,    // ifChild, set parent to selected, else selecteds parent
             doc:        await exporter.export(FG.curDoc.rootDch),
         }
         pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
         await FF.loadDocTree();         // go fetch and reconstruct index pane
-        selectAndLoadDoc(FG.curDoc.uuid);
+        const uuid = FG.curDoc.uuid;
+        FG.curDoc = null;               // 'forget' current doc so selectAndLoadDoc doesn't skipover highlighting selection
+        selectAndLoadDoc(uuid);
         return true;
     }
 
@@ -188,8 +221,8 @@ async function selectAndLoadDoc(uuid) {
     if (uuid) {
         const info = FF.getDocInfo(uuid);
         if (info) {
-            if (FG.curDoc && FG.curDoc.dirty) {
-                FF.autoSave(0);
+            if (FG.curDoc && FG.curDoc.dirty) {        // if dirty, force immediate save and wait for dirtyflag to clear
+                FF.autoSave(0);                 
                 await FF.waitDirty();
             }
             if (await getDoc(uuid)) {                       // if doc loaded...
@@ -245,18 +278,22 @@ async function onContextMenu(evt) {     // desel any sel,  sel current one under
 }
 
 function onDragStart(evt) {             // RSTODO RSFIX RSBUG these are for dragging the leftpane entries up/down in the list, 
-    debugger; draggedItem = evt.target;
+    // console.log(FF.__FILE__(), "onDragStart");
+    draggedItem = evt.target;
     evt.dataTransfer.effectAllowed = 'move';
     evt.target.classList.add('dragging');
     // console.log(`ODS TF1(${evt.target.id},${draggedItem.id})`);
 }
 
 function onDragOver(evt) {
-    debugger; evt.preventDefault();
+    // console.log(FF.__FILE__(), "onDragOver");
+    evt.preventDefault();
     evt.dataTransfer.dropEffect = 'move';
 
     let tf1 = (evt.target.nodeName === 'LI' && evt.target.id !== draggedItem.id);
     let tf2 = (evt.target.nodeName === 'LI' && evt.target !== draggedItem);
+    let list = document.getElementById("divIndexViewUL");
+
     // console.log(`ODO TF1(${evt.target.id},`,evt.target,`)=${tf1}, " TF2(${draggedItem.id},`,draggedItem,`)=${tf2}`);
     if (evt.target.nodeName === 'LI' && evt.target !== draggedItem) {
         const bounding = evt.target.getBoundingClientRect();
@@ -276,7 +313,10 @@ function onDragOver(evt) {
 // }
 
 function onDragEnd(evt) {
-    debugger; evt.preventDefault();
+    console.log(FF.__FILE__(), "onDragOver RSTODO finish this! (update order/depth changes serverside and reload docTree");
+    evt.preventDefault();
+
+    let list = document.getElementById("divIndexViewUL");
 
     let target = placeholder.nextElementSibling;
     if (target) {                               // if dropTarget not past last <li>
@@ -329,10 +369,9 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 
     if (FG.curDoc) {                                    // if we had a doc currently selected
         if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
-            debugger; FF.clearDoc();                    // nuke it!
+            FF.clearDoc();                              // nuke it!
         }
     }
-
     showDocTree();
 }
 

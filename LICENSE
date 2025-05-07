@@ -1,0 +1,31 @@
+# Apache License, Version 2.0, January 2004
+# http://www.apache.org/licenses/
+
+## Core Project License
+This project is licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and
+limitations under the License.
+
+## Core Code
+
+The core functionality of this project, including the DCH_BASE `BaseClass`, is open-source and licensed under the Apache 2.0 License.
+This code may be freely modified, distributed, and used by anyone, in compliance with the terms of the Apache 2.0 License.
+
+## Plugin System
+
+Plugins that interact with or extend the `BaseClass` in this project may be distributed under any license chosen by their authors, including proprietary licenses.
+By "plugin," we refer to software that extends or interacts with the core functionality, but does not modify the core code itself.
+
+Plugins **must** maintain compatibility with the `BaseClass` API, as described in the project documentation. However, plugins that are developed to extend the functionality of the core are not required to be open-source.
+
+The integration of proprietary plugins into this project does not affect the open-source nature of the core, and proprietary plugins **remain the intellectual property of their respective authors**. These plugins are not subject to the terms of the Apache 2.0 License, unless explicitly stated by the plugin author. The inclusion of proprietary plugins in the project distribution does not change their ownership or licensing terms.
+
+## Disclaimer
+
+The core project and any proprietary plugins distributed with it are provided "AS IS" without warranties or guarantees of any kind. By using the software, you agree to do so at your own risk. The authors of the core project and any third-party plugin authors retain ownership of their respective works.

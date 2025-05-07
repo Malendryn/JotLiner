@@ -1,11 +1,12 @@
 // TKMEvtHandlers = Toplevel Keyboard and Mouse Event Handlers
 
-document.addEventListener('mousedown',   mousedown, true);    // listen for mouseup/down/move ANYwhere on doc
-document.addEventListener('contextmenu', contextmenu, true);  // listen for contextmenu specifically
-document.addEventListener('mousemove', mousemove, true);
-document.addEventListener('mouseup',   mouseup,   true);
-document.addEventListener('keydown', keydown, true);
-document.addEventListener('keyup',   keyup,   true);
+document.addEventListener("mousedown",   onTkmMousedown, true);    // listen for mouseup/down/move ANYwhere on doc
+document.addEventListener("contextmenu", onTkmContextMenu, true);  // listen for contextmenu specifically
+  window.addEventListener("blur",        onTkmBlur, true);         // listen for 'leaving browser' specifically
+document.addEventListener("mousemove",   onTkmMouseMove, true);
+document.addEventListener("mouseup",     onTkmMouseUp,   true);
+document.addEventListener("keydown",     onTkmKeyDown, true);
+document.addEventListener("keyup",       onTkmKeyUp,   true);
 
 // const div = document.getElementById("divDocView");
 // div.addEventListener("mouseleave", mouseleave, true);
@@ -480,6 +481,7 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
 
 function onStateChange(orig) {  // detect commandState change and create a faux invis window over entire divDocView
     const div = document.getElementById("divDocView");
+
     let oldCmd = (orig.keyCtrl && orig.keyAlt);                  // get old and new <RSTODO configurable> commandStates (currently ctrl+alt)
     let newCmd = (FG.kmStates.keyCtrl && FG.kmStates.keyAlt);
     if (oldCmd != newCmd) {                                // if commandState changed
@@ -511,9 +513,67 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
 }
 
 
+function debugStates(states) {
+    const wrds = ["btnLeft", "btnMid", "btnRight", "keyAlt", "keyCtrl", "keyShift", "keyMeta", "modal"];
+    let ss = "";
+    let flag = false;
+    for (let idx = 0; idx < wrds.length; idx++) {
+        const wrd = wrds[idx];
+        ss +=wrd + ":" + ((FG.kmStates[wrd]) ? "T" : "F");
+        if (wrd in states) {
+            flag = true;
+            ss += ((states[wrd]) ? "t" : "f")
+        } else {
+            ss += " ";
+        }
+        ss += "  ";
+    }
+    if (flag) { console.log(ss); }
+}
+
+function clearAllButtons() {
+    const states = {          // inject an 'all buttons released' statechange
+        "btnLeft":  false,
+        "btnMid":   false,
+        "btnRight": false,
+        "keyAlt":   false,
+        "keyCtrl":  false,
+        "keyMeta":  false,
+        "keyShift": false,
+    };
+    setKMState(states);
+}
+
+
 function setKMState(states) {
     let orig = Object.assign({}, FG.kmStates);       // clone the original FG.kmStates before changing them
     let changed = false;
+
+    const valX = "clientX" in states ? states.clientX : null;
+    const valY = "clientY" in states ? states.clientY : null;
+    if (valX != null || valY != null) {
+        let flag = true;
+        const div = document.getElementById("divDocView");
+        const rect = div.getBoundingClientRect();
+        if (valX != null) {
+            if (valX < rect.left || valX > rect.right) {
+                flag = false;
+            }
+        }
+        if (valY != null) {
+            if (valY < rect.top || valY > rect.bottom) {
+                flag = false;
+            }
+        }
+        if (!flag) {
+            clearAllButtons();
+            return;
+        }
+        console.log(flag);
+    }
+    
+    debugStates(states);
+
     for (const key in states) {                      // test field-by-field to see if anything changed
         if (FG.kmStates[key] != states[key]) {
             FG.kmStates[key] = states[key];          // if changed, update FG.kmStates and set changed flag
@@ -526,7 +586,7 @@ function setKMState(states) {
 }
 
 
-function keydown(evt) {
+function onTkmKeyDown(evt) {
     const states = {};
     if      (evt.key == "Control") { states["keyCtrl"]   = true; }
     else if (evt.key == "Alt")     { states["keyAlt"]    = true; }
@@ -535,7 +595,7 @@ function keydown(evt) {
     setKMState(states);
 }
 
-function keyup(evt) {
+function onTkmKeyUp(evt) {
     const states = {};
     if      (evt.key == "Control") { states["keyCtrl"]   = false; }
     else if (evt.key == "Alt")     { states["keyAlt"]    = false; }
@@ -544,17 +604,26 @@ function keyup(evt) {
     setKMState(states);
 }
 
-
-function contextmenu(evt) {
+function onTkmBlur(evt) {
+    clearAllButtons();
+//    FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
+    console.log("blur")
+    // FG.kmStates.btnLeft  = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
+    // FG.kmStates.btnMid   = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
+    // FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
+}
+function onTkmContextMenu(evt) {
+//    FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
     if (FG.kmStates.modal || (FG.kmStates.keyCtrl && FG.kmStates.keyAlt)) { // if menu/popup isopen or ctrl+alt, ...
         evt.stopPropagation();
         evt.preventDefault();
     }
+    clearAllButtons();
 }
 
 
 let sizerStartPos = null;         // 'sizerStartPos' = mouse Operation (presently only for click+drag of divHandlers)
-function mousedown(evt) {
+function onTkmMousedown(evt) {
     if (evt.target.id == "divIndexDocSizer") {  // if clicked on the sizerBar
         let m = {                       // create and init 'global' sizerStartPos object
             startX:      evt.screenX,   // initial evt.screenX and Y (when mouse was pressed)
@@ -580,7 +649,7 @@ function mousedown(evt) {
 }
 
 
-function mousemove(evt) {
+function onTkmMouseMove(evt) {
     if (sizerStartPos) {        //if dragging the sizerBar
         const m = sizerStartPos;
         const deltaX = (evt.screenX - m.startX);
@@ -604,7 +673,7 @@ function mousemove(evt) {
 }
 
 
-function mouseup(evt) {
+function onTkmMouseUp(evt) {
     if (sizerStartPos) {
         const el = document.getElementById("divIndexDocSizer");
         el.style.cursor = "";

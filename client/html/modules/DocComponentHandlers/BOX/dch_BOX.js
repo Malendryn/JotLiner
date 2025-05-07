@@ -7,7 +7,8 @@ class DCH_BOX extends FG.DCH_BASE {
     static menuTooltip = "A rectangle that other editor can be put inside of";
 
     async construct() {
-        // debugger;
+        this._div.style.backgroundColor = "#C1C1C1";
+        this._div.style.border = "1px dashed black";
     }
 
 

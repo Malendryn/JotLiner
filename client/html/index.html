@@ -2,9 +2,6 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="copyright" content="© 2025 Ron Stanions. All Rights Reserved." />
-        <meta name="license" content="This work is licensed under the ISC License. (See LICENSE.txt)" />
         <title>JotLiner Client</title>
         <link rel="stylesheet" href="index.css">
         <link rel="stylesheet" href="sysContextMenu.css">
@@ -14,76 +11,16 @@
     </head>
 
     <body>
-        <div id="divTitleBar"> <!--show currentbook<if at bookpage>-->
+        <div id="divTitleBar">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+                <span>&nbsp;Project: JotLiner</span><span><a href="/LICENSE" target="_blank">AGPLv3</a>&nbsp;</span>
+            </div>
         </div>
         <div id="divToolbar"></div> <!-- where we put fancy gadgets and such -->
         <div id="divMainView">      <!-- core viewport of any loaded page (<index><dragbar><doc> divs)-->
-            <div id="divIndexView"> <!-- where the index will go-->
-                </div>
-                <div id="divIndexDocSizer"><!--the resizing dragbar between index and document--></div>
-                <div id="divDocView"><!--Where the document gets displayed-->
-<!--------------------------------------------------------------------------------------------------------------->
-
-<div id="popDlgDCHAnchor" style="display:none;"> <!-- RSDEMO thisis a demo 'dch resizer' dialog using svg to draw arrows -->
-    <div id="dchAWDragBar">================= [X]</div>
-
-    <svg id="dawInnerBox" width="200" height="200" style="position:absolute;top:100px;left:100px;background-color: rgba(173, 216, 230, 0.5);">
-        <rect x="0" y="0" width="200" height="200" fill="none" stroke="black" stroke-width="1" />
-    </svg>
-    <svg>
-        <defs>
-            <marker id="dawAHL" viewBox="-10 -5 10 5" refX="0" refY="0" markerWidth="5" markerHeight="10" orient="auto">
-                <path d="M0,-5L-10,0L0,5" fill="#000" />
-            </marker>
-            <marker id="dawAHR" viewBox="0 -5 10 5" refX="0" refY="0" markerWidth="5" markerHeight="10" orient="auto">
-                <path d="M0,-5L10,0L0,5" fill="#000" />
-            </marker>
-            <marker id="dawAHT" viewBox="-5 0 5 10" refX="0" refY="0" markerWidth="10" markerHeight="5" orient="180">
-                <path d="M0,10L5,0L-5,0" fill="#00F" />
-            </marker>
-            <marker id="dawAHB" viewBox="0 -5 10 10" refX="0" refY="0" markerWidth="10" markerHeight="5" orient="auto">
-                <path d="M0,-5L10,0L0,5" fill="#F00" />
-            </marker>
-        </defs>
-    </svg>
-    <svg id="dawIBArrowL" width="100" height="20" style="position:absolute;top:115px;left:5px;">
-        <line x1="10" y1="10" x2="80" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
-    </svg>
-    <input id="dawIBCkBoxL" type="checkbox" style="padding:0;position:absolute;top:105px;left:18px;width:60px;height:20px;" value="x">
-    <input id="dawIBInputL" type="number"   style="padding:0;position:absolute;top:125px;left:18px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
-
-    <svg id="dawIBArrowW" width="200" height="20" style="position:absolute;top:115px;left:105px;">
-        <line x1="10" y1="10" x2="180" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
-    </svg>
-    <input id="dawIBCkBoxW" type="checkbox" style="padding:0;position:absolute;top:105px;left:218px;width:60px;height:20px;" value="x">
-    <input id="dawIBInputW" type="number"   style="padding:0;position:absolute;top:125px;left:218px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
-
-    <svg id="dawIBArrowR" width="100" height="20" style="position:absolute;top:115px;left:305px;">
-        <line x1="10" y1="10" x2="80" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
-    </svg>
-    <input id="dawIBCkBoxR" type="checkbox" style="padding:0;position:absolute;top:105px;left:318px;width:60px;height:20px;" value="x">
-    <input id="dawIBInputR" type="number"   style="padding:0;position:absolute;top:125px;left:318px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
-
-    <svg id="dawInnerArrowT" width="20" height="100" style="position:absolute;top:5px;left:125px;">
-        <line x1="10" y1="10" x2="10" y2="80" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
-    </svg>
-    <input id="dawIBCkBoxT" type="checkbox" style="padding:0;position:absolute;top:30px;left:100px;width:60px;height:20px;" value="x">
-    <input id="dawIBInputT" type="number"   style="padding:0;position:absolute;top:50px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
-
-    <svg id="dawInnerArrowH" width="20" height="200" style="position:absolute;top:105px;left:125px;">
-        <line x1="10" y1="10" x2="10" y2="180" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
-    </svg>
-    <input id="dawIBCkBoxH" type="checkbox" style="padding:0;position:absolute;top:205px;left:100px;width:60px;height:20px;" value="x">
-    <input id="dawIBInputH" type="number"   style="padding:0;position:absolute;top:225px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
-
-    <svg id="dawInnerArrowB" width="20" height="100" style="position:absolute;top:305px;left:125px;">
-        <line x1="10" y1="10" x2="10" y2="80" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
-    </svg>
-    <input id="dawIBCkBoxB" type="checkbox" style="padding:0;position:absolute;top:330px;left:100px;width:60px;height:20px;" value="x">
-    <input id="dawIBInputB" type="number"   style="padding:0;position:absolute;top:350px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
-</div>
-<!--------------------------------------------------------------------------------------------------------------->
-            </div><!--divDocView-->
+            <div id="divIndexView"></div> <!-- where the index will go-->
+            <div id="divIndexDocSizer"></div><!--the resizing dragbar between index and document-->
+            <div id="divDocView"></div><!--Where the document gets displayed-->
         </div>
     </body>
     <script src="index.js"></script>
