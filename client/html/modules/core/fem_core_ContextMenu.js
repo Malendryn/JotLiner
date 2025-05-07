@@ -33,6 +33,9 @@ FF.openContextMenu = function (entries, callback) {
             li.innerHTML = "<hr>";
         } else {
             li.innerHTML = entry[1];                    // we do this so we can add '<hr>' without it stringifying it
+            if (entry[2] && entry[2].length > 0) {
+                li.title = entry[2];
+            }
         }
         // entry[2]  <--- tooltip, RSTODO
         ul.appendChild(li);

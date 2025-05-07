@@ -37,6 +37,8 @@ TODO Future
 
 * [potentially] VASTLY improve multiclient update pushes, for example if we tell all clients a new docchange was made and a client fetches
     a new doc because of it,  in the case of a CTE you lose your current cursor position (and focus even!)  
+
+* store dragbar location in table 'extra'
 -----------------------------------------------------------------------------------------------------------------------
 DETAIL: scrollbars: so, in order to support scrollbars, we can't ever go left/top=negative
 

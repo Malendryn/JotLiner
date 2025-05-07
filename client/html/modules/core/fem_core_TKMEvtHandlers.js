@@ -219,16 +219,16 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
         for (const key in DCH) {                // add all the addable dch's to the menuEntries
             const dchClass = DCH[key];
             if (dchClass.menuText !== null) {   
-                entries.push(["insert_" + key, "Insert new " + dchClass.menuText, dch.menuTooltip]);
+                entries.push(["insert_" + key, "Insert new " + dchClass.menuText, dchClass.menuTooltip]);
             }
         }
     }
     entries.push(["", "", ""]);
-    entries.push(["export", "Export Element", "Export document element (and all children) under cursor to local file"]);
+    entries.push(["export", "Export Element", "Export node (and all children) under cursor to local file"]);
 
 
     if (dch != FG.curDoc.rootDch) {     // never allow deleting the topmost BOX element from this menu
-        entries.push(["delete",   "Delete Element (and all children)", "Delete document element under mouse and all children inside it"]);
+        entries.push(["delete",   "Delete node (and all children)", "Delete document element under mouse and all children inside it"]);
         entries.push(["", "", ""]);     // nor allow changing the styles
         entries.push(["setProps", "Properties", "Modify the anchors, border, background color, etc"]);
     }
@@ -258,7 +258,7 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
                     return;
                 }
                 if (dch.children && dch.children.length > 0) {
-                    let yes = window.confirm("This node has children that will be deleted too.\nAre you SURE?");
+                    yes = window.confirm("This node has children that will be deleted too.\nAre you SURE?");
                     if (!yes) {
                         return;
                     }
@@ -377,6 +377,18 @@ function sizeMaskDiv() {
 }
 
 
+FF.getDchAt = function(clientX, clientY) {
+    const list = document.elementsFromPoint(clientX, clientY);
+    for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
+        const tmp = list[idx];
+        if (tmp._dchMouseOp == "dchComponent") {
+            return tmp._dchHandler;
+        }
+    }
+    return null;
+}
+
+
 function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
     let kmask = FG.kmStates.mask;
     let el = null;
@@ -389,25 +401,36 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
         }
         el = kmask.el;          // ref the dch el for working with below
     } else {                    // else find dch el to use
-        FG.kmStates.dch = null;
-        const list = document.elementsFromPoint(FG.kmStates.clientX, FG.kmStates.clientY);
-        for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
-            const tmp = list[idx];
-            if (tmp._dchMouseOp == "dchComponent") {
-                FG.kmStates.dch = tmp._dchHandler;
-                if (tmp._dchHandler != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
-                    if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
-                        if (kmask.divGhost) {               // remove any exhisting gost
-                            div.removeChild(FG.kmStates.mask.divGhost);
-                            delete FG.kmStates.mask.divGhost;
-                        }
-                    }
-                    kmask.el = el = tmp;
-                    kmask.nesw = "";    // set this right away to prevent possible tripup later on
+        FG.kmStates.dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
+        const tmp = FG.kmStates.dch && FG.kmStates.dch._div;
+        if (FG.kmStates.dch != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
+            if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
+                if (kmask.divGhost) {               // remove any exhisting gost
+                    div.removeChild(FG.kmStates.mask.divGhost);
+                    delete FG.kmStates.mask.divGhost;
                 }
-                break;
             }
+            kmask.el = el = tmp;
+            kmask.nesw = "";    // set this right away to prevent possible tripup later on
         }
+        // const list = document.elementsFromPoint(FG.kmStates.clientX, FG.kmStates.clientY);
+        // for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
+        //     const tmp = list[idx];
+        //     if (tmp._dchMouseOp == "dchComponent") {
+        //         FG.kmStates.dch = tmp._dchHandler;
+        //         if (tmp._dchHandler != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
+        //             if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
+        //                 if (kmask.divGhost) {               // remove any exhisting gost
+        //                     div.removeChild(FG.kmStates.mask.divGhost);
+        //                     delete FG.kmStates.mask.divGhost;
+        //                 }
+        //             }
+        //             kmask.el = el = tmp;
+        //             kmask.nesw = "";    // set this right away to prevent possible tripup later on
+        //         }
+        //         break;
+        //     }
+        // }
     }
     if (FG.kmStates.btnRight && FG.kmStates.dch) {  // if contextMenu button down, ...
         let tmp = document.getElementById("sysContextMenu");
@@ -524,8 +547,25 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
             }
         }
     }
-    if (FG.kmStates.mask && !FG.kmStates.modal) {      // if we're doing commandState gfx and no dialog/menu's are open
+    if (FG.kmStates.modal) {            // a modal operation is happening, ignore state activities after this point
+        return;
+    }
+
+    if (FG.kmStates.mask) {             // if we're doing commandState gfx and no dialog/menu's are open
         doCmdStateDrawing(orig);
+    } else {
+        if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != orig.btnLeft) {
+            const dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
+            if (dch) {
+                const div = document.getElementById("divToolbar");
+                for (const child of div.children) {
+                    child.style.display="none";         // hide all toolbars then...
+                }
+                if (dch.hasToolbar) {
+                    dch._tBar.style.display = "block";                    
+                }
+            }
+        }
     }
 }
 
@@ -536,10 +576,14 @@ function debugStates(states) {
     let flag = false;
     for (let idx = 0; idx < wrds.length; idx++) {
         const wrd = wrds[idx];
-        ss +=wrd + ":" + ((FG.kmStates[wrd]) ? "T" : "F");
+        let old = ((FG.kmStates[wrd]) ? "T" : "F");
+        let nuu;
+
+        ss +=wrd + ":" + old;
         if (wrd in states) {
             flag = true;
-            ss += ((states[wrd]) ? "t" : "f")
+            nuu = ((states[wrd]) ? "T" : "F");
+            ss += nuu;
         } else {
             ss += " ";
         }
@@ -621,12 +665,8 @@ function onTkmKeyUp(evt) {
 }
 
 function onTkmBlur(evt) {       // this hardly EVER happens but just in case it makes a difference when it does...
-    clearAllButtons();
-//    FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
-// console.log("blur")
-    // FG.kmStates.btnLeft  = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
-    // FG.kmStates.btnMid   = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
-    // FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
+    // console.log(FF.__FILE__());
+    // clearAllButtons();   // BAD!  caused buttonrelease during drag IF clicked in! nogood!
 }
 function onTkmContextMenu(evt) {
 //    FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!

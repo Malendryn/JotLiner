@@ -27,20 +27,16 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     static menuTooltip = null; // tooltip to show when hovering over menuText
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// child-must-implement functions -------------------------------------------------------------------------------------
+// child-MUST-IMPLEMENT functions -------------------------------------------------------------------------------------
 // ****NOTE it is CRITICAL that these functions fully complete their ops before returning (async/await)
     //        async construct(data=null)     // called by static create() after <div> created and styles applied
-                                             // if data != null then it contains a {} of data to be put on the object
-                                             // in here is technically where to add your own <> elements and listeners
-    //        async destruct()               // detach and destroy all <el> added by construct() (but not this._div)
-
+                                                // if data != null then it contains a {} of data to be put on the object
+                                                // in here is where to add your own <el>s and listeners
     //        async importData(data)         // populate this component with data{} (calls Object.assign if NOT overridden)
     // text = async exportData()             // return data to be preserved/exported as a {}
     
-    //X       async render()                 // render object into its own 'this._div' docElement (called every time any change occurs)
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// create/destroy helper functions ------------------------------------------------------------------------------------
+// create/destroy helper functions on baseclass (do not override!)----------------------------------------------------
     // handler = async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
                             // whos parent is parent
                             // and if .hasDiv and style populate div style with style data
@@ -57,9 +53,8 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 // NOTE it is perfectly valid for 'el' to be 'document' or 'window' and it will get auto-removed when dch is removed
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// internal functions,  do not override! ------------------------------------------------------------------------------
-    //XXX  __onDCHGotFocus(evt)  called whenever this._div or any childof gets focus
-    //XXX  __onDCHLostFocus(evt) called whenever this._div or any childof lost focus
+// internal functions,  (do not override!)-----------------------------------------------------------------------------
+//  none!
 
     static async create(dchName, parent=null, style=null) {
         // const path = "./modules/DocComponentHandlers/" + dchName;        // modules are now preloaded in index.js (cuz 'menu')

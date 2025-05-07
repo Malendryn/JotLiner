@@ -8,7 +8,7 @@ const indexMenuEntries = [
     ["",              "",                        ""],       // this will appear as a seperator line
     ["export",        "Export Document",         "Export document to a local file"],
     ["",              "",                        ""],       // this will appear as a seperator line
-    ["delete",        "Delete Document",         "Delete document under cursor"],
+    ["delete",        "Delete Document",         "Delete document under cursor (and all its children)"],
 ];
     
     
@@ -32,7 +32,7 @@ async function onCtxDelete() {
             }
         }
         if (hasChildren) {
-            let yes = window.confirm("This will delete all children of '" + info.name + "' too.\nAre you SURE?");
+            yes = window.confirm("This will delete all children of '" + info.name + "' too.\nAre you SURE?");
         }
         if (yes) {
             let pkt = WS.makePacket("DeleteDoc")

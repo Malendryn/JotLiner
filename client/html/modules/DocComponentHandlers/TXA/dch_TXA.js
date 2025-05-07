@@ -2,7 +2,7 @@
 class DCH_TXA extends FG.DCH_BASE {
     el;                 // becomes childof this._div and is a "textarea"  (see construct())
 
-    static menuText    = "&lt;textarea&gt; element";
+    static menuText    = "&lt;textarea&gt; node";
     static menuTooltip = "A simple <textarea> editor";
 
     async construct() {
@@ -12,9 +12,7 @@ class DCH_TXA extends FG.DCH_BASE {
         this.el.style.top = "0px";
         this.el.style.right = "0px";
         this.el.style.bottom = "0px";
-        // el.style.backgroundColor = "lightgreen";
-
-        this.el.style.resize = "none";                      // turn off the textarea's resizer dragbar
+        this.el.style.resize = "none";                      // turn off the textarea's resizer drag-gadget at lowerright corner
         this.el.style.backgroundColor = "lightGreen";
         this._div.appendChild(this.el);
         this.addDCHListener(this.el, "input", this.onContentChanged);

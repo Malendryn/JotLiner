@@ -7,9 +7,9 @@
 class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
     hasToolbar = true;
 
-    el;                 // becomes childof this._div and is a "div" that is "contexteditable"  (see construct())
+    el;                     // becomes childof this._div and is a "div" that is "contexteditable"  (see construct())
 
-    static menuText    = "Simple RichText editor";
+    static menuText    = "Simple RichText node";
     static menuTooltip = "A RichText-like editor built using a contexteditable <div>";
 
     states = {              // RSTODO current state of buttons based on where cursor is
@@ -28,7 +28,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         this.el.style.right = "0px";
         this.el.style.bottom = "0px";
         this.el.style.resize = "none";
-        this.el.style.padding = "2px";  // without this the cursor gets lost if there's a solid border 
+        this.el.style.padding = "2px";  // without this the cursor gets lost at start-of-line if there's a solid border 
         this.el.setAttribute("contenteditable", "true");
         this.el.style.backgroundColor = "aqua";
         this._div.appendChild(this.el);

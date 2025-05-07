@@ -21,13 +21,6 @@ class DCH_BOX extends FG.DCH_BASE {
     async exportData() {       // return data to be preserved/exported as a {}
         return {};
     }
-
-    
-    // async render() {
-    //     for (const child of this.children) {
-    //         await child.render();
-    //     }
-    // }
 };
 export { DCH_BOX as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH
 
