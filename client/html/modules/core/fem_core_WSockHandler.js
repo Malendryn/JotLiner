@@ -62,6 +62,6 @@ function process(data) {
             }
         }
     } else {
-        debugger; pkt.process();        
+        pkt.process();        
     }
 }

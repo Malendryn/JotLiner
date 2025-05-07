@@ -38,8 +38,7 @@ async function onCtxDelete() {
             let pkt = WS.makePacket("DeleteDoc")
             pkt.uuid = FG.curDoc.uuid;
             pkt = await WS.sendWait(pkt)    // delete doc, wait for confirmation
-            await FF.loadDocTree();         // go fetch and reconstruct index pane
-            selectAndLoadDoc(FG.curDoc.uuid);
+            await FF.loadDocTree();         // go fetch and reconstruct index pane  (clears doc internally!)
         }
     }
 }
@@ -122,8 +121,7 @@ function openDocInfoPopup(asChild) {
         pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
         await FF.loadDocTree();         // go fetch and reconstruct index pane
         const uuid = FG.curDoc.uuid;
-        FG.curDoc = null;               // 'forget' current doc so selectAndLoadDoc doesn't skipover highlighting selection
-        selectAndLoadDoc(uuid);
+        FF.selectAndLoadDoc(uuid, true);    // 'forget' current doc and force-load new one
         return true;
     }
 
@@ -144,7 +142,7 @@ function openIndexContextMenu() {
 // begin .js initialization ///////////////////////////////////////////////////////////////////////////////////////////
 let div = document.getElementById("divIndexView");
 const style = window.getComputedStyle(div);     // get backgrd color of divIndexView and darken it by rgb 24,24,24
-let bgColor = style.backgroundColor;            // keep it in bgColor 'for later' (see selectAndLoadDoc())
+let bgColor = style.backgroundColor;            // keep it in bgColor 'for later' (see FF.selectAndLoadDoc())
 bgColor = FF.parseRgba(bgColor);                // parse the "rgba(24, 36,48, 0.69)"  into {r,g,b,a}
 bgColor.r = Math.max(0, bgColor.r - 24);        // now reduce each r,g,b by 24 making sure it doesn't go negative
 bgColor.g = Math.max(0, bgColor.g - 24);
@@ -209,23 +207,29 @@ async function showDocTree() { // build <UL> to display in left index pane
 }
 
 
-async function selectAndLoadDoc(uuid) {
+
+FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS reselects (in case of server needed to reload docTree)
     if (FG.curDoc) {
-        if (FG.curDoc.uuid == uuid) {   // clicked on same entry, ignore
-            return;
-        }
+        // if (!force && FG.curDoc.uuid == uuid) {   // clicked on same entry, ignore
+        //     return;
+        // }
         const info = FF.getDocInfo(FG.curDoc.uuid);
         info.li.style.backgroundColor = "";     // clear bgColor of prior selected element
     }
 
-    if (uuid) {
+    const pkt = WS.makePacket("SetExtra");
+    pkt.key = "curDocUuid";
+    pkt.val = uuid;
+    WS.send(pkt);                   // change servers memory of last doc selected, no response expected
+
+    if (uuid.length > 0) {
         const info = FF.getDocInfo(uuid);
         if (info) {
             if (FG.curDoc && FG.curDoc.dirty) {        // if dirty, force immediate save and wait for dirtyflag to clear
                 FF.autoSave(0);                 
                 await FF.waitDirty();
             }
-            if (await getDoc(uuid)) {                       // if doc loaded...
+            if (await FF.loadDoc(uuid, force)) {            // but ONLY reload doc if forced...
                 info.li.style.backgroundColor = bgColor;    //...change treeEntry background to bgColor
             }
         }
@@ -242,11 +246,11 @@ export async function initialize() {    // called from index.js
     pkt.txt = "curDocUuid";
     pkt = await WS.sendWait(pkt);       // fetch the prior docUuid
 
-    selectAndLoadDoc(pkt.txt);          // load, hilight, and display doc by uuid
+    FF.selectAndLoadDoc(pkt.txt);          // load, hilight, and display doc by uuid
 }
 
 
-function getDocTreeLIUuid(evt) {
+function getDocTreeLIUuid(evt) {    // return uuid of selected doc, or ''
     let target = evt.target;
     while (target && target.nodeName != "LI") { // we clicked on text inside <li> so walk parents to find <li>
         target = target.parentNode;
@@ -254,7 +258,7 @@ function getDocTreeLIUuid(evt) {
     if (target) {
         return target._docUuid;
     }
-    return null;
+    return '';
 }
 
 
@@ -264,7 +268,7 @@ async function onLeftClick(evt) {     // desel any sel,  sel current one under m
     evt.preventDefault();
     if (!FG.kmStates.modal) {
         const uuid = getDocTreeLIUuid(evt);
-        await selectAndLoadDoc(uuid);
+        await FF.selectAndLoadDoc(uuid);
     }
 }
 
@@ -272,7 +276,9 @@ async function onContextMenu(evt) {     // desel any sel,  sel current one under
     evt.preventDefault();
     if (!FG.kmStates.modal) {
         const uuid = getDocTreeLIUuid(evt);
-        await selectAndLoadDoc(uuid);
+        await FF.selectAndLoadDoc(uuid);
+        FG.kmStates.clientX = evt.clientX;  // update kmStates mousepos HERE cuz it now ONLY updates when over dch window
+        FG.kmStates.clientY = evt.clientY;
         openIndexContextMenu();
     }
 }
@@ -334,7 +340,6 @@ function onDragEnd(evt) {
 // end mouse/kbd ops //////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// start WS chain /////////////////////////////////////////////////////////////////////////////////////////////////////
 FF.loadDocTree = async function() {         // sets off the following chain of WS db calls...
     let pkt = WS.makePacket("GetDocTree")
     pkt = await WS.sendWait(pkt);           // SELECT * from docTree order by parent,listOrder
@@ -376,8 +381,8 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 }
 
 
-async function getDoc(uuid) {   // returns T/F if doc loaded. (sets curDoc.uuid and .rootDch if True)
-    if (FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded (RSTODO may need to change when we intro 'bump')
+FF.loadDoc = async function(uuid, force=false) {   // returns T/F if doc loaded. (sets curDoc.uuid and .rootDch if True)
+    if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded (RSTODO may need to change when we intro 'bump')
         return true;
     }
 
@@ -390,11 +395,11 @@ async function getDoc(uuid) {   // returns T/F if doc loaded. (sets curDoc.uuid 
     pkt.uuid = uuid;
     pkt = await WS.sendWait(pkt);
 
+    FF.clearDoc();                          // remove any current doc
+
     if (pkt.doc == null) {                  // could not load doc, therefore can't set as curDoc
         return false;
     }
-
-    FF.clearDoc();                          // remove any current doc
 
     const imp = new FG.DocImporter();
 
@@ -404,19 +409,7 @@ async function getDoc(uuid) {   // returns T/F if doc loaded. (sets curDoc.uuid 
         dirty:   false,
     };
     return true;
-
-    // RSTEST to destroy it to make sure it completely did, then reattach it again
-    // debugger; await FG.curDoc.rootDch.destroy();
-    // debugger; await imp.attach(pkt.doc, null);  // now attach it to the system as new root doc!
-    // RSTEST end
-
-    // RSTEST to export it and display it on console
-    // exp = new FG.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
-    // let str = await exp.export(FG.curDoc.rootDch);
-    // console.log(str);
-    // RSTEST end
 }
-// end WS chain ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 

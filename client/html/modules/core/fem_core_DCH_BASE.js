@@ -19,7 +19,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
                      // the parent of every other element created by this component (autocreated during create())
     _tBar = null;    // OWNEDBY BASE! ... if hasDiv==true, this is handle to an 'absolute' <div> to build a toolbar in.
                      // user 'owns' content, (use this.addListener this.removeDCHListenerBy<choice>())
-    children = null; // if null, !allow children, if [] allows children, (imp/export, create/delete auto-handles it)
+    children = null; // if null, !allow children, if [], allows children, (imp/export, create/delete auto-handles it)
 
     static _path = ""; // relative path to this module's subdir (so module can access its own icons, etc...)
 

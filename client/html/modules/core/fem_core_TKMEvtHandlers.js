@@ -178,12 +178,12 @@ function doFormClick(evt) {
 function preRun(form) {
     const dch = FG.kmStates.dch;
     const rect = dch._div.getBoundingClientRect();
-    frmSetEl(form, "L", rect.left,   dch._div.style.left.length   > 0);
-    frmSetEl(form, "W", rect.width,  dch._div.style.width.length  > 0);
-    frmSetEl(form, "R", rect.right,  dch._div.style.right.length  > 0);
-    frmSetEl(form, "T", rect.top,    dch._div.style.top.length    > 0);
-    frmSetEl(form, "H", rect.height, dch._div.style.height.length > 0);
-    frmSetEl(form, "B", rect.bottom, dch._div.style.bottom.length > 0);
+    frmSetEl(form, "L", parseInt(dch._div.style.left),   dch._div.style.left.length   > 0);
+    frmSetEl(form, "W", parseInt(dch._div.style.width),  dch._div.style.width.length  > 0);
+    frmSetEl(form, "R", parseInt(dch._div.style.right),  dch._div.style.right.length  > 0);
+    frmSetEl(form, "T", parseInt(dch._div.style.top),    dch._div.style.top.length    > 0);
+    frmSetEl(form, "H", parseInt(dch._div.style.height), dch._div.style.height.length > 0);
+    frmSetEl(form, "B", parseInt(dch._div.style.bottom), dch._div.style.bottom.length > 0);
 
     form.addEventListener("click", doFormClick);
 }
@@ -192,22 +192,27 @@ function postRun(form) {
 }
 function onPopupClose(dict) {
 }
-function onContextDCHStyles() {
+function onContextDCHProps() {
     const dict={};//{foo:"bar"};
     FF.openPopup(anchorForm, dict, onPopupClose, preRun, postRun);
 }
+
+
+FF.getDCHName = function (dch) {
+    for (const key in DCH) {            // get it's dchName by searching for it in the loaded DCH ComponentHandlers
+        if (dch instanceof DCH[key]) {  
+            return key;
+        }
+    }
+    return null;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function openDCHContextMenu() {      // based on the el the mouse is over when rightmouse was pressed...
    let dch = FG.kmStates.dch;   // the actual dch instance
 
-    let dchName;                        // the name (as found in the globalThis.DCH{} )
-    for (const key in DCH) {            // get it's dchName by searching for it in the loaded DCH ComponentHandlers
-        if (dch instanceof DCH[key]) {  
-            dchName = key;
-            break;
-        }
-    }
+    const dchName = FF.getDCHName(dch);  // the name (as found in the globalThis.DCH{} )
 
     const entries = [];
     if (dch.children !== null) {                // if rightclicked dchHandler allows children...
@@ -225,7 +230,7 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
     if (dch != FG.curDoc.rootDch) {     // never allow deleting the topmost BOX element from this menu
         entries.push(["delete",   "Delete Element (and all children)", "Delete document element under mouse and all children inside it"]);
         entries.push(["", "", ""]);     // nor allow changing the styles
-        entries.push(["setstyles", "Set Element Styles", "Modify the anchors, border, background color, etc"]);
+        entries.push(["setProps", "Properties", "Modify the anchors, border, background color, etc"]);
     }
 
     const rect = dch._div.getBoundingClientRect();
@@ -247,10 +252,22 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
                 console.log(str);
                 break;
             case "delete":
-                debugger;
+                const dchName = FF.getDCHName(dch);
+                let yes = window.confirm("Delete node '" + dchName + ", are you sure?");
+                if (!yes) {
+                    return;
+                }
+                if (dch.children && dch.children.length > 0) {
+                    let yes = window.confirm("This node has children that will be deleted too.\nAre you SURE?");
+                    if (!yes) {
+                        return;
+                    }
+                }
+                dch.destroy();
+                FF.autoSave();
                 break;
-            case "setstyles":
-                onContextDCHStyles();
+            case "setProps":
+                onContextDCHProps();
                 break;
         }
     }
@@ -569,10 +586,9 @@ function setKMState(states) {
             clearAllButtons();
             return;
         }
-        console.log(flag);
     }
     
-    debugStates(states);
+    // debugStates(states);
 
     for (const key in states) {                      // test field-by-field to see if anything changed
         if (FG.kmStates[key] != states[key]) {
@@ -604,10 +620,10 @@ function onTkmKeyUp(evt) {
     setKMState(states);
 }
 
-function onTkmBlur(evt) {
+function onTkmBlur(evt) {       // this hardly EVER happens but just in case it makes a difference when it does...
     clearAllButtons();
 //    FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
-    console.log("blur")
+// console.log("blur")
     // FG.kmStates.btnLeft  = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
     // FG.kmStates.btnMid   = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
     // FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!

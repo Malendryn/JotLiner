@@ -5,7 +5,7 @@ class DCH_DOC extends FG.DCH_BASE {
     children = [];      // changing to [] to allow children
     
     ver = FG.VERSION;
-    uuid = null;
+    uuid = '';
 
     static menuText    = null;
     static menuTooltip = null;

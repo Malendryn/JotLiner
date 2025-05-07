@@ -1,10 +1,11 @@
 -----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
+
 * add a renameoption (or new document popup but as renamer) to the docTree
 * make docTree submenu items ('>') collapsible
-* make docTree dragdrop work properly!  
+* make docTree dragdrop work properly!  (reordering of doctree documents)
+* make Properties window draggable
 
-* make multiple clients work by listening for autoSave()'s 
 * scrollbars on DCH_BOXes  (see DETAIL: scrollbars below) particularly as this may change doc1.0 format
 * move docs (grag, in/out depth too)
 * front/back depth of dch's within document
@@ -24,13 +25,18 @@ PRE-GITHUB Todos
 -----------------------------------------------------------------------------------------------------------------------
 TODO Future
 * improve contextmenu to allow submenus
+
 * create menubar (file/edit/help)
     make that allow submenus
-* UNDO
+
+* ?UNDO?  (possibly not needed as CTE for example already does this)
+
 * we should consider timestamping the ‘send-expect’ed packet in the queue (we do, actually) and maybe once a sec check for ‘dead’ packets (we don't yet)
     maybe even adding a ‘timeoutLength’ option too
     and also a way to cancel-expect so at least on the client side we can say ‘try again’ sooner so we don't end up with two responses
 
+* [potentially] VASTLY improve multiclient update pushes, for example if we tell all clients a new docchange was made and a client fetches
+    a new doc because of it,  in the case of a CTE you lose your current cursor position (and focus even!)  
 -----------------------------------------------------------------------------------------------------------------------
 DETAIL: scrollbars: so, in order to support scrollbars, we can't ever go left/top=negative
 

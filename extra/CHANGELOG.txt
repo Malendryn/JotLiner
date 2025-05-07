@@ -4,6 +4,14 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+* fixed rect position 'properties' popup (was showing whole <body> relative, now is <parent> relative)
+* changed 'Set Element Styles' in context menu to "Properties"
+* added connected-client tracking (BG.clients)
+* added BF.onChanged(ws, table, uuid) to allow me to tell to other connected clients that this table and/or rec changed
+* multiple clients now receive changes from other clients in near-realtime 
+* delete dch node now works (rightclick on any node and delete it and its children)
+* cleaned up some ops reguarding setting currently selected doc in db 'extra' table
+
 2025-05-06 ------------------------------------------------------------------------------------------------------------
 * renamed addListener to addDCHListener to better distinguish it from addEventListener
     renamed removeListener and friends to removeDCHListener... too
@@ -15,6 +23,7 @@
 * added autoSave() to CTE plugin when any content changes
 * fixed (kindasorta?) the problem with default context menu on rightclick and dragging outside the divDocView by
      comparing mouseXY with divDocView rect and unsetting ALL buttons if it goes outside
+
 2025-05-06 ------------------------------------------------------------------------------------------------------------
 * started building out a popup when "Set Element Styles" is selected from context menu over a dch
     this popup allows selecting the anchors for the sides and width/height

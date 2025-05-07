@@ -7,11 +7,23 @@ be showing it relative to the BOX it's within!
 THIS will probably be very tricky and difficult to do as technically if anything goes 'negative' its not legal
 
 so we WILL have to get that zTop and zLeft logic going pretty soon!
+
+-----------------------------------------------------------------------------------------------------------------------
+rightclicking in indexView shows the contextmenu all the way to the left wall now, for some reason
+actually the menu is just appearing in totally bizarre places!
 -----------------------------------------------------------------------------------------------------------------------
 we broke the toolbar in the CTE dch
 -----------------------------------------------------------------------------------------------------------------------
+when we rightclick to open properties, we lose the ghost, can we find a way to keep the ghost there until that menu
+goes away (and consequently the properties dialog too?)
+
 -----------------------------------------------------------------------------------------------------------------------
+when switching selected docs in the indexView it doesnt seem to reliably update the dbRec
+    it works when we insert/delete a docTree rec, but not when we click to change current one, we probably just need 
+    to send a packet for that
 -----------------------------------------------------------------------------------------------------------------------
+When dragging a node inside a box, and it causes scrollbars to appear/disappear, the ghost misaligns as everything 'jumped'
+    We may need to fetch the boxes TRBL and push it on the ghost rather than calcing it from real mousepos
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

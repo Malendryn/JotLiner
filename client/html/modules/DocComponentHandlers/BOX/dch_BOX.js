@@ -9,6 +9,7 @@ class DCH_BOX extends FG.DCH_BASE {
     async construct() {
         this._div.style.backgroundColor = "#C1C1C1";
         this._div.style.border = "1px dashed black";
+        this._div.style.overflow = "auto";              // enable scrollbars
     }
 
 

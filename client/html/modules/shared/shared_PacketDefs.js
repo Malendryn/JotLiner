@@ -53,6 +53,16 @@ WS.registerPacketClass(class GetExtra extends PacketBASE { // get any element fr
     txt;        // --> "key" on the way in
                 // <-- "value" on the way back
 });
+WS.registerPacketClass(class SetExtra extends PacketBASE { // get any element from extra table
+    key;        // --> key to set/change
+    val;        // --> "value" to set/change to
+});
+
+
+WS.registerPacketClass(class Changed extends PacketBASE {    // Something changed
+    table;      // what table changed
+    uuid;       // what record's uuid changed (or '' if it's not relevant)
+});
 
 
 // see index.js

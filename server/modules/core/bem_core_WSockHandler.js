@@ -1,5 +1,6 @@
 // globalThis.WS = {} must be defined already.  (see index.js or server.js)
 
+BG.nextWSockID = 0;
 export async function init() {                      // load, init, and establish wss before returning
     return new Promise(async (resolve, reject) => {
         const module = await import("ws");
@@ -7,6 +8,10 @@ export async function init() {                      // load, init, and establish
 
         wss.on('connection', (ws) => {      
             console.log('Client connected');
+
+            ws._id = ++BG.nextWSockId;  // boots as 0 so increment before attaching
+            const client = { ws:ws };
+            BG.clients.push(client);
 
             ws.on('message', (data) => {
                 data = data.toString('utf-8');          // apparently 'data' is now ALWAYS a Buffer so we must ALWAYS convert it
@@ -26,6 +31,13 @@ export async function init() {                      // load, init, and establish
 
             ws.on('close', () => {                  // remove connection from array
                 console.log('Client disconnected');
+                for (let idx = 0; idx < BG.clients.length; idx++) {
+                    const client = BG.clients[idx];
+                    if (client.ws == ws) {          // found, remove it!
+                        BG.clients.splice(idx, 1);
+                        break;
+                    }
+                }
             });
 
             // ws.send('Welcome to the WebSocket server!');
@@ -47,10 +59,23 @@ WS.send = (ws, pkt) => {
 
 async function process(ws, data) {
     const pkt = WS.parsePacket(data);
-    const response = await pkt.process();  
+    const response = await pkt.process(ws);  
     if (response) {
         response.__id = pkt.__id;       // put original id into response packet
         response.__r = 1;               // and add '__r' so client knows without doubt this is a response packet
         WS.send(ws, response);
     }
 }
+
+
+BF.onChanged = (ws, table, uuid) => {
+    const pkt = new WS.__classes.Changed();
+    pkt.table = table;
+    pkt.uuid = uuid;
+    for (let idx = 0; idx < BG.clients.length; idx++) {
+        let client = BG.clients[idx];
+        if (ws != client.ws) {      // don't send this packet to 'self' as we are the ones who made the change!
+            WS.send(client.ws, pkt);
+        }
+    }
+};

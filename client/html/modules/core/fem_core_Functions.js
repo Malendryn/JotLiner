@@ -21,7 +21,14 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 -------- async waitDirty()              spin-wait up to 15 secs while (FG.curdoc && FG.curDoc.dirty)
 ==== FROM fem_core_WSockHandler.js ====================================================================================
 pkt    = makePacket(name)               create and return a new packet
-pkt    = parsePacket(stream)			   reconstruct a packet instance from the stream
+pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
+
+==== FROM fem_core_divIndexViewHandler.js =============================================================================
+-------- async loadDoc(uuid,force)            fetch doc from backend, update display
+-------- async selectAndLoadDoc(uuid,force)   update selection in indexView, load selected doc in dchView
+
+==== FROM fem_core_TKMEvtHandlers.js ==================================================================================
+--------       getDCHName(dch)          return name of dch as the subdirName in DocComponentHandlers
 
 ==== FROM fem_core_ContextMenu.js ====================================================================================
 action = openContextMenu(entries, callback)
@@ -34,38 +41,33 @@ action = openContextMenu(entries, callback)
 	    function callback(action)
 
 ==== FROM fem_core_PopupDialog.js ====================================================================================
-FF.openPopup(form, dict, callback, preRun=null, postRun=null)    Generic popup handler
-		form ---------------------- "<form><input name="myInput">...</form>" 
-		dict=[dictKey: value] -----	sets formfields with <name="dictKey"> form fields to 
-    T/F=callback(dict)              dict=null if [cancel] else fieldvals if [save], return true=done/false keeps dialog open
-preRun and postRun are callbacks that recieve handle to <form> element right after being displayed
-    so if user wants to add listeners or other things here is how to do it
-postRun is for cleaning up/removing any listeners etc right before closing the dialog
-==== FROM ????????????????????? ====================================================================================
---------       logout()                 detach and forget current user and go back to login screen
--------- async loadView(.jsName)        load a .js child of FG.ViewBASE from within the "views" subdir
--------- async loadText(path)           load a text(or html) file (relative to rootPath) and return it
--------- async updateTitleBar()         update the topmost titleBar showing curbook
--------- async getBookById(bookId)      fetch book rec (from FG.bookList) for this bookId
+-------- openPopup(form, dict, callback, preRun=null, postRun=null)    Generic popup handler
+            form ---------------------- "<form><input name="myInput">...</form>" 
+            dict=[dictKey: value] -----	sets formfields with <name="dictKey"> form fields to 
+        T/F=callback(dict)              dict=null if [cancel] else fieldvals if [save], return true=done/false keeps dialog open
+            preRun and postRun are callbacks that recieve handle to <form> element right after being displayed
+                so if user wants to add listeners or other things here is how to do it
+            postRun is for cleaning up/removing any listeners etc right before closing the dialog
+
 ***********************************************************************************************************************/
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-FF.shutdown = (event) => {                       // webpage closing, do final terminations/cleanups
-    // debugger;
-	//  if (BG.db) {
-    //     // RSTODO if BG.db=open
-    //     debugger; BG.db.close();
-    // }
+FF.shutdown = async (event) => {                       // webpage closing, do final terminations/cleanups
 
-	if (true) {		// to ask before exiting do this:   (THIS IS NOT STOPPING ME FROM LEAVING THE PAGE,  howto prevent?)
-		event.preventDefault();
-		const confirmationMessage = 'Are you sure you want to leave?';
-		event.returnValue = confirmationMessage;	
-		return confirmationMessage;
-	} else {		// or to leave with no confirmation do this:
-		return;
-	}
+    if (FF.curDoc && FF.curDoc.dirty) {     // if something's still dirty
+        FF.autoSave(0);                     // force immediate saving
+        FF.waitDirty();                     // and wait for it to complete
+    }
+
+// obsolete, with waitDirty() we don't need to pop any dialogs any more
+	// if (true) {		// to ask before exiting do this:   (THIS IS NOT STOPPING ME FROM LEAVING THE PAGE,  howto prevent?)
+	// 	event.preventDefault();
+	// 	const confirmationMessage = 'Are you sure you want to leave?';
+	// 	event.returnValue = confirmationMessage;	
+	// 	return confirmationMessage;
+	// } else {		// or to leave with no confirmation do this:
+	// 	return;
+	// }
 }
 window.addEventListener("beforeunload", FF.shutdown);
 
@@ -99,6 +101,8 @@ FF.clearDoc = async() => {
         }
         await FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
         FG.curDoc = null;
+        // let div = document.getElementById("divDocView");
+        // div.innerHTML = "";     // wipe contents.  (there are no added event listeners to remove so this is safe)
     }
 }
 
