@@ -1,4 +1,39 @@
+
 #divIndexView ul {
+    list-style: none;
+    padding-left: 1em;
+  }
+
+  #divIndexView .arrow {
+    cursor: pointer;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+    user-select: none;
+  }
+
+  #divIndexView .arrow::before {
+    content: "►";
+    transition: transform 0.2s ease;
+  }
+
+  #divIndexView li.expanded > .arrow::before {
+    content: "▼";
+  }
+
+  #divIndexView ul ul {
+    display: none;
+  }
+
+  #divIndexView li.expanded > ul {
+    display: block;
+  }
+
+  #divIndexView li {
+    position: relative;
+  }
+
+#xdivIndexView ul {
     position: absolute; /* Needed for absolute positioning of the indicator */
     list-style-type: none;
     padding: 0;
@@ -9,12 +44,12 @@
   }
   /* style="position:absolute;top:0px;left:0px;" */
 
-  #divIndexView li {
+#xdivIndexView li {
     display: flex;    /*eee*/
     flex-direction: row;    /*eee*/
     padding: 0px;
 /*  background-color: #f0f0f0; */
-/*  border: 1px solid #ccc; */      /* if set, puts a border around every element,  (not needed methinks)
+/*  border: 1px solid #ccc;
 /*  margin-bottom: 5px; */
 /*  cursor: grab; */
     position: relative; /* So we can position the indicator inside */

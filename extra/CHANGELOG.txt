@@ -2,9 +2,13 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-08 ------------------------------------------------------------------------------------------------------------
 * tooltips now show in context menus
 * fixed problem with toolbars not showing when node selected
+* fixed problem where sometimes changing selected document in index view left prior selections darkened/selected
+* got index pane working using <ul><li> with expandable arrowed segments, and fully supports dragging now too!
+    (dragging only works visually, it doesn't yet update the order in the db)
+* removed all click,dragstart/over/end listeners on each <li> in index pane, now just listen on toplevel <ul>
 
 2025-05-07 ------------------------------------------------------------------------------------------------------------
 * fixed rect position 'properties' popup (was showing whole <body> relative, now is <parent> relative)

@@ -142,12 +142,12 @@ function openIndexContextMenu() {
 // begin .js initialization ///////////////////////////////////////////////////////////////////////////////////////////
 let div = document.getElementById("divIndexView");
 const style = window.getComputedStyle(div);     // get backgrd color of divIndexView and darken it by rgb 24,24,24
-let bgColor = style.backgroundColor;            // keep it in bgColor 'for later' (see FF.selectAndLoadDoc())
-bgColor = FF.parseRgba(bgColor);                // parse the "rgba(24, 36,48, 0.69)"  into {r,g,b,a}
-bgColor.r = Math.max(0, bgColor.r - 24);        // now reduce each r,g,b by 24 making sure it doesn't go negative
-bgColor.g = Math.max(0, bgColor.g - 24);
-bgColor.b = Math.max(0, bgColor.b - 24);
-bgColor = "rgb(" + bgColor.r + "," + bgColor.g + "," + bgColor.b + ")"; // finally rebuild it into "rgb(r,g,b)"
+let bgColorSel, bgColorRaw = style.backgroundColor;   // keep it 'for later' (see FF.selectAndLoadDoc())
+bgColorSel = FF.parseRgba(bgColorRaw);                // parse the "rgba(24, 36,48, 0.69)"  into {r,g,b,a}
+bgColorSel.r = Math.max(0, bgColorSel.r - 24);        // now reduce each r,g,b by 24 making sure it doesn't go negative
+bgColorSel.g = Math.max(0, bgColorSel.g - 24);
+bgColorSel.b = Math.max(0, bgColorSel.b - 24);
+bgColorSel = "rgb(" + bgColorSel.r + "," + bgColorSel.g + "," + bgColorSel.b + ")"; // finally rebuild it into "rgb(r,g,b)"
 
 
 let draggedItem       = null;                             // ptr to <li> currently being dragged (or null if not)
@@ -157,65 +157,79 @@ placeholder.className = 'placeholder';
 div.addEventListener('click',       onLeftClick);      // add left,right click listeners on entire divIndexView
 div.addEventListener("contextmenu", onContextMenu);
 
+let ul = document.createElement("ul");          // create the topmost <ul> for the index view & attach all listeners
+ul.id = "divIndexViewUL";
+ul.addEventListener('dragstart',   onDragStart);
+ul.addEventListener('dragover',    onDragOver);
+ul.addEventListener('dragend',     onDragEnd);
+ul.addEventListener('click',       onClickULItem);
+div.appendChild(ul);
+
+
+function onClickArrow(evt) {
+    // evt.stopPropagation();
+    // evt.target.parentNode.classList.toggle("expanded");    // toggle the expanded state of the arrow's parent <li>
+    // console.log(FF.__FILE__());
+}
+
+function onClickName(evt) {
+//    evt.stopPropagation();
+    console.log(FF.__FILE__());
+}
+
+function onClickULItem(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    if (evt.target.classList.contains("arrow")) {
+        evt.target.parentNode.classList.toggle("expanded");    // toggle the expanded state of the arrow's parent <li>
+    } else {
+        FF.selectAndLoadDoc(evt.target._docUuid);
+    }
+    console.log(FF.__FILE__());
+}
+
 
 async function showDocTree() { // build <UL> to display in left index pane
-    let div = document.getElementById("divIndexView");
-    div.innerHTML = "";     // wipe contents.  (there are no added event listeners to remove so this is safe)
-    let ul = document.createElement("ul");
-    ul.id = "divIndexViewUL";
-    div.appendChild(ul);
- // build and insert <li> elements inside the <ul>
- //   <!--                     indent spacer                  arrow-if-children                  text to display -->
- //   <li id="01" draggable="true"><div style="width: 0px;"></div><div style="width:16px;">&gt;</div>Section 1</li>
- 
+    let ul = document.getElementById("divIndexViewUL");
+    ul.innerHTML = "";                                      // blow out any prior menus
+
     for (let idx = 0; idx < FG.docTree.length; idx++) {
         let curr = FG.docTree[idx];
         let next = FG.docTree[idx + 1];
-        let showArrow = false;
-        if (next) {
-            if (next.depth > curr.depth) {               // step-in one
-                showArrow = true;
-            }
-        }
+
         let li = document.createElement("li");  // create '<li id="01" draggable="true">...</li>'
         ul.appendChild(li);
         curr.li = li;                           // attach it to the FG.docTree item
 
-        li.addEventListener('dragstart',   onDragStart);  // RSTODO improve on this, use the single document level listener instead
-        li.addEventListener('dragover',    onDragOver);
-        // li.addEventListener('drop',        onDrop);
-        li.addEventListener('dragend',     onDragEnd);
-        // li.addEventListener('click',       onLeftClick);
-        // li.addEventListener('contextmenu', onRightClick);
-
         li.id = curr.id.toString();
         li._docUuid = curr.uuid;                // store the docUuid on the <li>
         li.draggable = "true";
-        let tmp = document.createElement("div");    // append '<div style="width: 0px;"></div>'
-        tmp.style.width = (curr.depth * 16) + "px";
-        li.appendChild(tmp);
-        tmp = document.createElement("div");    // append '<div style="width:16px;">&gt;</div>'
-        tmp.style.width="16px";
-        if (showArrow) {
-            tmp.innerHTML = "&gt;";
+
+        if (next && next.depth > curr.depth) {              // if next entry is child of this one...
+            let tmp = document.createElement("span");       // add <span class="arrow"></span>
+            tmp.classList.add("arrow");
+            li.appendChild(tmp);
+            li.append(curr.name);                           // add the doc name BEFORE the new <ul>
+            ul = document.createElement("ul");              // create a new ul and use it as parent for future <li>s 
+            li.appendChild(ul);
+        } else {
+            li.append(curr.name);                           // add the doc name WITHOUT a new <ul>
         }
-        li.appendChild(tmp);
-        tmp = document.createElement("div");    // append 'Document Name'
-        tmp.innerHTML = curr.name;
-        li.appendChild(tmp);
+
+        if (next) {             // if next entry depth is less than curr depth (is a 'step out' entry)
+            for (let idx = 0; idx < curr.depth - next.depth; idx++) {  // (could be multiple stepouts)
+                ul = ul.parentNode.parentNode;      // stepout to parent <li> then to it's parent <ul>
+            }
+        }
     }
 }
 
 
-
 FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS reselects (in case of server needed to reload docTree)
-    if (FG.curDoc) {
-        // if (!force && FG.curDoc.uuid == uuid) {   // clicked on same entry, ignore
-        //     return;
-        // }
-        const info = FF.getDocInfo(FG.curDoc.uuid);
-        info.li.style.backgroundColor = "";     // clear bgColor of prior selected element
-    }
+    let ul = document.getElementById("divIndexViewUL");
+    ul.querySelectorAll("*").forEach((node) => {
+        node.style.backgroundColor = bgColorRaw;             // clear bgColor of all elements in <ul>, including children
+    });
 
     const pkt = WS.makePacket("SetExtra");
     pkt.key = "curDocUuid";
@@ -230,7 +244,7 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
                 await FF.waitDirty();
             }
             if (await FF.loadDoc(uuid, force)) {            // but ONLY reload doc if forced...
-                info.li.style.backgroundColor = bgColor;    //...change treeEntry background to bgColor
+                info.li.style.backgroundColor = bgColorSel;    //...change treeEntry background to 'selected'
             }
         }
     } else {
@@ -292,16 +306,19 @@ function onDragStart(evt) {             // RSTODO RSFIX RSBUG these are for drag
 }
 
 function onDragOver(evt) {
-    // console.log(FF.__FILE__(), "onDragOver");
+    console.log(FF.__FILE__(), "onDragOver", evt.target.id);
     evt.preventDefault();
     evt.dataTransfer.dropEffect = 'move';
 
     let tf1 = (evt.target.nodeName === 'LI' && evt.target.id !== draggedItem.id);
     let tf2 = (evt.target.nodeName === 'LI' && evt.target !== draggedItem);
-    let list = document.getElementById("divIndexViewUL");
+
 
     // console.log(`ODO TF1(${evt.target.id},`,evt.target,`)=${tf1}, " TF2(${draggedItem.id},`,draggedItem,`)=${tf2}`);
     if (evt.target.nodeName === 'LI' && evt.target !== draggedItem) {
+        // let list = document.getElementById("divIndexViewUL");
+        let list = evt.target.parentNode;
+
         const bounding = evt.target.getBoundingClientRect();
         const offset = evt.clientY - bounding.top;
 
@@ -318,17 +335,19 @@ function onDragOver(evt) {
 // function onDrop(evt) {
 // }
 
-function onDragEnd(evt) {
+function onDragEnd(evt) {   // this is firing twice, donno why, but at least testing for !draggedItem prevents errors
     console.log(FF.__FILE__(), "onDragOver RSTODO finish this! (update order/depth changes serverside and reload docTree");
     evt.preventDefault();
-
-    let list = document.getElementById("divIndexViewUL");
-
-    let target = placeholder.nextElementSibling;
-    if (target) {                               // if dropTarget not past last <li>
-        list.insertBefore(draggedItem, target);
+    evt.stopPropagation();              // prevent dragend on parent <ul>'s from firing
+    let list = evt.target.parentNode;
+    let prev = placeholder.previousElementSibling;
+    let next = placeholder.nextElementSibling;
+    
+    const ul = placeholder.closest("ul");   // get the parent ul of 'wherever we are'
+    if (placeholder.previousElementSibling) {
+        ul.insertBefore(draggedItem, placeholder);
     } else {
-        list.appendChild(draggedItem);
+        ul.insertBefore(draggedItem, placeholder.nextSibling);
     }
 
     evt.target.classList.remove('dragging');

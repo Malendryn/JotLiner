@@ -28,8 +28,9 @@ FF.loadModule = async (modulePath) => {
 
 // RSTODO go look at the older jotliner code, we had detailed funcalls to handle loading and tracking and unloading modules that we NEED to move over to here!
 window.addEventListener('load', async function() {
-    const el = this.document.getElementById("divIndexDocSizer");
+    let el = this.document.getElementById("divIndexDocSizer");
     el._dchMouseOp = "idx<>doc";
+
     let mod;
     // console.log(this.document.baseURI);
     await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate basics of FG

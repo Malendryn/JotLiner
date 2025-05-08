@@ -23,8 +23,16 @@ PRE-GITHUB Todos
     MDN Markdown (Github compatible)
 
 -----------------------------------------------------------------------------------------------------------------------
-TODO Future
-* improve contextmenu to allow submenus
+TODO
+* in the left pane we have <ul> with a single depth of <li>, we really should think about using the builtIn multidepth
+    ability of <ul><li><ul...deeper>  autoexpander/shrinker rather than constructing our own using the <div>'s
+
+* I kinda like the little icon cherrytree puts in front of the index entries, but maybe instead we just make a little box
+    that you can set the color of?  or maybe color the entire entry?
+
+* improve contextmenu to allow submenus  (we might use the <ul> system for this, but I like the 'detached' menus like 
+    vsCode has that open when you hover)
+    (NOTE THAT THIS SYSTEM would work for the menu dropdown system too!)
 
 * create menubar (file/edit/help)
     make that allow submenus
@@ -60,14 +68,4 @@ the advantage to this approach is that when someone sets a dch's position, it wo
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-BUG: (?unfixable?) when prog starts, if I ctrl+alt and rightclick in the INDEX frame, I get the 'new document' context menu
-but if I close the menu, then re-press ctrl+alt and rightclick, no menu appears.  this is odd.
 
-it also DOESNT happen if I just hit reload, it ONLY happens if I close and start the program anew
-
-    I found the reason is that the divIndexView (in fact the entire program) does not have focus when it starts, therefore
-    it's not firing keydown/up events, even though mouse events ARE firing.  it doesnt track these keyboard events until I
-    click or right-click on something, and even then the click:evt.keyAlt etc are not valid at this first-time-clicking-event
-        I tried document.body.focus() and div=document.getElementById("divDocView");div.focus() but that didnt work either
-    This does however explain why it works fine on reload, just not on progstart.  cuz on reload it does indeed have focus
-        at start-time
