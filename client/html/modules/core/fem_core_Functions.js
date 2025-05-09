@@ -93,6 +93,7 @@ FF.makeHash = async (txt) => {
 
 
 FF.clearDoc = async() => {
+    // console.log(FF.__FILE__(), "clearDoc: FG.curDoc=",FG.curDoc);
     if (FG.curDoc) {
         if (FG.curDoc.dirty) {
             FF.autoSave(0);

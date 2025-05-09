@@ -154,7 +154,7 @@ let draggedItem       = null;                             // ptr to <li> current
 let placeholder       = document.createElement('div');    // create the thin-black-line that shows where a dragDrop will go on dragEnd
 placeholder.className = 'placeholder';
 
-div.addEventListener('click',       onLeftClick);      // add left,right click listeners on entire divIndexView
+// div.addEventListener('click',       onLeftClick);      // add left,right click listeners on entire divIndexView
 div.addEventListener("contextmenu", onContextMenu);
 
 let ul = document.createElement("ul");          // create the topmost <ul> for the index view & attach all listeners
@@ -164,29 +164,6 @@ ul.addEventListener('dragover',    onDragOver);
 ul.addEventListener('dragend',     onDragEnd);
 ul.addEventListener('click',       onClickULItem);
 div.appendChild(ul);
-
-
-function onClickArrow(evt) {
-    // evt.stopPropagation();
-    // evt.target.parentNode.classList.toggle("expanded");    // toggle the expanded state of the arrow's parent <li>
-    // console.log(FF.__FILE__());
-}
-
-function onClickName(evt) {
-//    evt.stopPropagation();
-    console.log(FF.__FILE__());
-}
-
-function onClickULItem(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    if (evt.target.classList.contains("arrow")) {
-        evt.target.parentNode.classList.toggle("expanded");    // toggle the expanded state of the arrow's parent <li>
-    } else {
-        FF.selectAndLoadDoc(evt.target._docUuid);
-    }
-    console.log(FF.__FILE__());
-}
 
 
 async function showDocTree() { // build <UL> to display in left index pane
@@ -250,6 +227,7 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
     } else {
         FF.clearDoc();
     }
+    // console.log(FF.__FILE__(), "FF.selectAndLoadDoc, FG.curDoc=", FG.curDoc);
 }
 
 
@@ -278,13 +256,27 @@ function getDocTreeLIUuid(evt) {    // return uuid of selected doc, or ''
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // start mouse/kdb ops ////////////////////////////////////////////////////////////////////////////////////////////////
-async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
+function onClickULItem(evt) {
+    evt.stopPropagation();
     evt.preventDefault();
     if (!FG.kmStates.modal) {
-        const uuid = getDocTreeLIUuid(evt);
-        await FF.selectAndLoadDoc(uuid);
+        if (evt.target.classList.contains("arrow")) {
+            evt.target.parentNode.classList.toggle("expanded");    // toggle the expanded state of the arrow's parent <li>
+        } else {
+            FF.selectAndLoadDoc(evt.target._docUuid);
+        }
     }
 }
+
+
+// async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
+//     evt.preventDefault();
+//     if (!FG.kmStates.modal) {
+//         const uuid = getDocTreeLIUuid(evt);
+//         await FF.selectAndLoadDoc(uuid);
+//     }
+// }
+
 
 async function onContextMenu(evt) {     // desel any sel,  sel current one under mouse, then open a context menu
     evt.preventDefault();
@@ -402,11 +394,13 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 
 FF.loadDoc = async function(uuid, force=false) {   // returns T/F if doc loaded. (sets curDoc.uuid and .rootDch if True)
     if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded (RSTODO may need to change when we intro 'bump')
+        // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=true");
         return true;
     }
 
     let tmp = FF.getDocInfo(uuid);      // if uuid !in index, abort!  (should NEVER happen!!!)
     if (tmp == null) {
+        // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=false");
         return false;
     }
 
@@ -414,9 +408,10 @@ FF.loadDoc = async function(uuid, force=false) {   // returns T/F if doc loaded.
     pkt.uuid = uuid;
     pkt = await WS.sendWait(pkt);
 
-    FF.clearDoc();                          // remove any current doc
+    await FF.clearDoc();                          // remove any current doc
 
     if (pkt.doc == null) {                  // could not load doc, therefore can't set as curDoc
+        console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=false");
         return false;
     }
 
@@ -427,6 +422,7 @@ FF.loadDoc = async function(uuid, force=false) {   // returns T/F if doc loaded.
         rootDch: await imp.attach(pkt.doc, null),  // now build-and-attach doc to the system as new root doc!
         dirty:   false,
     };
+    // console.log(FF.__FILE__(), "FF.loadDoc curDoc=", FG.curDoc);
     return true;
 }
 

@@ -31,6 +31,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         this.el.style.padding = "2px";  // without this the cursor gets lost at start-of-line if there's a solid border 
         this.el.setAttribute("contenteditable", "true");
         this.el.style.backgroundColor = "aqua";
+        this.el.innerHTML = '';         // if I don't do this and we don't type in it, it exports "undefined"
         this._div.appendChild(this.el);
         this.addDCHListener(this.el, "input", this.onContentChanged);
 
@@ -42,7 +43,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         img = document.createElement("img");            // create a 24x24px img to put on button
         img.src = DCH_CTE._path + "/icons/bold-96.png";    //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
         btn.appendChild(img);
-        this.addDCHListener(btn, "click", this.onToolBtnBold);
+        this.addDCHListener(btn, "click", this.onToolBtnBold.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -50,7 +51,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         img = document.createElement("img");
         img.src = DCH_CTE._path + "/icons/italic-52.png";
         btn.appendChild(img);
-        this.addDCHListener(btn, "click", this.onToolBtnItalic);
+        this.addDCHListener(btn, "click", this.onToolBtnItalic.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -58,7 +59,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         img = document.createElement("img");
         img.src = DCH_CTE._path + "/icons/underline-64.png";
         btn.appendChild(img);
-        this.addDCHListener(btn, "click", this.onToolBtnUnderline);
+        this.addDCHListener(btn, "click", this.onToolBtnUnderline.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -66,10 +67,10 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         img = document.createElement("img");
         img.src = DCH_CTE._path + "/icons/strikethrough-64.png";
         btn.appendChild(img);
-        this.addDCHListener(btn, "click", this.onToolBtnStrikethrough);
+        this.addDCHListener(btn, "click", this.onToolBtnStrikethrough.bind(this));
     }
 
-    async onToolBtnBold(evt) {
+    onToolBtnBold(evt) {
         evt.preventDefault;
         console.log("bold");
     }

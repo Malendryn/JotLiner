@@ -26,15 +26,19 @@ class StringReader {
 
     readEl() {        // read "WRD=LEN;DATA", decode base64 if LEN=negative, return [varName, data]
         let tmp = this.readToSem();
-        tmp = tmp.split('=');       // split varName from varLen
+        tmp = tmp.split('=');               // split varName from varLen
+        if (tmp.length != 2) {              // EOFile (or some kinda other illegal junk!)
+            return null;
+        }
         const varName = tmp[0].trim();
         let len = parseInt(tmp[1]);
         let isBase64 = (len < 0);     // rstodo MOVE THIS to the 'attachComponent' below
         len = Math.abs(len);
 
-        if (this.idx >= this.str.length) {    // test for end of data
-            return "";
+        if (this.idx > this.str.length) {    // test for end of data  (fires when len == 0)        
+            throw new Error("Data stream too short");
         }
+
         const end = Math.min(this.idx + len, this.str.length);
         let data = this.str.substring(this.idx, end);
         // this.idx = end;                      // this works but potentially wastes a lot of memory by leaving many copies around

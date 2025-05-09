@@ -1,8 +1,8 @@
 // TKMEvtHandlers = Toplevel Keyboard and Mouse Event Handlers
 
-document.addEventListener("mousedown",   onTkmMousedown, true);    // listen for mouseup/down/move ANYwhere on doc
 document.addEventListener("contextmenu", onTkmContextMenu, true);  // listen for contextmenu specifically
   window.addEventListener("blur",        onTkmBlur, true);         // listen for 'leaving browser' specifically
+document.addEventListener("mousedown",   onTkmMousedown, true);    // listen for mouseup/down/move ANYwhere on doc
 document.addEventListener("mousemove",   onTkmMouseMove, true);
 document.addEventListener("mouseup",     onTkmMouseUp,   true);
 document.addEventListener("keydown",     onTkmKeyDown, true);
@@ -36,11 +36,13 @@ FG.kmStates = {
     modal:    false,    // true when any menu, contextmenu, or dialog is open, else false
     dch:      null,     // the dch the target belongs to  (IF, else null)
     mask:     null, /* {
-        divGhost: <div>, // ghost rectangle (greyed rectangle showing hovered-over element even if partially hidden)
-        divGhostL:0,
-        divGhostT:0,
-        divGhostW:0,
-        divGhostH:0,
+        ghost: {
+            div: <div>, // ghost rectangle (greyed rectangle showing hovered-over element even if partially hidden)
+            L:0,
+            T:0,
+            W:0,
+            H:0,
+        }
         divMask:  <div>, // mask rectangle (covers entire divDocView) so we can intercept all clicks/moves
         el:       <el>,  // dch element currently hovered over
         left:     set to pixelInt if lrMode has 'L' in it
@@ -48,7 +50,7 @@ FG.kmStates = {
         width:    set to ...
         height:   set to ...
         lrMode:   "LW", "WR", or "LR"
-        nesw:     "n", "ne", "e", "se", "s", "sw", "w", "nw" <-- when mouse near edge of divGhost, this lets us set the appropriate cursor
+        nesw:     "n", "ne", "e", "se", "s", "sw", "w", "nw" <-- when mouse near edge of ghost.div, this lets us set the appropriate cursor
         startX:   if btnLeft goes down, capture mousepos here
         startY:
         tbMode:   "TH", "HB", or "TB"
@@ -100,19 +102,19 @@ dawAHL (AHR/AHT/AHB) is arrowhead facing Left, Right, Top, Bottom
 		<svg id="dawInnerArrowT" width="20" height="100" style="position:absolute;top:5px;left:120px;">
 			<line x1="10" y1="10" x2="10" y2="66" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
 		</svg>
-		<div style="position:absolute;top:20px;left:110px;"><input id="disableT" type="text" class="unAbled" value="X" readonly><label>top</label><br></div>
+		<div style="position:absolute;top:20px;left:110px;"><input id="dawIBCkBoxT" type="text" class="unAbled" value="X" readonly><label>top</label><br></div>
 		<input id="dawIBInputT" type="number"   style="padding:0;position:absolute;top:40px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 		<svg id="dawInnerArrowH" width="20" height="200" style="position:absolute;top:86px;left:120px;">
 			<line x1="10" y1="10" x2="10" y2="146" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
 		</svg>
-		<div style="position:absolute;top:160px;left:102px;"><input id="disableH" type="text" class="unAbled" value="X" readonly><label>height</label><br></div>
+		<div style="position:absolute;top:160px;left:102px;"><input id="dawIBCkBoxH" type="text" class="unAbled" value="X" readonly><label>height</label><br></div>
 		<input id="dawIBInputH" type="number"   style="padding:0;position:absolute;top:180px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 		<svg id="dawInnerArrowB" width="20" height="100" style="position:absolute;top:248px;left:120px;">
 			<line x1="10" y1="10" x2="10" y2="66" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
 		</svg>
-		<div style="position:absolute;top:260px;left:100px;"><input id="disableB" type="text" class="unAbled" value="X" readonly><label>bottom</label><br></div>
+		<div style="position:absolute;top:260px;left:100px;"><input id="dawIBCkBoxB" type="text" class="unAbled" value="X" readonly><label>bottom</label><br></div>
 		<input id="dawIBInputB" type="number"   style="padding:0;position:absolute;top:280px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 
@@ -121,76 +123,161 @@ dawAHL (AHR/AHT/AHB) is arrowhead facing Left, Right, Top, Bottom
 		<svg id="dawIBArrowL" width="100" height="20" style="position:absolute;top:115px;left:5px;">
 			<line x1="10" y1="10" x2="80" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
-		<div style="position:absolute;top:105px;left:33px;"><input id="disableL" type="text" class="unAbled" value="X" readonly><label>left</label><br></div>
+		<div style="position:absolute;top:105px;left:33px;"><input id="dawIBCkBoxL" type="text" class="unAbled" value="X" readonly><label>left</label><br></div>
 		<!-- <input id="dawIBCkBoxL" type="checkbox" style="background-color:red;padding:0;position:absolute;top:105px;left:18px;width:60px;height:20px;" value="x"> -->
 		<input id="dawIBInputL" type="number"   style="padding:0;position:absolute;top:125px;left:18px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 		<svg id="dawIBArrowW" width="200" height="20" style="position:absolute;top:115px;left:105px;">
 			<line x1="10" y1="10" x2="180" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
-		<div style="position:absolute;top:105px;left:180px;"><input id="disableW" type="text" class="enAbled" value="&#10004;" readonly><label>width</label><br></div>
+		<div style="position:absolute;top:105px;left:180px;"><input id="dawIBCkBoxW" type="text" class="enAbled" value="&#10004;" readonly><label>width</label><br></div>
 		<!-- <input id="dawIBCkBoxW" type="checkbox" style="padding:0;position:absolute;top:105px;left:218px;width:60px;height:20px;" value="x"> -->
 		<input id="dawIBInputW" type="number"   style="padding:0;position:absolute;top:125px;left:174px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 		<svg id="dawIBArrowR" width="100" height="20" style="position:absolute;top:115px;left:302px;">
 			<line x1="10" y1="10" x2="80" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
-		<div style="position:absolute;top:105px;left:322px;"><input id="disableR" type="text" class="enAbled" value="&#10004;" readonly><label>right</label><br></div>
+		<div style="position:absolute;top:105px;left:322px;"><input id="dawIBCkBoxR" type="text" class="enAbled" value="&#10004;" readonly><label>right</label><br></div>
 		<!-- <input id="dawIBCkBoxR" type="checkbox" style="padding:0;position:absolute;top:105px;left:318px;width:60px;height:20px;" value="x"> -->
 		<input id="dawIBInputR" type="number"   style="padding:0;position:absolute;top:125px;left:316px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 	</div>
 `;
 
-
-function frmSetEl(form, code, posn, enable) {
-    let el = form.querySelector("#disable" + code);
+function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND set value
+    let elC = document.getElementById("dawIBCkBox" + code);
+    let elI = document.getElementById("dawIBInput" + code);
     if (enable) {
-        el.className = "enAbled";
-        el.value = "✔";
+        elC.className = "enAbled";
+        elC.value = "✔";
+        elI.disabled = false;
+        elI.style.backgroundColor = "";                // these are not working!  why not?
     } else {
-        el.className = "unAbled";
-        el.value = "X";
+        elC.className = "unAbled";
+        elC.value = "X";
+        elI.disabled = true;
+        elI.style.backgroundColor = "rgb(187, 187, 187)"; // these are not working!  why not?
     }
-    if (posn != null) {
-        el = form.querySelector("#dawIBInput" + code);
-        el.value = posn.toString();
+    elI.value = val;
+}
+function doFormInput(evt) {
+    console.log(FF.__FILE__());
+    formChanged = true;
+    let ss = FG.kmStates.dch._div.style;
+    switch(evt.target.id.charAt(10)) {    // dawIBInputL, dawIBInputW, etc...
+        case 'L':   { ss.left   = evt.target.value + "px";  break; }
+        case 'W':   { ss.width  = evt.target.value + "px";  break; }
+        case 'R':   { ss.right  = evt.target.value + "px";  break; }
+        case 'T':   { ss.top    = evt.target.value + "px";  break; }
+        case 'H':   { ss.height = evt.target.value + "px";  break; }
+        case 'B':   { ss.bottom = evt.target.value + "px";  break; }
     }
 }
+// function doFormClick(evt) {
+//     const id = evt.target.id;
+//     if (id.startsWith("dawIBCkBox")) {
+//         let code;
+//         const chr = id.charAt(10);  // dawIBCkBoxL, dawIBCkBoxW, etc...
+//         switch(id.charAt(10)) {  
+//             case 'L':   {   code = ['L', 'W', 'R']; break;  }
+//             case 'W':   {   code = ['W', 'L', 'R']; break;  }
+//             case 'R':   {   code = ['R', 'L', 'W']; break;  }
+//             case 'T':   {   code = ['T', 'H', 'B']; break;  }
+//             case 'H':   {   code = ['H', 'T', 'B']; break;  }
+//             case 'B':   {   code = ['B', 'T', 'H']; break;  }
+//         }
+
+//         frmSetEl(code[0], null, false);
+//         frmSetEl(code[1], null, true);
+//         frmSetEl(code[2], null, true);
+//     }
+// }
+let formChanged;
+let formOrigVals;
 function doFormClick(evt) {
-    const id = evt.target.id;
-    if (id.startsWith("disable")) {
-        let el, code;
-        switch(id.charAt(7)) {  // L,W,R T,H,B
-            case 'L':   {   code = ['L', 'W', 'R']; break;  }
-            case 'W':   {   code = ['W', 'L', 'R']; break;  }
-            case 'R':   {   code = ['R', 'L', 'W']; break;  }
-            case 'T':   {   code = ['T', 'H', 'B']; break;  }
-            case 'H':   {   code = ['H', 'T', 'B']; break;  }
-            case 'B':   {   code = ['B', 'T', 'H']; break;  }
+    if (evt.target.id.startsWith("dawIBCkBox")) {
+        formChanged = true;
+        const dch = FG.kmStates.dch;
+        const rect = dch._div.getBoundingClientRect();
+        const pRect = dch.parent._div.getBoundingClientRect();
+        const id = evt.target.id;
+        const box = { 
+            L: rect.left - pRect.left - 1 + "px", 
+            W: rect.width + "px", 
+            R: pRect.width - ((rect.left - pRect.left - 1) + rect.width) + "px",
+            T: rect.top - pRect.top - 1 + "px", 
+            H: rect.height + "px", 
+            B: pRect.height - ((rect.top - pRect.top - 1) + rect.height) + "px",
+        };
+        let code;
+        let ss = dch._div.style;
+        switch(id.charAt(10)) {    // dawIBCkBoxL, dawIBCkBoxW, etc...
+            case 'L':   { code = ['L', 'W', 'R']; ss.left   = '';  ss.width  = box.W;  ss.right  = box.R;  break; }
+            case 'W':   { code = ['W', 'L', 'R']; ss.width  = '';  ss.left   = box.L;  ss.right  = box.R;  break; }
+            case 'R':   { code = ['R', 'L', 'W']; ss.right  = '';  ss.left   = box.L;  ss.width  = box.W;  break; }
+            case 'T':   { code = ['T', 'H', 'B']; ss.top    = '';  ss.height = box.H;  ss.bottom = box.B;  break; }
+            case 'H':   { code = ['H', 'T', 'B']; ss.height = '';  ss.top    = box.T;  ss.bottom = box.B;  break; }
+            case 'B':   { code = ['B', 'T', 'H']; ss.bottom = '';  ss.top    = box.T;  ss.height = box.H;  break; }
         }
 
-        frmSetEl(evt.currentTarget, code[0], null, false);
-        frmSetEl(evt.currentTarget, code[1], null, true);
-        frmSetEl(evt.currentTarget, code[2], null, true);
+        frmSetEl(code[0], null, false);
+        frmSetEl(code[1], null, true);
+        frmSetEl(code[2], null, true);
+        setFormVals();
     }
 }
-function preRun(form) {
-    const dch = FG.kmStates.dch;
-    const rect = dch._div.getBoundingClientRect();
-    frmSetEl(form, "L", parseInt(dch._div.style.left),   dch._div.style.left.length   > 0);
-    frmSetEl(form, "W", parseInt(dch._div.style.width),  dch._div.style.width.length  > 0);
-    frmSetEl(form, "R", parseInt(dch._div.style.right),  dch._div.style.right.length  > 0);
-    frmSetEl(form, "T", parseInt(dch._div.style.top),    dch._div.style.top.length    > 0);
-    frmSetEl(form, "H", parseInt(dch._div.style.height), dch._div.style.height.length > 0);
-    frmSetEl(form, "B", parseInt(dch._div.style.bottom), dch._div.style.bottom.length > 0);
 
+function setFormVals() {
+    const dch = FG.kmStates.dch;
+    function stringify(val) {
+        val = parseInt(val);
+        if (!val) {
+            return "";
+        }
+        return val.toString();
+    }
+    frmSetEl("L", stringify(dch._div.style.left),   dch._div.style.left.length   > 0);
+    frmSetEl("W", stringify(dch._div.style.width),  dch._div.style.width.length  > 0);
+    frmSetEl("R", stringify(dch._div.style.right),  dch._div.style.right.length  > 0);
+    frmSetEl("T", stringify(dch._div.style.top),    dch._div.style.top.length    > 0);
+    frmSetEl("H", stringify(dch._div.style.height), dch._div.style.height.length > 0);
+    frmSetEl("B", stringify(dch._div.style.bottom), dch._div.style.bottom.length > 0);
+}
+function preRun(form) {
+    formChanged = false;
+    const dch = FG.kmStates.dch;
+    formOrigVals = {
+        left:   dch._div.style.left,
+        width:  dch._div.style.width,
+        right:  dch._div.style.right,
+        top:    dch._div.style.top,
+        height: dch._div.style.height,
+        bottom: dch._div.style.bottom,
+    };
+    setFormVals();
     form.addEventListener("click", doFormClick);
+    form.addEventListener("input", doFormInput);
 }
 function postRun(form) {
+    form.removeEventListener("input", doFormInput);
     form.removeEventListener("click", doFormClick);
 }
+
 function onPopupClose(dict) {
+    if (!dict) {
+        const ss = FG.kmStates.dch._div.style;
+        ss.left   = formOrigVals.left;
+        ss.width  = formOrigVals.width;
+        ss.right  = formOrigVals.right;
+        ss.top    = formOrigVals.top;
+        ss.height = formOrigVals.height;
+        ss.bottom = formOrigVals.bottom;
+    } else {
+        if (formChanged) {
+            FF.autoSave(0);
+        }
+    }
+
 }
 function onContextDCHProps() {
     const dict={};//{foo:"bar"};
@@ -283,19 +370,19 @@ function dragMaskDiv() {
 
     if (kmask.lrMode.includes("L")) {
         kmask.el.style.left       = (kmask.left      + deltaX) + "px";
-        kmask.divGhost.style.left = (kmask.divGhostL + deltaX) + "px";
+        kmask.ghost.div.style.left = (kmask.ghost.L + deltaX) + "px";
     }
     if (kmask.lrMode.includes("R")) {
         kmask.el.style.right      = (kmask.right     - deltaX) + "px";
-        kmask.divGhost.style.left = (kmask.divGhostL + deltaX) + "px";
+        kmask.ghost.div.style.left = (kmask.ghost.L + deltaX) + "px";
     }
     if (kmask.tbMode.includes("T")) {
         kmask.el.style.top       = (kmask.top           + deltaY) + "px";
-        kmask.divGhost.style.top = (kmask.divGhostT     + deltaY) + "px";
+        kmask.ghost.div.style.top = (kmask.ghost.T     + deltaY) + "px";
     }
     if (kmask.tbMode.includes("B")) {
         kmask.el.style.bottom    = (kmask.bottom    - deltaY) + "px";
-        kmask.divGhost.style.top = (kmask.divGhostT + deltaY) + "px";
+        kmask.ghost.div.style.top = (kmask.ghost.T + deltaY) + "px";
     }
     FF.autoSave();          // autosave after 5 secs
 }
@@ -310,67 +397,67 @@ function sizeMaskDiv() {
         if (kmask.lrMode == "LW") {                                   // if el has style.left+style.width
             kmask.el.style.left       = (kmask.left       + deltaX) + "px";
             kmask.el.style.width       = (kmask.width     - deltaX) + "px";
-            kmask.divGhost.style.left = (kmask.divGhostL  + deltaX) + "px";
-            kmask.divGhost.style.width = (kmask.divGhostW - deltaX) + "px";
+            kmask.ghost.div.style.left = (kmask.ghost.L  + deltaX) + "px";
+            kmask.ghost.div.style.width = (kmask.ghost.W - deltaX) + "px";
         }
         if (kmask.lrMode == "RW") {                                   // if el has style.right+style.width
             kmask.el.style.width       = (kmask.width     - deltaX) + "px";
-            kmask.divGhost.style.left  = (kmask.divGhostL + deltaX) + "px";
-            kmask.divGhost.style.width = (kmask.divGhostW - deltaX) + "px";
+            kmask.ghost.div.style.left  = (kmask.ghost.L + deltaX) + "px";
+            kmask.ghost.div.style.width = (kmask.ghost.W - deltaX) + "px";
         }
         if (kmask.lrMode == "LR") {                                   // if el has style.left+style.right
             kmask.el.style.left        = (kmask.left      + deltaX) + "px";
-            kmask.divGhost.style.left  = (kmask.divGhostL + deltaX) + "px";
-            kmask.divGhost.style.width = (kmask.divGhostW - deltaX) + "px";
+            kmask.ghost.div.style.left  = (kmask.ghost.L + deltaX) + "px";
+            kmask.ghost.div.style.width = (kmask.ghost.W - deltaX) + "px";
         }
     }
     if (kmask.nesw.includes("n")) {                                         // move north wall
         if (kmask.tbMode == "TH") {                                   // if el has style.top+style.height
             kmask.el.style.top          = (kmask.top       + deltaY) + "px";
             kmask.el.style.height       = (kmask.height    - deltaY) + "px";
-            kmask.divGhost.style.top    = (kmask.divGhostT + deltaY) + "px";
-            kmask.divGhost.style.height = (kmask.divGhostH - deltaY) + "px";
+            kmask.ghost.div.style.top    = (kmask.ghost.T + deltaY) + "px";
+            kmask.ghost.div.style.height = (kmask.ghost.H - deltaY) + "px";
         }
         if (kmask.tbMode == "BH") {                                   // if el has style.right+style.height
             kmask.el.style.height       = (kmask.height    - deltaY) + "px";
-            kmask.divGhost.style.top    = (kmask.divGhostT + deltaY) + "px";
-            kmask.divGhost.style.height = (kmask.divGhostH - deltaY) + "px";
+            kmask.ghost.div.style.top    = (kmask.ghost.T + deltaY) + "px";
+            kmask.ghost.div.style.height = (kmask.ghost.H - deltaY) + "px";
         }
         if (kmask.tbMode == "TB") {                                   // if el has style.top+style.right
             kmask.el.style.top          = (kmask.top       + deltaY) + "px";
-            kmask.divGhost.style.top    = (kmask.divGhostL + deltaY) + "px";
-            kmask.divGhost.style.height = (kmask.divGhostH - deltaY) + "px";
+            kmask.ghost.div.style.top    = (kmask.ghost.L + deltaY) + "px";
+            kmask.ghost.div.style.height = (kmask.ghost.H - deltaY) + "px";
         }
     }
     if (kmask.nesw.includes("e")) {                                         // move east wall
         if (kmask.lrMode == "LW") {                                   // if el has style.left+style.width
             kmask.el.style.width       = (kmask.width     + deltaX) + "px";
-            kmask.divGhost.style.width = (kmask.divGhostW + deltaX) + "px";
+            kmask.ghost.div.style.width = (kmask.ghost.W + deltaX) + "px";
         }
         if (kmask.lrMode == "RW") {                                   // if el has style.right+style.width
             kmask.el.style.right       = (kmask.right     - deltaX) + "px";
             kmask.el.style.width       = (kmask.width     + deltaX) + "px";
-            kmask.divGhost.style.width = (kmask.divGhostW + deltaX) + "px";
+            kmask.ghost.div.style.width = (kmask.ghost.W + deltaX) + "px";
         }
         if (kmask.lrMode == "LR") {                                   // if el has style.left+style.right
             kmask.el.style.right       = (kmask.right     - deltaX) + "px";
-            kmask.divGhost.style.width = (kmask.divGhostW + deltaX) + "px";
+            kmask.ghost.div.style.width = (kmask.ghost.W + deltaX) + "px";
         }
     }
     if (kmask.nesw.includes("s")) {                                         // move north wall
         if (kmask.tbMode == "TH") {                                   // if el has style.top+style.height
             kmask.el.style.height       = (kmask.height    + deltaY) + "px";
-            kmask.divGhost.style.height = (kmask.divGhostH + deltaY) + "px";
+            kmask.ghost.div.style.height = (kmask.ghost.H + deltaY) + "px";
         }
         if (kmask.tbMode == "BH") {                                   // if el has style.right+style.height
             kmask.el.style.bottom     = (kmask.bottom    - deltaY) + "px";
             kmask.el.style.height       = (kmask.height    + deltaY) + "px";
-            kmask.divGhost.style.height = (kmask.divGhostH + deltaY) + "px";
+            kmask.ghost.div.style.height = (kmask.ghost.H + deltaY) + "px";
         }
         if (kmask.tbMode == "TB") {                                   // if el has style.top+style.right
             kmask.el.style.top          = (kmask.top       + deltaY) + "px";
-            kmask.divGhost.style.top    = (kmask.divGhostL + deltaY) + "px";
-            kmask.divGhost.style.height = (kmask.divGhostH - deltaY) + "px";
+            kmask.ghost.div.style.top    = (kmask.ghost.L + deltaY) + "px";
+            kmask.ghost.div.style.height = (kmask.ghost.H - deltaY) + "px";
         }
     }
     FF.autoSave();          // autosave after 5 secs
@@ -405,9 +492,9 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
         const tmp = FG.kmStates.dch && FG.kmStates.dch._div;
         if (FG.kmStates.dch != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
             if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
-                if (kmask.divGhost) {               // remove any exhisting gost
-                    div.removeChild(FG.kmStates.mask.divGhost);
-                    delete FG.kmStates.mask.divGhost;
+                if (kmask.ghost.div) {               // remove any exhisting gost
+                    div.removeChild(FG.kmStates.mask.ghost.div);
+                    delete FG.kmStates.mask.ghost;
                 }
             }
             kmask.el = el = tmp;
@@ -420,9 +507,9 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
         //         FG.kmStates.dch = tmp._dchHandler;
         //         if (tmp._dchHandler != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
         //             if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
-        //                 if (kmask.divGhost) {               // remove any exhisting gost
-        //                     div.removeChild(FG.kmStates.mask.divGhost);
-        //                     delete FG.kmStates.mask.divGhost;
+        //                 if (kmask.ghost) {               // remove any exhisting gost
+        //                     div.removeChild(FG.kmStates.mask.ghost.div);
+        //                     delete FG.kmStates.mask.ghost;
         //                 }
         //             }
         //             kmask.el = el = tmp;
@@ -440,9 +527,9 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
         return;
     }
     if (!el || el != kmask.el) {    // if we were over a dch el but we're not any more
-        if (kmask.divGhost) {
-            div.removeChild(FG.kmStates.mask.divGhost);
-            delete FG.kmStates.mask.divGhost;
+        if (kmask.ghost) {
+            div.removeChild(FG.kmStates.mask.ghost.div);
+            delete FG.kmStates.mask.ghost;
         }
     }
 
@@ -450,7 +537,7 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
     if (el) {
         rect = el.getBoundingClientRect();
     }
-    if (el && !FG.kmStates.mask.divGhost) {     // we're over an element but no ghost was created yet
+    if (el && !FG.kmStates.mask.ghost) {     // we're over an element but no ghost was created yet
         // let rect = window.getComputedStyle(el);
         let ghost = document.createElement("div");
         ghost.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
@@ -460,11 +547,13 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
         ghost.style.height  = rect.height + "px";
         ghost.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
         div.insertBefore(ghost, kmask.divMask);    // insert new div UNDER the divMask
-        kmask.divGhost = ghost;
-        kmask.divGhostL = rect.x;
-        kmask.divGhostT  = rect.y;
-        kmask.divGhostW = rect.width;
-        kmask.divGhostH = rect.height;
+        kmask.ghost = {
+            "div": ghost,
+            "L": rect.x,
+            "T": rect.y,
+            "W": rect.width,
+            "H": rect.height,
+        };
         kmask.lrMode = "";
         kmask.tbMode = "";
         if (el.style.left)  {  kmask.lrMode += "L"; kmask.left  = parseInt(el.style.left);  }
@@ -537,8 +626,8 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
             div.style.cursor = "";      // undo all cursor settings when commandState released
 
             if (FG.kmStates.mask) {
-                if (FG.kmStates.mask.divGhost) {
-                    div.removeChild(FG.kmStates.mask.divGhost);
+                if (FG.kmStates.mask.ghost) {
+                    div.removeChild(FG.kmStates.mask.ghost.div);
                 }
                 if (FG.kmStates.mask.divMask) {
                     div.removeChild(FG.kmStates.mask.divMask);
@@ -681,17 +770,19 @@ function onTkmContextMenu(evt) {
 let sizerStartPos = null;         // 'sizerStartPos' = mouse Operation (presently only for click+drag of divHandlers)
 function onTkmMousedown(evt) {
     if (evt.target.id == "divIndexDocSizer") {  // if clicked on the sizerBar
-        let m = {                       // create and init 'global' sizerStartPos object
-            startX:      evt.screenX,   // initial evt.screenX and Y (when mouse was pressed)
-            startY:      evt.screenY,
-        };
+        if (!FG.kmStates.modal) {               // and ONLY if a modal isn't open!
+            let m = {                       // create and init 'global' sizerStartPos object
+                startX:      evt.screenX,   // initial evt.screenX and Y (when mouse was pressed)
+                startY:      evt.screenY,
+            };
 
-        let style = getComputedStyle(evt.target);
-        m.dragBarLeft = parseInt(style.left);
-        m.dragBarWidth = parseInt(style.width);
-        evt.target.style.cursor = "grabbing";
+            let style = getComputedStyle(evt.target);
+            m.dragBarLeft = parseInt(style.left);
+            m.dragBarWidth = parseInt(style.width);
+            evt.target.style.cursor = "grabbing";
 
-        sizerStartPos = m;    // assign m to sizerStartPos to continue handling this op
+            sizerStartPos = m;    // assign m to sizerStartPos to continue handling this op
+        }
     } else {                                    // if clicked on something that's NOT the sizerBar
         // evt.stopPropagation();
         // evt.preventDefault();

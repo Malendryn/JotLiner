@@ -1,7 +1,12 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-09 ------------------------------------------------------------------------------------------------------------
+* fixed some issues with being able to drag sizer or select indexEntries while a modal was open
+* fixed an issue where it wasnt properly loading 'empty' documents sometimes (docs with nothing but the starter BOX)
+* fixed bug in importer where a 'KEYWRD=0;' (where datalen = 0), caused data to come in as undefined rather than ""
+* got the properties box working!  anchors and positionals all work, even cancel and autoSave works!
+
 2025-05-08 ------------------------------------------------------------------------------------------------------------
 * tooltips now show in context menus
 * fixed problem with toolbars not showing when node selected

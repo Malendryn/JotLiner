@@ -1,10 +1,13 @@
 -----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
 
-* add a renameoption (or new document popup but as renamer) to the docTree
-* make docTree submenu items ('>') collapsible
-* make docTree dragdrop work properly!  (reordering of doctree documents)
+WORKING ON properties window, lets get that going!  
+START BY making popups draggable!  
+
 * make Properties window draggable
+* make docTree dragdrop work properly!  (reordering of doctree documents)
+
+* add a renameoption (or new document popup but as renamer) to the docTree
 
 * scrollbars on DCH_BOXes  (see DETAIL: scrollbars below) particularly as this may change doc1.0 format
 * move docs (grag, in/out depth too)

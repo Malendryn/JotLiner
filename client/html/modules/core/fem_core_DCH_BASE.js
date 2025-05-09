@@ -73,9 +73,10 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
             if (dch.parent == null) {                               // if self has no parent...
                 parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
             } else {
-                parentDiv = dch.parent._div                     // else attach to parent's <div>
+                parentDiv = dch.parent._div                         // else attach to parent's <div>
             }
-            dch._div.style.position = "absolute";            // the wrapping 'dch._div' is ALWAYS absolute!
+            dch._div.style.position = "absolute";        // the wrapping 'dch._div' is ALWAYS absolute!
+            dch._div.style.boxSizing  = "border-box";    // prevent adding padding and borders to dch's .getBoundingClientRect()
             parentDiv.appendChild(dch._div);
             if (style) {
                 for (const key in style) {              // get and parse the style values
@@ -90,9 +91,9 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
                     }
                 }
 //RSTEMP get-us-going mods to experiment on the el
-dch._div.style.border = "1px solid black";
+dch._div.style.border     = "1px solid black";
 // dch._div.style.backgroundColor = "lightsalmon";
-dch._div.style.overflow = "hidden";
+dch._div.style.overflow   = "hidden";
 dch._div.style.whiteSpace = "nowrap";
 //RSTEMP.end
             }
