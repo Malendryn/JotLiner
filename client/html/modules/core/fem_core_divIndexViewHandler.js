@@ -60,11 +60,11 @@ FF.newDoc = async () => {
     
     // then create a new doc by adding a single BOX handler as the docRoot
     const dch = await FG.DCH_BASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel DOC object
-    dch._div.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch._div.style.top/bottom/etc during exportDoc()
-    dch._div.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
-    dch._div.style.right  = "0px";
-    dch._div.style.bottom = "0px";
-    dch._div.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
+    dch.__sysDiv.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.__sysDiv.style.top/bottom/etc during exportDoc()
+    dch.__sysDiv.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
+    dch.__sysDiv.style.right  = "0px";
+    dch.__sysDiv.style.bottom = "0px";
+    dch.__sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
     FG.curDoc = {
         uuid:    FF.makeUUID(),
         rootDch: dch,
@@ -154,7 +154,7 @@ let draggedItem       = null;                             // ptr to <li> current
 let placeholder       = document.createElement('div');    // create the thin-black-line that shows where a dragDrop will go on dragEnd
 placeholder.className = 'placeholder';
 
-// div.addEventListener('click',       onLeftClick);      // add left,right click listeners on entire divIndexView
+// div.addEventListener('click',       onLeftClick);      // add left,right click listeners on entire divIndexView (no! added below)
 div.addEventListener("contextmenu", onContextMenu);
 
 let ul = document.createElement("ul");          // create the topmost <ul> for the index view & attach all listeners
@@ -164,6 +164,7 @@ ul.addEventListener('dragover',    onDragOver);
 ul.addEventListener('dragend',     onDragEnd);
 ul.addEventListener('click',       onClickULItem);
 div.appendChild(ul);
+// end .js initialization ///////////////////////////////////////////////////////////////////////////////////////////
 
 
 async function showDocTree() { // build <UL> to display in left index pane

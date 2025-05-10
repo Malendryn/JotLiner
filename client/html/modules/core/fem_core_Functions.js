@@ -23,7 +23,7 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 pkt    = makePacket(name)               create and return a new packet
 pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 
-==== FROM fem_core_divIndexViewHandler.js =============================================================================
+==== FROM fem_core__sysDivIndexViewHandler.js =============================================================================
 -------- async loadDoc(uuid,force)            fetch doc from backend, update display
 -------- async selectAndLoadDoc(uuid,force)   update selection in indexView, load selected doc in dchView
 

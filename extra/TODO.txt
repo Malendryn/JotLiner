@@ -26,6 +26,8 @@ START BY making popups draggable!
     MDN Markdown (Github compatible)
 
 -----------------------------------------------------------------------------------------------------------------------
+don't forget that when we add the Colorpikr to license it appropriately!
+-----------------------------------------------------------------------------------------------------------------------
 TODO
 * in the left pane we have <ul> with a single depth of <li>, we really should think about using the builtIn multidepth
     ability of <ul><li><ul...deeper>  autoexpander/shrinker rather than constructing our own using the <div>'s

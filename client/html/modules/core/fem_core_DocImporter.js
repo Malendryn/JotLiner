@@ -64,7 +64,7 @@ export class DocImporter {   // create and return a DCH from a stream
     sr;
     rootDch;
 
-    async attach(str, parent)  {        // attach as child of parent._div  (or to "divDocView" if parent=null)
+    async attach(str, parent)  {        // attach as child of parent.__sysDiv  (or to "divDocView" if parent=null)
         this.sr = new StringReader(str);
         this.docVer = FG.VERSION;       // STARTWITH matching the sysVersion (so copypaste always compares to proper version)
         this.rootDch = null;

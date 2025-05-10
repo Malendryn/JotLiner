@@ -30,12 +30,12 @@ export class DocExporter {
         }
         let str = "";
         if (dch.hasDiv) {
-            if (dch._div.style.left   != '') {  str += this._elToStr("L", parseInt(dch._div.style.left));   }
-            if (dch._div.style.right  != '') {  str += this._elToStr("R", parseInt(dch._div.style.right));  }
-            if (dch._div.style.width  != '') {  str += this._elToStr("W", parseInt(dch._div.style.width));  }
-            if (dch._div.style.top    != '') {  str += this._elToStr("T", parseInt(dch._div.style.top));    }
-            if (dch._div.style.bottom != '') {  str += this._elToStr("B", parseInt(dch._div.style.bottom)); }
-            if (dch._div.style.height != '') {  str += this._elToStr("H", parseInt(dch._div.style.height)); }
+            if (dch.__sysDiv.style.left   != '') {  str += this._elToStr("L", parseInt(dch.__sysDiv.style.left));   }
+            if (dch.__sysDiv.style.right  != '') {  str += this._elToStr("R", parseInt(dch.__sysDiv.style.right));  }
+            if (dch.__sysDiv.style.width  != '') {  str += this._elToStr("W", parseInt(dch.__sysDiv.style.width));  }
+            if (dch.__sysDiv.style.top    != '') {  str += this._elToStr("T", parseInt(dch.__sysDiv.style.top));    }
+            if (dch.__sysDiv.style.bottom != '') {  str += this._elToStr("B", parseInt(dch.__sysDiv.style.bottom)); }
+            if (dch.__sysDiv.style.height != '') {  str += this._elToStr("H", parseInt(dch.__sysDiv.style.height)); }
             str = this._elToStr("<>", str);             // now wrap it all in a "<>" 
         }
         let data = await dch.exportData();

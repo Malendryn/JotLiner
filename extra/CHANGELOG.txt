@@ -1,6 +1,12 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+* changed DCH_BASE._div to .__sysDiv to clarify 'owned by system, do not touch
+* added _host to DCH_BASE and this is NOW where the dch itself puts its stuff! (this is where transformXY will happen)
+* moved refs to _div to the new _host on all children of DCH_BASE
+* decided to change _host to rootDiv and _tBar to toolbar to remove the 'privateness' of them
+* changed _path to srcUrl too to keep the _ and __ hidden'ness more cannon.
+
 2025-05-09 ------------------------------------------------------------------------------------------------------------
 * fixed some issues with being able to drag sizer or select indexEntries while a modal was open
 * fixed an issue where it wasnt properly loading 'empty' documents sometimes (docs with nothing but the starter BOX)

@@ -1,8 +1,12 @@
 -----------------------------------------------------------------------------------------------------------------------
-when I create a new CTE, then leave the doc and come back it shows 'undefined' as its content
 -----------------------------------------------------------------------------------------------------------------------
+broke the checkboxes on the properties popup
 -----------------------------------------------------------------------------------------------------------------------
+the cancel/save buttons on popups look good on the properties window but are broken on the new document window
+  (put the contents of the form into its own div and that may solve it)
 -----------------------------------------------------------------------------------------------------------------------
+when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the parent the '>'
+arrow, but does not OPEN the arrow to show the newly inserted document
 -----------------------------------------------------------------------------------------------------------------------
 when we rightclick to open properties, we lose the ghost, can we find a way to keep the ghost there until that menu
 goes away (and consequently the properties dialog too?)
@@ -12,9 +16,11 @@ When dragging a node inside a box, and it causes scrollbars to appear/disappear,
     everything 'jumped'
     We may need to fetch the boxes TRBL and push it on the ghost rather than calcing it from real mousepos
 -----------------------------------------------------------------------------------------------------------------------
-deselecting index pane entries doesnt always happen, so we end up with multiple selections ... why?
 -----------------------------------------------------------------------------------------------------------------------
-if I rightclick to open a popup, it stops all events in the dch pane but not the dragbar or index pane
+since we now have .modal we really don't need the overlay-above-ghost at all.  we're already trapping/preventing actions
+at the highest level so we can actually remove that <div>
+
+
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
@@ -25,6 +31,8 @@ if I rightclick to open a popup, it stops all events in the dch pane but not the
 -----------------------------------------------------------------------------------------------------------------------
 BUG: (?unfixable?) when prog starts, if I ctrl+alt and rightclick in the INDEX frame, I get the 'new document' context menu
 but if I close the menu, then re-press ctrl+alt and rightclick, no menu appears.  this is odd.
+
+Maybe throw up some kind of a START SCREEN which forces them to click on it to engage focus
 
 it also DOESNT happen if I just hit reload, it ONLY happens if I close and start the program anew
 

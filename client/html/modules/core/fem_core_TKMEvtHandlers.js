@@ -163,7 +163,7 @@ function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND s
 function doFormInput(evt) {
     console.log(FF.__FILE__());
     formChanged = true;
-    let ss = FG.kmStates.dch._div.style;
+    let ss = FG.kmStates.dch.__sysDiv.style;
     switch(evt.target.id.charAt(10)) {    // dawIBInputL, dawIBInputW, etc...
         case 'L':   { ss.left   = evt.target.value + "px";  break; }
         case 'W':   { ss.width  = evt.target.value + "px";  break; }
@@ -173,33 +173,16 @@ function doFormInput(evt) {
         case 'B':   { ss.bottom = evt.target.value + "px";  break; }
     }
 }
-// function doFormClick(evt) {
-//     const id = evt.target.id;
-//     if (id.startsWith("dawIBCkBox")) {
-//         let code;
-//         const chr = id.charAt(10);  // dawIBCkBoxL, dawIBCkBoxW, etc...
-//         switch(id.charAt(10)) {  
-//             case 'L':   {   code = ['L', 'W', 'R']; break;  }
-//             case 'W':   {   code = ['W', 'L', 'R']; break;  }
-//             case 'R':   {   code = ['R', 'L', 'W']; break;  }
-//             case 'T':   {   code = ['T', 'H', 'B']; break;  }
-//             case 'H':   {   code = ['H', 'T', 'B']; break;  }
-//             case 'B':   {   code = ['B', 'T', 'H']; break;  }
-//         }
 
-//         frmSetEl(code[0], null, false);
-//         frmSetEl(code[1], null, true);
-//         frmSetEl(code[2], null, true);
-//     }
-// }
+
 let formChanged;
 let formOrigVals;
 function doFormClick(evt) {
     if (evt.target.id.startsWith("dawIBCkBox")) {
         formChanged = true;
         const dch = FG.kmStates.dch;
-        const rect = dch._div.getBoundingClientRect();
-        const pRect = dch.parent._div.getBoundingClientRect();
+        const rect = dch.__sysDiv.getBoundingClientRect();
+        const pRect = dch.parent.__sysDiv.getBoundingClientRect();
         const id = evt.target.id;
         const box = { 
             L: rect.left - pRect.left - 1 + "px", 
@@ -210,7 +193,7 @@ function doFormClick(evt) {
             B: pRect.height - ((rect.top - pRect.top - 1) + rect.height) + "px",
         };
         let code;
-        let ss = dch._div.style;
+        let ss = dch.__sysDiv.style;
         switch(id.charAt(10)) {    // dawIBCkBoxL, dawIBCkBoxW, etc...
             case 'L':   { code = ['L', 'W', 'R']; ss.left   = '';  ss.width  = box.W;  ss.right  = box.R;  break; }
             case 'W':   { code = ['W', 'L', 'R']; ss.width  = '';  ss.left   = box.L;  ss.right  = box.R;  break; }
@@ -231,28 +214,28 @@ function setFormVals() {
     const dch = FG.kmStates.dch;
     function stringify(val) {
         val = parseInt(val);
-        if (!val) {
-            return "";
+        if (Number.isNaN(val)) {
+            return "0";
         }
         return val.toString();
     }
-    frmSetEl("L", stringify(dch._div.style.left),   dch._div.style.left.length   > 0);
-    frmSetEl("W", stringify(dch._div.style.width),  dch._div.style.width.length  > 0);
-    frmSetEl("R", stringify(dch._div.style.right),  dch._div.style.right.length  > 0);
-    frmSetEl("T", stringify(dch._div.style.top),    dch._div.style.top.length    > 0);
-    frmSetEl("H", stringify(dch._div.style.height), dch._div.style.height.length > 0);
-    frmSetEl("B", stringify(dch._div.style.bottom), dch._div.style.bottom.length > 0);
+    frmSetEl("L", stringify(dch.__sysDiv.style.left),   dch.__sysDiv.style.left.length   > 0);
+    frmSetEl("W", stringify(dch.__sysDiv.style.width),  dch.__sysDiv.style.width.length  > 0);
+    frmSetEl("R", stringify(dch.__sysDiv.style.right),  dch.__sysDiv.style.right.length  > 0);
+    frmSetEl("T", stringify(dch.__sysDiv.style.top),    dch.__sysDiv.style.top.length    > 0);
+    frmSetEl("H", stringify(dch.__sysDiv.style.height), dch.__sysDiv.style.height.length > 0);
+    frmSetEl("B", stringify(dch.__sysDiv.style.bottom), dch.__sysDiv.style.bottom.length > 0);
 }
 function preRun(form) {
     formChanged = false;
     const dch = FG.kmStates.dch;
     formOrigVals = {
-        left:   dch._div.style.left,
-        width:  dch._div.style.width,
-        right:  dch._div.style.right,
-        top:    dch._div.style.top,
-        height: dch._div.style.height,
-        bottom: dch._div.style.bottom,
+        left:   dch.__sysDiv.style.left,
+        width:  dch.__sysDiv.style.width,
+        right:  dch.__sysDiv.style.right,
+        top:    dch.__sysDiv.style.top,
+        height: dch.__sysDiv.style.height,
+        bottom: dch.__sysDiv.style.bottom,
     };
     setFormVals();
     form.addEventListener("click", doFormClick);
@@ -265,7 +248,7 @@ function postRun(form) {
 
 function onPopupClose(dict) {
     if (!dict) {
-        const ss = FG.kmStates.dch._div.style;
+        const ss = FG.kmStates.dch.__sysDiv.style;
         ss.left   = formOrigVals.left;
         ss.width  = formOrigVals.width;
         ss.right  = formOrigVals.right;
@@ -320,8 +303,8 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
         entries.push(["setProps", "Properties", "Modify the anchors, border, background color, etc"]);
     }
 
-    const rect = dch._div.getBoundingClientRect();
-    const startX = FG.kmStates.clientX - rect.left; // calc mouseXY relative to dch._div rect
+    const rect = dch.__sysDiv.getBoundingClientRect();
+    const startX = FG.kmStates.clientX - rect.left; // calc mouseXY relative to dch.__sysDiv rect
     const startY = FG.kmStates.clientY - rect.top;
     async function callback(action) { 
         if (action.startsWith("insert_")) {
@@ -489,7 +472,7 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
         el = kmask.el;          // ref the dch el for working with below
     } else {                    // else find dch el to use
         FG.kmStates.dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
-        const tmp = FG.kmStates.dch && FG.kmStates.dch._div;
+        const tmp = FG.kmStates.dch && FG.kmStates.dch.__sysDiv;
         if (FG.kmStates.dch != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
             if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
                 if (kmask.ghost.div) {               // remove any exhisting gost
@@ -500,24 +483,6 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
             kmask.el = el = tmp;
             kmask.nesw = "";    // set this right away to prevent possible tripup later on
         }
-        // const list = document.elementsFromPoint(FG.kmStates.clientX, FG.kmStates.clientY);
-        // for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
-        //     const tmp = list[idx];
-        //     if (tmp._dchMouseOp == "dchComponent") {
-        //         FG.kmStates.dch = tmp._dchHandler;
-        //         if (tmp._dchHandler != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
-        //             if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
-        //                 if (kmask.ghost) {               // remove any exhisting gost
-        //                     div.removeChild(FG.kmStates.mask.ghost.div);
-        //                     delete FG.kmStates.mask.ghost;
-        //                 }
-        //             }
-        //             kmask.el = el = tmp;
-        //             kmask.nesw = "";    // set this right away to prevent possible tripup later on
-        //         }
-        //         break;
-        //     }
-        // }
     }
     if (FG.kmStates.btnRight && FG.kmStates.dch) {  // if contextMenu button down, ...
         let tmp = document.getElementById("sysContextMenu");
@@ -615,7 +580,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
     let newCmd = (FG.kmStates.keyCtrl && FG.kmStates.keyAlt);
     if (oldCmd != newCmd) {                                // if commandState changed
         if (newCmd) {                                      // if commandState started     
-            const el = document.createElement("div");
+            const el = document.createElement("div");      // create the overlay mask
             el.style.position = "absolute";
             el.style.inset = "0px";
             div.appendChild(el);
@@ -651,7 +616,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
                     child.style.display="none";         // hide all toolbars then...
                 }
                 if (dch.hasToolbar) {
-                    dch._tBar.style.display = "block";                    
+                    dch.toolbar.style.display = "block";                    
                 }
             }
         }

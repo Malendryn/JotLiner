@@ -57,7 +57,7 @@ window.addEventListener('load', async function() {
             // console.log(">", dchName);
             let mod = await FF.loadModule(path + "/dch_" + dchName + ".js")
             let dch = mod.DCH;                      // get class out of module, discard module
-            dch._path = path;                   // set path to module's dir so module can load its own files/icons if needed
+            dch.srcUrl = path;                   // set path to module's dir so module can load its own files/icons if needed
             // console.log("<", dchName);
             DCH[dchName] = dch;
         }

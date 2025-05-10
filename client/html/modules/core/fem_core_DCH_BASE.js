@@ -8,41 +8,43 @@
 
 // NOTE: do not instance any DCH class directly, use FG.DCH_BASE.create() instead
 
-
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
-    hasDiv = true;          // true = create 'this._div' @ construction AND read styles from stream when created via DocImporter
-    hasToolbar = false;     // true = create this._tBar' @ construction
+    hasDiv = true;          // true = create 'this.__sysDiv' @ construction AND read styles from stream when created via DocImporter
+    hasToolbar = false;     // true = create this.toolbar' @ construction
 
     parent;          // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
-    _div = null;     // OWNEDBY BASE! ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
-                     // the parent of every other element created by this component (autocreated during create())
-    _tBar = null;    // OWNEDBY BASE! ... if hasDiv==true, this is handle to an 'absolute' <div> to build a toolbar in.
-                     // user 'owns' content, (use this.addListener this.removeDCHListenerBy<choice>())
     children = null; // if null, !allow children, if [], allows children, (imp/export, create/delete auto-handles it)
 
-    static _path = ""; // relative path to this module's subdir (so module can access its own icons, etc...)
+// *** these next few are where inheriting classes add their own html elements.  these should never be modified in any other way. ***
+    rootDiv = null;    // ownedBy BASE. if hasDiv:     an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
+    toolbar = null;    // ownedBy BASE. if hasToolbar: an 'absolute' <div> where child classes add 'icons and toolbar stuff' to
+                     // for listeners, use this.addDCHListener() & this.removeDCHListener...()  so dch can autoremove when destroying
 
-    static menuText    = null; // text to show in 'add editor' menu (skipped if null)
-    static menuTooltip = null; // tooltip to show when hovering over menuText
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// these next values are static so we can access them at the class level for building menus and accessing files, etc
+    static srcUrl = "";        // SYSTEM supplied; (do not change!) relative url to module's subdir (so can access own icons, etc...)
+    static menuText    = null; // CHILD supplied;  text to show in 'add editor' menus (skipped if null)
+    static menuTooltip = null; // CHILD supplied;  tooltip to show when hovering over menuText in menus (skipped if null)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-MUST-IMPLEMENT functions -------------------------------------------------------------------------------------
-// ****NOTE it is CRITICAL that these functions fully complete their ops before returning (async/await)
-    //        async construct(data=null)     // called by static create() after <div> created and styles applied
-                                                // if data != null then it contains a {} of data to be put on the object
-                                                // in here is where to add your own <el>s and listeners
+// ****NOTE it is CRITICAL that these functions fully complete their ops before returning (EG must be async/await)
+    //        async construct(data=null)     // called by static create() after this.rootDiv created and saved styles applied
+                                                // if data != null, it contains a {} of data to be put on 'this' as properties
+                                                // in here is where to add your own <el>s and listeners to .rootDiv, etc..
+    //        async destruct()               // called immediately before removing all listeners and html, and destroying object
     //        async importData(data)         // populate this component with data{} (calls Object.assign if NOT overridden)
     // text = async exportData()             // return data to be preserved/exported as a {}
     
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create/destroy helper functions on baseclass (do not override!)----------------------------------------------------
-    // handler = async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
-                            // whos parent is parent
-                            // and if .hasDiv and style populate div style with style data
-                            // finally call this.construct() for post-construction activities
+    //  async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
+                    // whos parent is parent
+                    // and if .hasDiv and style populate div style with style data
+                    // finally call this.construct() for post-construction activities
 
-    //           destroy(); // recursive, calls this.destruct(), then removes all listeners, then destroys it
+    //  async destroy(); // recursive, calls this.destruct(), then removes all listeners, then destroys it
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // listener add/remove functions --------------------------------------------------------------------------------------
@@ -56,59 +58,64 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 // internal functions,  (do not override!)-----------------------------------------------------------------------------
 //  none!
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// system-only properties, they should never be modified by the child class in any way
+
+__sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
+// the parent of every other element created by this component (autocreated during create())
+
+
     static async create(dchName, parent=null, style=null) {
-        // const path = "./modules/DocComponentHandlers/" + dchName;        // modules are now preloaded in index.js (cuz 'menu')
-        // debugger; if (!DCH.hasOwnProperty(dchName)) {          // load the module(plugin) if not already loaded
-        //     const dch = await FF.loadModule(path + "/dch_" + dchName + ".js")
-        //     DCH[dchName] = dch.DCH;
-        // }
         const dch = new DCH[dchName]();         // create handler, do nothing else!
         dch.parent = parent;
         if (dch.hasDiv) {                                   // is dch a visible object that needs a <div> to render in? 
-            dch._div = document.createElement("div");       // create div
-            dch._div.tabIndex = -1;                         // doing this makes the ._div focussable but not tabbable
-            dch._div._dchHandler = dch;                     // flag to let me work with it from any child
-            dch._div._dchMouseOp = "dchComponent";          // if this was clicked we're looking to operate on the dch <div> itself
+            dch.__sysDiv = document.createElement("div");       // create div
+            dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
+            dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
+            dch.__sysDiv._dchMouseOp = "dchComponent";          // to let us know via mouse/kbd evts that this is <el> is a dch component
             let parentDiv;
             if (dch.parent == null) {                               // if self has no parent...
                 parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
             } else {
-                parentDiv = dch.parent._div                         // else attach to parent's <div>
+                parentDiv = dch.parent.rootDiv                    // else attach to parent's rootDiv <div>
             }
-            dch._div.style.position = "absolute";        // the wrapping 'dch._div' is ALWAYS absolute!
-            dch._div.style.boxSizing  = "border-box";    // prevent adding padding and borders to dch's .getBoundingClientRect()
-            parentDiv.appendChild(dch._div);
+            dch.__sysDiv.style.position  = "absolute";      // the wrapping 'dch.__sysDiv' is ALWAYS absolute!
+            dch.__sysDiv.style.boxSizing = "border-box";    // prevent adding padding and borders to dch's .getBoundingClientRect()
+            dch.__sysDiv.style.padding   = "0px";
+            dch.__sysDiv.style.margin    = "0px";
+            parentDiv.appendChild(dch.__sysDiv);
+            dch.rootDiv = document.createElement("div");  // this is now where all child elements get appended to
+            dch.rootDiv.style.position = "absolute";
+            if (this.children == null) {                // if this dcHandler can't have children....
+                dch.rootDiv.style.inset = "0px";          // make sure this div stays sized to the __sysDiv
+            }
+            dch.__sysDiv.appendChild(dch.rootDiv);      
+
             if (style) {
                 for (const key in style) {              // get and parse the style values
                     const val = style[key] + "px";      // get the value and append "px"
                     switch(key) {
-                        case 'L':   dch._div.style.left   = val;   break;
-                        case 'R':   dch._div.style.right  = val;   break;
-                        case 'W':   dch._div.style.width  = val;   break;
-                        case 'T':   dch._div.style.top    = val;   break;
-                        case 'B':   dch._div.style.bottom = val;   break;
-                        case 'H':   dch._div.style.height = val;   break;
+                        case 'L':   dch.__sysDiv.style.left   = val;   break;
+                        case 'R':   dch.__sysDiv.style.right  = val;   break;
+                        case 'W':   dch.__sysDiv.style.width  = val;   break;
+                        case 'T':   dch.__sysDiv.style.top    = val;   break;
+                        case 'B':   dch.__sysDiv.style.bottom = val;   break;
+                        case 'H':   dch.__sysDiv.style.height = val;   break;
                     }
                 }
-//RSTEMP get-us-going mods to experiment on the el
-dch._div.style.border     = "1px solid black";
-// dch._div.style.backgroundColor = "lightsalmon";
-dch._div.style.overflow   = "hidden";
-dch._div.style.whiteSpace = "nowrap";
-//RSTEMP.end
             }
         }
         if (dch.hasToolbar) {
-            dch._tBar = document.createElement("div");
-            dch._tBar._dchHandler = dch;                      // same for the _tBar
-            dch._tBar._dchMouseOp = "dchToolBtn";
-            dch._tBar.style.position = "absolute";
-            dch._tBar.style.inset = "0px 0px 0px 0px";       // top, right, bottom, left
-            dch._tBar.style.backgroundColor = "rgb(155, 253, 161)";
-            dch._tBar.style.display = "none";                // do not display it at creation time!
+            dch.toolbar = document.createElement("div");
+            dch.toolbar._dchHandler = dch;                      // same for the toolbar
+            dch.toolbar._dchMouseOp = "dchToolBtn";
+            dch.toolbar.style.position = "absolute";
+            dch.toolbar.style.inset = "0px 0px 0px 0px";       // top, right, bottom, left
+            dch.toolbar.style.backgroundColor = "rgb(155, 253, 161)";
+            dch.toolbar.style.display = "none";                // do not display it at creation time!
             
             let parentDiv = document.getElementById("divToolbar");
-            parentDiv.appendChild(dch._tBar);                // add the _tBar as a direct child of "divToolBar"
+            parentDiv.appendChild(dch.toolbar);                // add the toolbar as a direct child of "divToolBar"
         }
         
         dch.construct();
@@ -117,9 +124,10 @@ dch._div.style.whiteSpace = "nowrap";
 
     async importData(data) {Object.assign(this, data); }   // *overridable* populate this component with data
     async exportData()     { return {}; }                  // *overridable* return data to be preserved/exported as a {}
-
+    async destruct()       {}                              // *overridable* do any other kind of cleanup before class destruction
 
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
+        await this.destruct();
         if (this.children != null) {                                        // if this dcHandler CAN have children....
             for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy them (in reverse order cuz 'parent.splice()'
                 await this.children[idx].destroy();
@@ -134,11 +142,11 @@ dch._div.style.whiteSpace = "nowrap";
                 }                
             }
         }
-        if (this.hasDiv && this._div) {
-            this._div.remove();
+        if (this.hasDiv && this.__sysDiv) {
+            this.__sysDiv.remove();
         }
-        if (this.hasToolbar && this._tBar) {
-            this._tBar.remove();
+        if (this.hasToolbar && this.toolbar) {
+            this.toolbar.remove();
         }
     }
 
