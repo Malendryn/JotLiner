@@ -7,6 +7,7 @@
 // ALL components are always inside a <div> that is 'absolute', with all measurements done in pixels
 
 // NOTE: do not instance any DCH class directly, use FG.DCH_BASE.create() instead
+FG._idCounter = 0;
 
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
@@ -14,7 +15,6 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     hasToolbar = false;     // true = create this.toolbar' @ construction
 
     parent;          // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
-    children = null; // if null, !allow children, if [], allows children, (imp/export, create/delete auto-handles it)
 
 // *** these next few are where inheriting classes add their own html elements.  these should never be modified in any other way. ***
     host    = null;    // ownedBy BASE. if hasDiv:     an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
@@ -28,7 +28,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     static menuTooltip = null; // CHILD supplied;  tooltip to show when hovering over menuText in menus (skipped if null)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// child-MUST-IMPLEMENT functions -------------------------------------------------------------------------------------
+// child-CAN-IMPLEMENT functions -------------------------------------------------------------------------------------
 // ****NOTE it is CRITICAL that these functions fully complete their ops before returning (EG must be async/await)
     //        async construct(data=null)     // called by static create() after this.host created and saved styles applied
                                                 // if data != null, it contains a {} of data to be put on 'this' as properties
@@ -38,13 +38,15 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     // text = async exportData()             // return data to be preserved/exported as a {}
     
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// create/destroy helper functions on baseclass (do not override!)----------------------------------------------------
+// create/destroy and other helper functions on baseclass (do not override!)----------------------------------------------------
     //  async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
                     // whos parent is parent
                     // and if .hasDiv and style populate div style with style data
                     // finally call this.construct() for post-construction activities
 
     //  async destroy(); // recursive, calls this.destruct(), then removes all listeners, then destroys it
+
+    // async loadCss("file.css")  // attach a <link rel="stylesheet" href="<yourmodulepath>/file.css"> to the <head>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // listener add/remove functions --------------------------------------------------------------------------------------
@@ -66,15 +68,17 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // system-only properties, they should never be modified by the child class in any way
 
-__sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that must be
-// the parent of every other element created by this component (autocreated during create())
+__sysDiv = null;     // ownedBy DCH_BASE. ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that is
+                     // the parent of every other element created by this component (autocreated during create())
 
 
     static async create(dchName, parent=null, style=null) {
-        const dch = new DCH[dchName]();         // create handler, do nothing else!
+        const dch = new DCH[dchName].dchClass();            // create handler, do nothing else!
+        dch.srcUrl = DCH[dchName].srcUrl;                   // set the path to its available content
         dch.parent = parent;
-        if (dch.hasDiv) {                                   // is dch a visible object that needs a <div> to render in? 
+        if (dch.hasDiv) {                                       // is dch a visible object that needs a <div> to render in? 
             dch.__sysDiv = document.createElement("div");       // create div
+            dch.__sysDiv.id = (FG._idCounter++).toString();
             dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
             dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
             dch.__sysDiv._dchMouseOp = "dchComponent";          // to let us know via mouse/kbd evts that this is <el> is a dch component
@@ -91,12 +95,26 @@ __sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handl
             dch.__sysDiv.style.minWidth = "20px";
             dch.__sysDiv.style.minHeight = "20px";
             parentDiv.appendChild(dch.__sysDiv);
-            dch.host = document.createElement("div");  // this is now where all child elements get appended to
-            dch.host.style.position = "absolute";
-            if (this.children == null) {                // if this dcHandler can't have children....
-                dch.host.style.inset = "0px";          // make sure this div stays sized to the __sysDiv
+
+            if (dchName == "BOX") {                    // if it's a BOX, DON'T give it a shadowDom! 
+                dch.host = document.createElement("div");   // this is now where all child elements get appended to
+                dch.host.id = (FG._idCounter++).toString();
+                dch.host.style.position = "absolute";
+                dch.host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
+                dch.__sysDiv.appendChild(dch.host);      
+            } else {                                // if it's NOT a BOX, give it a shadowDom!
+                dch.__host = document.createElement("div"); 
+                dch.__host.id = (FG._idCounter++).toString();
+                dch.__host.style.position = "absolute";
+                dch.__host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
+                dch.__sysDiv.appendChild(dch.__host);      
+                dch.__shadow = dch.__host.attachShadow({ mode: "open" });
+                dch.__host.classList.add("shadowBox");            // see index.css
+                // dch.__host.classList.add("disable");           // dont add this here, example only!
+                dch.host = document.createElement("div")          // this is now where all child elements get appended to
+                dch.host.id = (FG._idCounter++).toString();
+                dch.host = dch.__shadow.appendChild(dch.host);    // give it its first element as it has none to start with
             }
-            dch.__sysDiv.appendChild(dch.host);      
 
             if (style) {
                 for (const key in style) {              // get and parse the style values
@@ -125,7 +143,7 @@ __sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handl
             parentDiv.appendChild(dch.toolbar);                // add the toolbar as a direct child of "divToolBar"
         }
         
-        dch.construct();
+        await dch.construct();
         return dch;
     }
 
@@ -134,22 +152,8 @@ __sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handl
     async destruct()       {}                              // *overridable* do any other kind of cleanup before class destruction
 
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
+        FF.removeAllTrackedListeners(this.__sysDiv);      // remove all listeners registered to this dch FIRST
         await this.destruct();
-        if (this.children != null) {                                        // if this dcHandler CAN have children....
-            for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy them (in reverse order cuz 'parent.splice()'
-                await this.children[idx].destroy();
-            }
-        }
-//        debugger; this.removeAllDCHListeners();      // remove all listeners registered to this dch
-        FF.removeAllTrackedListeners(this.__sysDiv);      // remove all listeners registered to this dch
-        if (this.parent) {
-            for (let idx = this.parent.children.length - 1; idx >= 0; idx--) {  // remove 'this' from parent.children
-                if (this.parent.children[idx] == this) {
-                    this.parent.children.splice(idx, 1);
-                    break;
-                }                
-            }
-        }
         if (this.hasDiv && this.__sysDiv) {
             this.__sysDiv.remove();
         }
@@ -158,10 +162,26 @@ __sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handl
         }
     }
 
-
-    static __registeredEventListeners = [];     // [[id, dch(this), el, action, callback, opts]]
-    static __nextListenerId = 1;
     
+    async loadCss(cssFile) {
+        // console.log(FF.__FILE__(), "HERE IS WHERE WE LOAD CSS");
+        const cssPath = this.srcUrl + "/" + cssFile;
+        const response = await fetch(cssPath);
+        if (!response.ok) {
+            throw new Error("could not load requested css file '" + cssFile + "'");
+        }
+        const data = await response.text();
+
+        // const style = "<style>\n" + data + "\n</style>\n";
+        const el = document.createElement("style");
+        el.textContent = data;
+        this.host.prepend(el);
+
+    }
+
+
+    // static __registeredEventListeners = [];     // [[id, dch(this), el, action, callback, opts]]
+    // static __nextListenerId = 1;
     // addDCHListener = function(el, action, callback, opts=undefined) {
     //     let id = FG.DCH_BASE.__nextListenerId++;
     //     FG.DCH_BASE.__registeredEventListeners.push([id, this, el, action, callback, opts]);

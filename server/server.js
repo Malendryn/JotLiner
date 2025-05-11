@@ -53,13 +53,26 @@ async function start() {
     const app = express();
     app.use(express.static(path.join(BG.basePath, 'client/html')));
 
-    app.get("/LICENSE", (req,res) => {
+    app.get("./modules/DocComponentHandlers/*", (req, res) => {
+        res.sendFile(path.join(BG.basePath, req.path), (err) => {
+            if (err) {
+                console.error("Could not send requested file:", err);
+                res.status(500).send("Could not send requested file:", err);
+            }
+        });
+    });
+
+    app.get("/LICENSE", (req, res) => {
         res.sendFile(path.join(BG.basePath, "LICENSE"), (err) => {
             if (err) {
                 console.error("Could not send LICENSE file:", err);
                 res.status(500).send("LICENSE file not found");
             }
         });
+    });
+
+    app.get("*", (req, res) => {
+        console.log("MISSED: " + req.path);
     });
 
     WS.httpServer = http.createServer(app);

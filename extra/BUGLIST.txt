@@ -1,8 +1,9 @@
 -----------------------------------------------------------------------------------------------------------------------
+in some places I used "inset:0px" but this will not work when I add .left or .top so we need to switch back to using
+.left, .right, .top, .bottom  (at least for the dch's __sysDiv)  ... the .host (whether shadow or not) must always be
+.left, .right, .width, .height
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-in dch properties popup, if you click the left/mid/right etc buttons multiple times, it shifts numbers just a little bit
-EG if it was 0,100,""  and you click middle it goes to 0,"",582 but then if you click right it goes to 0,102,""
 -----------------------------------------------------------------------------------------------------------------------
 when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the parent the '>'
 arrow, but does not OPEN the arrow to show the newly inserted document
@@ -16,10 +17,15 @@ When dragging a node inside a box, and it causes scrollbars to appear/disappear,
     We may need to fetch the boxes TRBL and push it on the ghost rather than calcing it from real mousepos
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-since we now have .modal we really don't need the overlay-above-ghost at all.  we're already trapping/preventing actions
+since we now have .modal we really don't need the mask-overlay-above-all any more(?)  we're already trapping/preventing actions
 at the highest level so we can actually remove that <div>
-
 -----------------------------------------------------------------------------------------------------------------------
+some aspects of this are getting pretty 'deep' and processor intensive.  like:
+* now with shadow doms mouse movements pixel-by-pixel walk the entire tree to enable/disable the shadows, this needs
+  to happen only once when ctrl+alt state changes
+* there is a lot of calculations that extract .left .top etc each time they're performed,  this could be better served
+  by recording their value when created, and then using that recorded value instead of reevaluating every time
+
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
@@ -30,4 +36,5 @@ at the highest level so we can actually remove that <div>
 BUG: (?unfixable?) when prog starts, if I ctrl+alt and rightclick in the INDEX frame, I get the 'new document' context menu
 but if I close the menu, then re-press ctrl+alt and rightclick, no menu appears.  this is odd.
 
+(but this won't fix the problem if we click outside)
 ###### Maybe throw up some kind of a START/SPLASH SCREEN which forces them to click on it to engage focus ######

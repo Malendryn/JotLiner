@@ -182,16 +182,19 @@ function doFormClick(evt) {
     if (evt.target.id.startsWith("dawIBCkBox")) {
         formChanged = true;
         const dch = FG.kmStates.dch;
-        const rect = dch.__sysDiv.getBoundingClientRect();
+        let c = dch.__sysDiv.style;
+        let p = dch.parent.__sysDiv.style;
         const pRect = dch.parent.__sysDiv.getBoundingClientRect();
+        const rect = dch.__sysDiv.getBoundingClientRect();
+
         const id = evt.target.id;
         const box = { 
-            L: rect.left - pRect.left - 1 + "px", 
+            L: rect.left - pRect.left + "px", 
             W: rect.width + "px", 
-            R: pRect.width - ((rect.left - pRect.left - 1) + rect.width) + "px",
-            T: rect.top - pRect.top - 1 + "px", 
+            R: pRect.width - ((rect.left - pRect.left) + rect.width) + "px",
+            T: rect.top - pRect.top + "px", 
             H: rect.height + "px", 
-            B: pRect.height - ((rect.top - pRect.top - 1) + rect.height) + "px",
+            B: pRect.height - ((rect.top - pRect.top) + rect.height) + "px",
         };
         let code;
         let ss = dch.__sysDiv.style;
@@ -264,7 +267,7 @@ function onContextDCHProps() {
 
 FF.getDCHName = function (dch) {
     for (const key in DCH) {            // get it's dchName by searching for it in the loaded DCH ComponentHandlers
-        if (dch instanceof DCH[key]) {  
+        if (dch instanceof DCH[key].dchClass) {  
             return key;
         }
     }
@@ -279,9 +282,9 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
     const dchName = FF.getDCHName(dch);  // the name (as found in the globalThis.DCH{} )
 
     const entries = [];
-    if (dch.children !== null) {                // if rightclicked dchHandler allows children...
-        for (const key in DCH) {                // add all the addable dch's to the menuEntries
-            const dchClass = DCH[key];
+    if (dch.__children) {           // if rightclicked dchHandler allows children...  (is a BOX)
+        for (const key in DCH) {    // add all the addable dch's to the menuEntries
+            const dchClass = DCH[key].dchClass;
             if (dchClass.menuText !== null) {   
                 entries.push(["insert_" + key, "Insert new " + dchClass.menuText, dchClass.menuTooltip]);
             }
@@ -305,7 +308,7 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
             let dchName = action.substr(7);
             const style = {L:startX, T:startY, W:100, H:100};
             const nuDch = await FG.DCH_BASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
-            dch.children.push(nuDch);
+            dch.__children.push(nuDch);
             FF.autoSave();          // autosave after 5 secs
         }
         switch (action) {                                     // 'go do' whatever was clicked
@@ -321,7 +324,7 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
                 if (!yes) {
                     return;
                 }
-                if (dch.children && dch.children.length > 0) {
+                if (dch.__children && dch.__children.length > 0) {  // if dch is a BOX
                     yes = window.confirm("This node has children that will be deleted too.\nAre you SURE?");
                     if (!yes) {
                         return;
@@ -339,6 +342,10 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
     FF.openContextMenu(entries, callback);
 }
 
+
+function getContentBoundingBox(dch) {
+
+}
 
 function dragMaskDiv() {
     let kmask = FG.kmStates.mask;
@@ -467,9 +474,9 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
     } else {                    // else find dch el to use
         FG.kmStates.dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
         const tmp = FG.kmStates.dch && FG.kmStates.dch.__sysDiv;
-        if (FG.kmStates.dch != FG.curDoc.rootDch) { // do not allow them to select/move the docRoot!
-            if (kmask.el && kmask.el != tmp) {      // if there was a dch el already selected but it's not this one any more
-                if (kmask.ghost.div) {               // remove any exhisting gost
+        if (FG.kmStates.dch != FG.curDoc.rootDch) {     // do not allow them to select/move the docRoot!
+            if (kmask.el && kmask.el != tmp) {          // if there was a dch el already selected but it's not this one any more
+                if (kmask.ghost && kmask.ghost.div) {               // remove any exhisting ghost
                     div.removeChild(FG.kmStates.mask.ghost.div);
                     delete FG.kmStates.mask.ghost;
                 }
@@ -566,14 +573,40 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
     }
 }
 
+function disableShadowStates(yesno) {
+    function findAllShadowHosts(root) {
+        const found = [];
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null, false);
+        while (walker.nextNode()) {
+            const el = walker.currentNode;
+            if (el.shadowRoot) {          // if this is a shadow DOM root node
+                found.push(el);
+            }
+        }
+        return found;
+      }
+      const div = document.getElementById("divDocView");
+      let found = findAllShadowHosts(div);
+      for (let idx = 0; idx < found.length; idx++) {
+            const el = found[idx];
+            if (yesno) {
+                el.classList.remove("disable");
+            } else {
+                el.classList.add("disable");
+            }
 
+      }
+
+}
+  
 function onStateChange(orig) {  // detect commandState change and create a faux invis window over entire divDocView
     const div = document.getElementById("divDocView");
 
     let oldCmd = (orig.keyCtrl && orig.keyAlt);                  // get old and new <RSTODO configurable> commandStates (currently ctrl+alt)
     let newCmd = (FG.kmStates.keyCtrl && FG.kmStates.keyAlt);
     if (oldCmd != newCmd) {                                // if commandState changed
-        if (newCmd) {                                      // if commandState started     
+        if (newCmd) {                                      // if commandState started
+            disableShadowStates(false);
             const el = document.createElement("div");      // create the overlay mask
             el.style.position = "absolute";
             el.style.inset = "0px";
@@ -582,6 +615,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
                 divMask: el,
             };
         } else {
+            disableShadowStates(true);
             div.style.cursor = "";      // undo all cursor settings when commandState released
 
             if (FG.kmStates.mask) {
@@ -674,7 +708,7 @@ function setKMState(states) {
                 flag = false;
             }
         }
-        if (!flag) {
+        if (!flag) {            // if mouse went outside the scope of divDocView
             clearAllButtons();
             return;
         }
@@ -695,6 +729,7 @@ function setKMState(states) {
 
 
 function onTkmKeyDown(evt) {
+    FG.kmStates.evt = evt;
     const states = {};
     if      (evt.key == "Control") { states["keyCtrl"]   = true; }
     else if (evt.key == "Alt")     { states["keyAlt"]    = true; }
@@ -704,6 +739,7 @@ function onTkmKeyDown(evt) {
 }
 
 function onTkmKeyUp(evt) {
+    FG.kmStates.evt = evt;
     const states = {};
     if      (evt.key == "Control") { states["keyCtrl"]   = false; }
     else if (evt.key == "Alt")     { states["keyAlt"]    = false; }
@@ -717,6 +753,7 @@ function onTkmBlur(evt) {       // this hardly EVER happens but just in case it 
     // clearAllButtons();   // BAD!  caused buttonrelease during drag IF clicked in! nogood!
 }
 function onTkmContextMenu(evt) {
+    // FG.kmStates.evt = evt;
 //    FG.kmStates.btnRight = false;   // manually force the state of the button to false cuz closing ctxmenu doesn't send a mouseup msg!
     if (FG.kmStates.modal || (FG.kmStates.keyCtrl && FG.kmStates.keyAlt)) { // if menu/popup isopen or ctrl+alt, ...
         evt.stopPropagation();
@@ -728,6 +765,7 @@ function onTkmContextMenu(evt) {
 
 let sizerStartPos = null;         // 'sizerStartPos' = mouse Operation (presently only for click+drag of divHandlers)
 function onTkmMousedown(evt) {
+    FG.kmStates.evt = evt;
     if (evt.target.id == "divIndexDocSizer") {  // if clicked on the sizerBar
         if (!FG.kmStates.modal) {               // and ONLY if a modal isn't open!
             let m = {                       // create and init 'global' sizerStartPos object
@@ -756,6 +794,7 @@ function onTkmMousedown(evt) {
 
 
 function onTkmMouseMove(evt) {
+    FG.kmStates.evt = evt;
     if (sizerStartPos) {        //if dragging the sizerBar
         const m = sizerStartPos;
         const deltaX = (evt.screenX - m.startX);
@@ -780,6 +819,7 @@ function onTkmMouseMove(evt) {
 
 
 function onTkmMouseUp(evt) {
+    FG.kmStates.evt = evt;
     if (sizerStartPos) {
         const el = document.getElementById("divIndexDocSizer");
         el.style.cursor = "";

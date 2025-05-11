@@ -33,6 +33,10 @@ function onPopMouseMove(evt) {
 function onPopMouseUp(evt) {
     isDown = false;
 }
+function preventSubmit(evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+}
 FF.openPopup = function (formContent, dict, callback, preRun=null, postRun=null) {
     let form = document.getElementById("popupForm");
     if (form) {
@@ -40,6 +44,7 @@ FF.openPopup = function (formContent, dict, callback, preRun=null, postRun=null)
     }
     form = document.createElement("form");
     form.id = "popupForm";
+    FF.addTrackedListener(form, "submit", preventSubmit);
     form.style.position = "absolute";
     form.style.border = "1px solid black";
 //        form.style.zIndex = "999999999";
@@ -61,8 +66,8 @@ FF.openPopup = function (formContent, dict, callback, preRun=null, postRun=null)
     </tr>
     <tr>
         <td style="text-align:right;padding-top:8px;">
-            <button id="_btnNo"  style="left:16px; bottom:12px;">Cancel</button>
-            <button id="_btnYes" style="right:16px; bottom:12px;">Save</button>
+            <button id="_btnNo"  type="button" style="left:16px; bottom:12px;">Cancel</button><!-- type="button" prevents submit-on-enter -->
+            <button id="_btnYes" type="button" style="right:16px; bottom:12px;">Save</button>
         </td>
     </tr>
 </table>`;

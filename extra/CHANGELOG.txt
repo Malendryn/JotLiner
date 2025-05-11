@@ -9,7 +9,21 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-11 ------------------------------------------------------------------------------------------------------------
+* set a minWidth and minHeight on all dch's to 20px
+* fixed issue with properties pane changing L+W to L+R, the style=border was causing problems so now using boxShadow
+* introduced 'shadow doms' as wrappers around dch component contents (except for BOX which is now a SUPERspecial case!)
+    added .shadowBox.disable to index.css to allow this to work by 'disabling' shadow doms whenever ctrl+alt is down.
+    (Some bugs are expected until I fully flesh this out)
+* changed .children to .__children to privatize it and test for dchName == "BOX" in DCH_BASE now to enforce
+    specificity, and remove 'children' entirely from that class
+* completely removed 'children' from DCH_BASE as it's now handled entirely within "DCH_BOX
+* changed DCH[] from just having =dch to having ={ dch:dch, srcUrl:path }
+* got DCH_BASE.loadCss(file) working to load a .css file into a <style> element at the top of the .host div
+    the function restricts loading only from its specific directory (yes I know, NO security!)
+    I could maybe change this to use a faux path on the serverside like /dchRoot/... but I can't really limit it
+    beyond that. (EG I cant limit to /dchRoot/CTE since the server has no idea what CTE is! )
+
 2025-05-10 ------------------------------------------------------------------------------------------------------------
 * modded CTE so it now defaults to wrap
 * fixed cancel/save button issues in popup (made it a <table>)
@@ -22,12 +36,13 @@
       caveat that autoremoval on dch destroyed now ONLY applies to listeners added to children of dch's 'host' <div>)
 * added 'Rename document' to the index context menu
 * popup dialogs are now draggable
+
 2025-05-09 ------------------------------------------------------------------------------------------------------------
 * changed DCH_BASE._div to .__sysDiv to clarify 'owned by system, do not touch
 * added _host to DCH_BASE and this is NOW where the dch itself puts its stuff! (this is where transformXY will happen)
 * moved refs to _div to the new _host on all children of DCH_BASE
 * decided to change _host to host and _tBar to toolbar to remove the 'privateness' of them
-* changed _path to srcUrl too to keep the _ and __ hidden'ness more cannon.
+* changed _path to srcUrl to keep '_' and '__' hidden'ness more cannon and to let childClasses know they can use srcUrl.
 
 2025-05-09 ------------------------------------------------------------------------------------------------------------
 * fixed some issues with being able to drag sizer or select indexEntries while a modal was open

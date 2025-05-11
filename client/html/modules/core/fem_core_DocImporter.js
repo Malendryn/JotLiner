@@ -105,7 +105,7 @@ export class DocImporter {   // create and return a DCH from a stream
             this.rootDch = dch;
         }
         if (parent) {                       // if parent was passed, attach this to its children
-            parent.children.push(dch);
+            parent.__children.push(dch);
         }
         await dch.importData(dchData.data);                         // implant the data into the <div>
         for (let idx = 0; idx < dchData.children; idx++) {          // load children of component (if any)

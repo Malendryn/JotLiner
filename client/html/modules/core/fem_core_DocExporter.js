@@ -23,7 +23,7 @@ export class DocExporter {
     async _export(dch) {
         let cName;
         for (const key in DCH) {            // get it's cName by searching for it in the loaded DCH ComponentHandlers
-            if (dch instanceof DCH[key]) {  
+            if (dch instanceof DCH[key].dchClass) {  
                 cName = key;
                 break;
             }
@@ -43,9 +43,9 @@ export class DocExporter {
             str += this._elToStr(key, data[key]);       // append all dch's private data to the str
         }
         str = this._elToStr(cName, str) + "\n";         // wrap it all with the cName and throw in a \n for readability
-        let childCt = (dch.children !== null) ? dch.children.length : 0;   // if null, =0, else =length
+        let childCt = (dch.__children) ? dch.__children.length : 0;   // if null, =0, else =length
         for (let idx = 0; idx < childCt; idx++) {
-            const child = dch.children[idx];
+            const child = dch.__children[idx];
             str += await this._export(child);
         }
         return childCt + ";" + str;         // prepend with how many children this dch has and return it

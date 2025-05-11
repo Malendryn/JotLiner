@@ -1,9 +1,9 @@
 -----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
 
-1 make Properties window draggable
+I think I may need to start moving a lot of the internal 'style' ops to external .css files
 
-2 make docTree dragdrop work properly!  (reordering of doctree documents)
+1 make docTree dragdrop work properly!  (reordering of doctree documents)
 
 
 * scrollbars on DCH_BOXes  (see DETAIL: scrollbars below) particularly as this may change doc1.0 format
@@ -24,6 +24,7 @@ PRE-GITHUB Todos
 
 -----------------------------------------------------------------------------------------------------------------------
 don't forget that when we add the Colorpikr to license it appropriately!
+-----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 TODO
 * in the left pane we have <ul> with a single depth of <li>, we really should think about using the builtIn multidepth

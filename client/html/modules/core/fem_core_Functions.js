@@ -22,6 +22,9 @@ int    =       parseIntFromStyle(txt)   convert "12px" to 12 (and most important
 --------       autoSave(delay=5000)     uses a reTimer() to autoSave FG.curDoc after (delay) millisecs has passed
 -------- async waitDirty()              spin-wait up to 15 secs while (FG.curdoc && FG.curDoc.dirty)
 
+-------- async loadCss(path)            allows modules to load a css file and attach it to the <head> (rooted to DCH subdir!)
+                                            (best done with export async function init() inside the module.js file)
+
 id     =       addTrackedListener(el, action, callback, opts=undefined)
                     performs a 'tracked'  el.addListener(action, callback, opts) and returns an integer id for it
 -------------- removeTrackedListenerById(id)  
@@ -111,8 +114,6 @@ FF.clearDoc = async() => {
         }
         await FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
         FG.curDoc = null;
-        // let div = document.getElementById("divDocView");
-        // div.innerHTML = "";     // wipe contents.  (there are no added event listeners to remove so this is safe)
     }
 }
 

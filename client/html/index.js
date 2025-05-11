@@ -54,14 +54,20 @@ window.addEventListener('load', async function() {
     for (const dchName of pkt.list) {           // DONT use pkt.list.forEach() here cuz 'await' won't work inside loop
         const path = "./modules/DocComponentHandlers/" + dchName;
         if (!DCH.hasOwnProperty(dchName)) {     // load the module(plugin) if not already loaded
-            // console.log(">", dchName);
             let mod = await FF.loadModule(path + "/dch_" + dchName + ".js")
-            let dch = mod.DCH;                      // get class out of module, discard module
-            dch.srcUrl = path;                   // set path to module's dir so module can load its own files/icons if needed
-            // console.log("<", dchName);
-            DCH[dchName] = dch;
+            let dch = mod.DCH;                   // get class out of module, discard module
+//TMPTMPTMP            // dch.srcUrl = path;                   // set path to module's dir so module can load its own files/icons if needed
+            DCH[dchName] = { dchClass:dch, srcUrl:path } ;
         }
     }
+// // since we add .srcUrl AFTER loading module, we cycle through again, this time call static async onClassDef() on each (if present)
+//     for (const dchName of pkt.list) {           // DONT use pkt.list.forEach() here cuz 'await' won't work inside loop
+//         let dch = DCH[dchName].dchClass;
+//         if (typeof dch["onClassDef"] == "function") {
+//             dch.onClassDef();
+//         }
+//     }
+
 
     mod = await FF.loadModule("./modules/core/fem_core_divIndexViewHandler.js"); // handler for the leftside divIndexView
     mod.initialize();       // transfer control to this module to do final initialization
