@@ -106,6 +106,18 @@ WS.__classes.SaveDoc.prototype.process = async function(ws) {    // insert new d
 };
 
 
+
+WS.__classes.RenameDoc.prototype.process = async function(ws) {    // rename a document
+    await BG.db.run("BEGIN TRANSACTION");
+    await BG.db.run("UPDATE docTree SET name=? WHERE uuid=?", [this.dict.name, this.dict.uuid]);
+    await BG.db.run("COMMIT TRANSACTION");
+    BF.onChanged(ws, "docTree", null);      // tell the world that the docTree changed!
+    this.uuid = "";
+    this.name = "";     // clear data so we don't waste bandwidth on the return
+    return this;                            // send self back cuz client used .sendWait()
+}
+
+
 WS.__classes.DeleteDoc.prototype.process = async function(ws) {    // insert new doc into db,  return with nothing!
     try {
         await BG.db.run("BEGIN TRANSACTION");
@@ -128,7 +140,7 @@ WS.__classes.DeleteDoc.prototype.process = async function(ws) {    // insert new
         await BG.db.run("ROLLBACK TRANSACTION");
         return new WS.__classes["Fault"](err.message);
     }
-    BF.onChanged(ws, "docTree", null);
+    BF.onChanged(ws, "docTree", null);      // tell the world that the docTree changed!
     this.uuid = ""; // empty packetdata for faster returnPkt
     return this;    // send self back cus client called using .sendWait()
 };

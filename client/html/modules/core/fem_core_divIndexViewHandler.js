@@ -1,8 +1,11 @@
 
 const indexMenuEntries = [
 //   action,      entryText,             tooltipText
-    ["newDocAtSame",  "New Document",            "Insert a new document below the selected one"],
-    ["newDocAsChild", "New Child Document",      "Insert a new document as a child of the selected one"],
+    ["newDocAtSame",  "New document",            "Insert a new document below the selected one"],
+    ["newDocAsChild", "New child document",      "Insert a new document as a child of the selected one"],
+    ["",              "",                        ""],       // this will appear as a seperator line
+    ["renameDoc",     "Rename document",         "Rename the selected document"],
+    ["",              "",                        ""],       // this will appear as a seperator line
     ["indent",        "> Make child of",         "Make document a child of the document above it"],
     ["dedent",        "< Move to parent level",  "Move document up to parent's level"],
     ["",              "",                        ""],       // this will appear as a seperator line
@@ -48,6 +51,7 @@ function onIdxContextMenuAction(action) {
     switch (action) {
         case "newDocAtSame":    {   openDocInfoPopup(false);    break; }
         case "newDocAsChild":   {   openDocInfoPopup(true);     break; }
+        case "renameDoc":       {   openDocRenamePopup();       break; }
         case "export":          {   onCtxExport();              break; }
         case "delete":          {   onCtxDelete();              break; }
     }
@@ -73,15 +77,45 @@ FF.newDoc = async () => {
 };
     
     
-function makeIViewForm(asChild) {
+function makeNewDocForm(asChild) {
     let childTxt = (asChild) ? "child " : "";
     return `
-    <form>
-        <b>Insert new ${childTxt}document</b><br>
-        <label>Document Name</label>
-        <input type="text" name="docname">
-    </form>
-`;
+<form>
+    <b>Insert new ${childTxt}document</b><br>
+    <label>Document name</label>
+    <input type="text" name="docname">
+</form>`;
+}
+
+
+function openDocRenamePopup() {
+    const txt = `
+<form>
+    <b>Rename document</b><br>
+    <label>Document name</label>
+    <input type="text" name="docname">
+</form>`;
+    async function _onPopupClose(dict) {
+        if (dict) {
+            let pkt = WS.makePacket("RenameDoc")
+            pkt.dict = {
+                name:       dict.docname,   // name of doc
+                uuid:       FG.curDoc.uuid, // uuid of doc
+            }
+            pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
+            await FF.loadDocTree();         // go fetch and reconstruct index pane
+            const uuid = FG.curDoc.uuid;
+            await FF.selectAndLoadDoc(uuid, false);  // keep current doc as all we did was rename it
+            return true;
+        }
+    }
+
+    const info = FF.getDocInfo(FG.curDoc.uuid);
+
+    let dict = {
+        "docname": info.name
+    }
+    FF.openPopup(txt, dict, _onPopupClose);
 }
 
 
@@ -90,7 +124,7 @@ function openDocInfoPopup(asChild) {
         "docname": ""
     }
 
-    async function onPopupClose(dict) {
+    async function _onPopupClose(dict) {
         if (!dict) {        // if close was clicked
             return true;
         }
@@ -121,12 +155,12 @@ function openDocInfoPopup(asChild) {
         pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
         await FF.loadDocTree();         // go fetch and reconstruct index pane
         const uuid = FG.curDoc.uuid;
-        FF.selectAndLoadDoc(uuid, true);    // 'forget' current doc and force-load new one
+        await FF.selectAndLoadDoc(uuid, true);    // 'forget' current doc and force-load new one
         return true;
     }
 
-    let form = makeIViewForm(asChild);
-    FF.openPopup(form, dict, onPopupClose);
+    let form = makeNewDocForm(asChild);
+    FF.openPopup(form, dict, _onPopupClose);
 }
 
 

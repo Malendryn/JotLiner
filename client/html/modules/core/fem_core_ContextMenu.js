@@ -1,12 +1,16 @@
 /* 
-entries format is:  
-    let entries = [
-        [ "action", "entryText", "tooltip Text" ],
-        [ "action", "entryText", "tooltip Text" ],
-    ];
-callback format is:
-    T/F = function callback(action) {}  (return true to allow <save> else F keeps dialog open)
+action =       openContextMenu(entries, callback)
+                   Generic context menu handler  (see fem_core_ContextMenu.js for instructions)
+
+	entries format is:  
+		let entries = [
+			[ "action", "entryText", "tooltip Text" ],
+			[ "action", "entryText", "tooltip Text" ],
+		];
+	callback format is:
+	    callback("action")  -- must return true to allow <save> else false to keep dialog open
 */
+
 FF.openContextMenu = function (entries, callback) {
     let mnu = document.getElementById("sysContextMenu");
     if (mnu) {     // if a menu already exists, go home!

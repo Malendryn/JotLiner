@@ -1,10 +1,32 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-10 ------------------------------------------------------------------------------------------------------------
+* modded CTE so it now defaults to wrap
+* fixed cancel/save button issues in popup (made it a <table>)
+* removed '*.db' from git,  local pulls should be using their own db
+* got rid of DCH_BASE.removeDCHListenerByEA on account it never got used and could remove more than one if used wrongly
+* created FF.addTrackedListener, FF.removeTrackedListenerById, and FF.removeAllTrackedListeners to make it much easier
+      to remove listeners at a generic level and to allow children to add listeners to things like popups and dialogs
+      without having to track-and-remove them themselves when the dialogs/popups get closed
+* removed addDCHListener, removeDCHListener... from DCH_BASE and now use FF.addTrackedListener instead.  (There is a 
+      caveat that autoremoval on dch destroyed now ONLY applies to listeners added to children of dch's 'host' <div>)
+* added 'Rename document' to the index context menu
+* popup dialogs are now draggable
+2025-05-09 ------------------------------------------------------------------------------------------------------------
 * changed DCH_BASE._div to .__sysDiv to clarify 'owned by system, do not touch
 * added _host to DCH_BASE and this is NOW where the dch itself puts its stuff! (this is where transformXY will happen)
 * moved refs to _div to the new _host on all children of DCH_BASE
-* decided to change _host to rootDiv and _tBar to toolbar to remove the 'privateness' of them
+* decided to change _host to host and _tBar to toolbar to remove the 'privateness' of them
 * changed _path to srcUrl too to keep the _ and __ hidden'ness more cannon.
 
 2025-05-09 ------------------------------------------------------------------------------------------------------------

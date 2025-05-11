@@ -17,7 +17,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     children = null; // if null, !allow children, if [], allows children, (imp/export, create/delete auto-handles it)
 
 // *** these next few are where inheriting classes add their own html elements.  these should never be modified in any other way. ***
-    rootDiv = null;    // ownedBy BASE. if hasDiv:     an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
+    host    = null;    // ownedBy BASE. if hasDiv:     an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
     toolbar = null;    // ownedBy BASE. if hasToolbar: an 'absolute' <div> where child classes add 'icons and toolbar stuff' to
                      // for listeners, use this.addDCHListener() & this.removeDCHListener...()  so dch can autoremove when destroying
 
@@ -30,9 +30,9 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-MUST-IMPLEMENT functions -------------------------------------------------------------------------------------
 // ****NOTE it is CRITICAL that these functions fully complete their ops before returning (EG must be async/await)
-    //        async construct(data=null)     // called by static create() after this.rootDiv created and saved styles applied
+    //        async construct(data=null)     // called by static create() after this.host created and saved styles applied
                                                 // if data != null, it contains a {} of data to be put on 'this' as properties
-                                                // in here is where to add your own <el>s and listeners to .rootDiv, etc..
+                                                // in here is where to add your own <el>s and listeners to .host, etc..
     //        async destruct()               // called immediately before removing all listeners and html, and destroying object
     //        async importData(data)         // populate this component with data{} (calls Object.assign if NOT overridden)
     // text = async exportData()             // return data to be preserved/exported as a {}
@@ -48,11 +48,16 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // listener add/remove functions --------------------------------------------------------------------------------------
-    //  id   = addDCHListener(el, action, callback, opts=undefined)
-    //  succ = removeDCHListenerById(id)
-    //  succ = removeDCHListenerByEA(el, action)
-    //         removeAllDCHListeners()
+//RSTODO OBSOLETE these have been replaced by FF.addTrackedListener, FF.removeTracked...
+    //OBSOLETE  id   = addDCHListener(el, action, callback, opts=undefined)
+    //OBSOLETE  succ = removeDCHListenerById(id)
+    //OBSOLETE         removeAllDCHListeners()
 // NOTE it is perfectly valid for 'el' to be 'document' or 'window' and it will get auto-removed when dch is removed
+
+// BE WARNED /NOW/ listeners added by addTrackedListener for an element that is NOT a child of 'this.host' WILL NOT be
+// auto-removed when the dch is destroyed! so if the child class needs to implement them they must add and remove them
+// by themselves.  (they can still use addTrackedListener and removeTracked...  but they just won't be automatically)
+// removed on destruction
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal functions,  (do not override!)-----------------------------------------------------------------------------
@@ -77,19 +82,21 @@ __sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handl
             if (dch.parent == null) {                               // if self has no parent...
                 parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
             } else {
-                parentDiv = dch.parent.rootDiv                    // else attach to parent's rootDiv <div>
+                parentDiv = dch.parent.host                    // else attach to parent's host <div>
             }
             dch.__sysDiv.style.position  = "absolute";      // the wrapping 'dch.__sysDiv' is ALWAYS absolute!
             dch.__sysDiv.style.boxSizing = "border-box";    // prevent adding padding and borders to dch's .getBoundingClientRect()
             dch.__sysDiv.style.padding   = "0px";
             dch.__sysDiv.style.margin    = "0px";
+            dch.__sysDiv.style.minWidth = "20px";
+            dch.__sysDiv.style.minHeight = "20px";
             parentDiv.appendChild(dch.__sysDiv);
-            dch.rootDiv = document.createElement("div");  // this is now where all child elements get appended to
-            dch.rootDiv.style.position = "absolute";
+            dch.host = document.createElement("div");  // this is now where all child elements get appended to
+            dch.host.style.position = "absolute";
             if (this.children == null) {                // if this dcHandler can't have children....
-                dch.rootDiv.style.inset = "0px";          // make sure this div stays sized to the __sysDiv
+                dch.host.style.inset = "0px";          // make sure this div stays sized to the __sysDiv
             }
-            dch.__sysDiv.appendChild(dch.rootDiv);      
+            dch.__sysDiv.appendChild(dch.host);      
 
             if (style) {
                 for (const key in style) {              // get and parse the style values
@@ -133,7 +140,8 @@ __sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handl
                 await this.children[idx].destroy();
             }
         }
-        this.removeAllDCHListeners();      // remove all listeners registered to this dch
+//        debugger; this.removeAllDCHListeners();      // remove all listeners registered to this dch
+        FF.removeAllTrackedListeners(this.__sysDiv);      // remove all listeners registered to this dch
         if (this.parent) {
             for (let idx = this.parent.children.length - 1; idx >= 0; idx--) {  // remove 'this' from parent.children
                 if (this.parent.children[idx] == this) {
@@ -154,48 +162,35 @@ __sysDiv = null;     // ownedBy BASE. ...  if hasDiv==true, this will be a handl
     static __registeredEventListeners = [];     // [[id, dch(this), el, action, callback, opts]]
     static __nextListenerId = 1;
     
-    addDCHListener = function(el, action, callback, opts=undefined) {
-        let id = FG.DCH_BASE.__nextListenerId++;
-        FG.DCH_BASE.__registeredEventListeners.push([id, this, el, action, callback, opts]);
-        el.addEventListener(action, callback/*.bind(this)*/, opts); // so the callback knows what dchComp it's working with
-        return id;
-    }
+    // addDCHListener = function(el, action, callback, opts=undefined) {
+    //     let id = FG.DCH_BASE.__nextListenerId++;
+    //     FG.DCH_BASE.__registeredEventListeners.push([id, this, el, action, callback, opts]);
+    //     el.addEventListener(action, callback/*.bind(this)*/, opts); // so the callback knows what dchComp it's working with
+    //     return id;
+    // }
 
     
-    removeDCHListenerById = function(id) {
-        debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
-            let tmp = FG.DCH_BASE.__registeredEventListeners[idx];
-            if (tmp[0] == id) {
-                tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
-                FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
-                return true;
-            }
-        }
-        return false;
-    }
+    // removeDCHListenerById = function(id) {
+    //     debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
+    //         let tmp = FG.DCH_BASE.__registeredEventListeners[idx];
+    //         if (tmp[0] == id) {
+    //             tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
+    //             FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
     
 
-    removeDCHListenerByEA = function(el, action) {
-        debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
-            let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
-            if (tmp[1] == this && tmp[2] == el && tmp[3] == action) {
-                tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
-                FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    removeAllDCHListeners = function() {   //        console.log("fem_core_DCH_BASE.js:removeAllDCHListeners");
-        for (let idx = FG.DCH_BASE.__registeredEventListeners.length - 1; idx >= 0; idx--) {
-            let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
-            if (tmp[1] == this) {
-                tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
-                FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
-            }
-        }
-    }
+    // removeAllDCHListeners = function() {   //        console.log("fem_core_DCH_BASE.js:removeAllDCHListeners");
+    //     for (let idx = FG.DCH_BASE.__registeredEventListeners.length - 1; idx >= 0; idx--) {
+    //         let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
+    //         if (tmp[1] == this) {
+    //             tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
+    //             FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
+    //         }
+    //     }
+    // }
 }; // end class
 

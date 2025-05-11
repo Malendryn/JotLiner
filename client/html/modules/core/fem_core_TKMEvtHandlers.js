@@ -151,14 +151,15 @@ function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND s
         elC.className = "enAbled";
         elC.value = "✔";
         elI.disabled = false;
+        elI.value = val;
         elI.style.backgroundColor = "";                // these are not working!  why not?
     } else {
         elC.className = "unAbled";
         elC.value = "X";
         elI.disabled = true;
+        elI.value = "";
         elI.style.backgroundColor = "rgb(187, 187, 187)"; // these are not working!  why not?
     }
-    elI.value = val;
 }
 function doFormInput(evt) {
     console.log(FF.__FILE__());
@@ -212,19 +213,12 @@ function doFormClick(evt) {
 
 function setFormVals() {
     const dch = FG.kmStates.dch;
-    function stringify(val) {
-        val = parseInt(val);
-        if (Number.isNaN(val)) {
-            return "0";
-        }
-        return val.toString();
-    }
-    frmSetEl("L", stringify(dch.__sysDiv.style.left),   dch.__sysDiv.style.left.length   > 0);
-    frmSetEl("W", stringify(dch.__sysDiv.style.width),  dch.__sysDiv.style.width.length  > 0);
-    frmSetEl("R", stringify(dch.__sysDiv.style.right),  dch.__sysDiv.style.right.length  > 0);
-    frmSetEl("T", stringify(dch.__sysDiv.style.top),    dch.__sysDiv.style.top.length    > 0);
-    frmSetEl("H", stringify(dch.__sysDiv.style.height), dch.__sysDiv.style.height.length > 0);
-    frmSetEl("B", stringify(dch.__sysDiv.style.bottom), dch.__sysDiv.style.bottom.length > 0);
+    frmSetEl("L", FF.parseIntFromStyle(dch.__sysDiv.style.left),   dch.__sysDiv.style.left.length   > 0);
+    frmSetEl("W", FF.parseIntFromStyle(dch.__sysDiv.style.width),  dch.__sysDiv.style.width.length  > 0);
+    frmSetEl("R", FF.parseIntFromStyle(dch.__sysDiv.style.right),  dch.__sysDiv.style.right.length  > 0);
+    frmSetEl("T", FF.parseIntFromStyle(dch.__sysDiv.style.top),    dch.__sysDiv.style.top.length    > 0);
+    frmSetEl("H", FF.parseIntFromStyle(dch.__sysDiv.style.height), dch.__sysDiv.style.height.length > 0);
+    frmSetEl("B", FF.parseIntFromStyle(dch.__sysDiv.style.bottom), dch.__sysDiv.style.bottom.length > 0);
 }
 function preRun(form) {
     formChanged = false;

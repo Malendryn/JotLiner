@@ -7,7 +7,7 @@
 class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
     hasToolbar = true;
 
-    el;                     // becomes childof this.rootDiv and is a "div" that is "contexteditable"  (see construct())
+    el;                     // becomes childof this.host and is a "div" that is "contexteditable"  (see construct())
 
     static menuText    = "Simple RichText node";
     static menuTooltip = "A RichText-like editor built using a contexteditable <div>";
@@ -20,8 +20,8 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
     }; 
 
     async construct() {
-    // create the contenteditable div and attach it to this.rootDiv
-        this.el = document.createElement("div");            // create a div inside .rootDiv and make it contenteditable
+    // create the contenteditable div and attach it to this.host
+        this.el = document.createElement("div");            // create a div inside .host and make it contenteditable
         this.el.style.position = "absolute";
         this.el.style.left = "0px";
         this.el.style.top = "0px";
@@ -38,8 +38,8 @@ this.el.style.whiteSpace = "nowrap";
         this.el.style.whiteSpace = "pre-wrap";       // preserve whitespace and wrap as needed
         this.el.style.wordWrap   = "break-word";     // auto-break very large words if needed
         this.el.innerHTML = '';         // if I don't do this and we don't type in it, it exports "undefined"
-        this.rootDiv.appendChild(this.el);
-        this.addDCHListener(this.el, "input", this.onContentChanged);
+        this.host.appendChild(this.el);
+        FF.addTrackedListener(this.el, "input", this.onContentChanged);
 
 // create the icons for the toolbar and attach them to this._tbar
         let btn, img;
@@ -49,7 +49,7 @@ this.el.style.whiteSpace = "nowrap";
         img = document.createElement("img");            // create a 24x24px img to put on button
         img.src = DCH_CTE.srcUrl + "/icons/bold-96.png";    //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
         btn.appendChild(img);
-        this.addDCHListener(btn, "click", this.onToolBtnBold.bind(this));
+        FF.addTrackedListener(btn, "click", this.onToolBtnBold.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -57,7 +57,7 @@ this.el.style.whiteSpace = "nowrap";
         img = document.createElement("img");
         img.src = DCH_CTE.srcUrl + "/icons/italic-52.png";
         btn.appendChild(img);
-        this.addDCHListener(btn, "click", this.onToolBtnItalic.bind(this));
+        FF.addTrackedListener(btn, "click", this.onToolBtnItalic.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -65,7 +65,7 @@ this.el.style.whiteSpace = "nowrap";
         img = document.createElement("img");
         img.src = DCH_CTE.srcUrl + "/icons/underline-64.png";
         btn.appendChild(img);
-        this.addDCHListener(btn, "click", this.onToolBtnUnderline.bind(this));
+        FF.addTrackedListener(btn, "click", this.onToolBtnUnderline.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -73,7 +73,7 @@ this.el.style.whiteSpace = "nowrap";
         img = document.createElement("img");
         img.src = DCH_CTE.srcUrl + "/icons/strikethrough-64.png";
         btn.appendChild(img);
-        this.addDCHListener(btn, "click", this.onToolBtnStrikethrough.bind(this));
+        FF.addTrackedListener(btn, "click", this.onToolBtnStrikethrough.bind(this));
     }
 
     onToolBtnBold(evt) {

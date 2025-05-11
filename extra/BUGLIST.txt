@@ -1,9 +1,8 @@
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-broke the checkboxes on the properties popup
 -----------------------------------------------------------------------------------------------------------------------
-the cancel/save buttons on popups look good on the properties window but are broken on the new document window
-  (put the contents of the form into its own div and that may solve it)
+in dch properties popup, if you click the left/mid/right etc buttons multiple times, it shifts numbers just a little bit
+EG if it was 0,100,""  and you click middle it goes to 0,"",582 but then if you click right it goes to 0,102,""
 -----------------------------------------------------------------------------------------------------------------------
 when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the parent the '>'
 arrow, but does not OPEN the arrow to show the newly inserted document
@@ -20,7 +19,6 @@ When dragging a node inside a box, and it causes scrollbars to appear/disappear,
 since we now have .modal we really don't need the overlay-above-ghost at all.  we're already trapping/preventing actions
 at the highest level so we can actually remove that <div>
 
-
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
@@ -32,13 +30,4 @@ at the highest level so we can actually remove that <div>
 BUG: (?unfixable?) when prog starts, if I ctrl+alt and rightclick in the INDEX frame, I get the 'new document' context menu
 but if I close the menu, then re-press ctrl+alt and rightclick, no menu appears.  this is odd.
 
-Maybe throw up some kind of a START SCREEN which forces them to click on it to engage focus
-
-it also DOESNT happen if I just hit reload, it ONLY happens if I close and start the program anew
-
-    I found the reason is that the divIndexView (in fact the entire program) does not have focus when it starts, therefore
-    it's not firing keydown/up events, even though mouse events ARE firing.  it doesnt track these keyboard events until I
-    click or right-click on something, and even then the click:evt.keyAlt etc are not valid at this first-time-clicking-event
-        I tried document.body.focus() and div=document.getElementById("divDocView");div.focus() but that didnt work either
-    This does however explain why it works fine on reload, just not on progstart.  cuz on reload it does indeed have focus
-        at start-time
+###### Maybe throw up some kind of a START/SPLASH SCREEN which forces them to click on it to engage focus ######

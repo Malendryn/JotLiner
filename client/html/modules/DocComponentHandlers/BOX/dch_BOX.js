@@ -6,9 +6,9 @@ class DCH_BOX extends FG.DCH_BASE {
     static menuTooltip = "A rectangle that other editor can be put inside of";
 
     async construct() {
-        // this.rootDiv.style.backgroundColor = "#C1C1C1";
         this.__sysDiv.style.border = "1px dashed black";
         this.__sysDiv.style.overflow = "auto";              // enable scrollbars
+        this.host.style.backgroundColor = "#C1C1C1";        // make the user-accessable host's background grey
     }
 
 

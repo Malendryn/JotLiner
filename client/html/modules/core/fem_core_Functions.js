@@ -11,6 +11,8 @@ module = async loadModule(modulePath)   load and return module, if has an export
 -------- async msDelay(ms)              cause a delay of ms,  EG: 'await FF.msDelay(1500);'
 uuid   = async makeUUID()               make and return a UUID
 hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
+int    =       parseIntFromStyle(txt)   convert "12px" to 12 (and most importantly "" to 0 and not NaN)
+
 -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
 -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
 {...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
@@ -19,6 +21,14 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 --------       reTimer(callback)        x = reTimer(callback);   x(5000); make timer, that can be set and reset
 --------       autoSave(delay=5000)     uses a reTimer() to autoSave FG.curDoc after (delay) millisecs has passed
 -------- async waitDirty()              spin-wait up to 15 secs while (FG.curdoc && FG.curDoc.dirty)
+
+id     =       addTrackedListener(el, action, callback, opts=undefined)
+                    performs a 'tracked'  el.addListener(action, callback, opts) and returns an integer id for it
+-------------- removeTrackedListenerById(id)  
+                    remove tracked listener by its id
+-------------- removeAllTrackedListeners(el)
+                    remove all tracked listeners from an element /and all its children/
+
 ==== FROM fem_core_WSockHandler.js ====================================================================================
 pkt    = makePacket(name)               create and return a new packet
 pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
@@ -31,30 +41,20 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 --------       getDCHName(dch)          return name of dch as the subdirName in DocComponentHandlers
 
 ==== FROM fem_core_ContextMenu.js ====================================================================================
-action = openContextMenu(entries, callback)
-	entries format is:  
-		let entries = [
-			[ "action", "entryText", "tooltip Text" ],
-			[ "action", "entryText", "tooltip Text" ],
-		];
-	callback format is:
-	    function callback(action)
+--------       openContextMenu(entries, callback)
+                    Generic context menu handler  (see fem_core_ContextMenu.js for instructions)
 
 ==== FROM fem_core_PopupDialog.js ====================================================================================
--------- openPopup(form, dict, callback, preRun=null, postRun=null)    Generic popup handler
-            form ---------------------- "<form><input name="myInput">...</form>" 
-            dict=[dictKey: value] -----	sets formfields with <name="dictKey"> form fields to 
-        T/F=callback(dict)              dict=null if [cancel] else fieldvals if [save], return true=done/false keeps dialog open
-            preRun and postRun are callbacks that recieve handle to <form> element right after being displayed
-                so if user wants to add listeners or other things here is how to do it
-            postRun is for cleaning up/removing any listeners etc right before closing the dialog
+--------       openPopup(form, dict, callback, preRun=null, async postRun=null)
+                    Generic popup handler  (see fem_core_PopupDialog.js for instructions)
+                    (Note: preRun is NOT async/await, postRun IS!)
 
 ***********************************************************************************************************************/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 FF.shutdown = async (event) => {                       // webpage closing, do final terminations/cleanups
 
-    if (FF.curDoc && FF.curDoc.dirty) {     // if something's still dirty
+    if (FG.curDoc && FG.curDoc.dirty) {     // if something's still dirty
         FF.autoSave(0);                     // force immediate saving
         FF.waitDirty();                     // and wait for it to complete
     }
@@ -89,6 +89,15 @@ FF.makeHash = async (txt) => {
 		),
 		(byte) => byte.toString(16).padStart(2, '0')
 	).join('');
+}
+
+
+FF.parseIntFromStyle = function(styleVal) {
+    styleVal = parseInt(styleVal);
+    if (Number.isNaN(styleVal)) {
+        return 0;
+    }
+    return styleVal;
 }
 
 
@@ -153,17 +162,6 @@ FF.parseRgba = function (rgbString) {     // turn "rgb(1,2,3)" or "rgba(1,2,3,4)
     return hasAlpha? { r, g, b, a } : { r, g, b }; // Return as an object
 }
 
-
-// export async function init() {
-//     return new Promise((resolve, reject) => {
-//         debugger;       //dosomething
-// 		await FF.msDelay(5000);
-//         resolve(this);
-//         return;
-//         // reject(err); // ifError
-//         // return;
-//     });
-// };
 
 function __getFileLineInfo(err) {
 	try {
@@ -251,4 +249,43 @@ FF.waitDirty = async function() {
         tm = FF.reTimer(waitOnDirty);
         tm(10);                             // start the dirtychecker
     });
+}
+
+
+FG.__registeredEventListeners = [];     // [{id, el, action, callback, opts}]
+FG.__nextListenerId = 1;
+
+
+FF.addTrackedListener = function(el, action, callback, opts=undefined) {
+    let id = FG.__nextListenerId++;
+    FG.__registeredEventListeners.push({id, el, action, callback, opts});
+    el.addEventListener(action, callback, opts);
+    return id;
+}
+
+
+FF.removeTrackedListenerenerById = function(id) {
+    debugger; for (let idx = 0; idx < FG.__registeredEventListeners.length; idx++) {
+        let tmp = FG.__registeredEventListeners[idx];        // {id, el, action, callback, opts}
+        if (tmp.id == id) {
+            tmp.el.removeEventListener(tmp.action, tmp.callback);   // unlisten
+            FG.__registeredEventListeners.splice(idx, 1);           // and remove
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
+FF.removeAllTrackedListeners = function(el) {
+    let nodes = [el, ...el.querySelectorAll("*")];
+
+    for (let idx = FG.__registeredEventListeners.length - 1; idx >= 0; idx--) {
+        let tmp = FG.__registeredEventListeners[idx];        // {id, el, action, callback, opts}
+        if (nodes.includes(tmp.el)) {
+            tmp.el.removeEventListener(tmp.action, tmp.callback);   // unlisten
+            FG.__registeredEventListeners.splice(idx, 1);           // and remove
+        }
+    }
 }

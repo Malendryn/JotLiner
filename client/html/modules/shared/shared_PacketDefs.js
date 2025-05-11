@@ -89,6 +89,10 @@ WS.registerPacketClass(class SaveDoc extends PacketBASE {    // save doc back in
                 // <-- uuid of doc returned
     doc;        // <-- doc-as-string (possibly uuencoded) OR RSTODO we wrap this in a toJSON and fromJSON
 });
+WS.registerPacketClass(class RenameDoc extends PacketBASE {  // Delete a document from the system
+    uuid;       // -->  uuid of doc to get 
+    name;       // -->  new document name
+});
 WS.registerPacketClass(class DeleteDoc extends PacketBASE {  // Delete a document from the system
     uuid;       // -->  uuid of doc to get 
 });

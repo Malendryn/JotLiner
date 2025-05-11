@@ -1,19 +1,25 @@
 
-# .vscode_root has a LOT of '*Cache*' files in it so lets just eliminate ALL of them
-*Cache*
+### to 'reset' a commit (especially if you changed .gitignore)
+### git reset
+###
+### if already have some files tracked that we need to remove that reset won't do:  (example is for *.db)
+### git ls-files '*.db' -z | xargs -0 git rm --cached
+##############################################################################################
 
+# we dont want the 'chrome' debug garbage in git
 client/.vscode/chrome/
 
-# I DO NOT know why this NEXT line is NOT working, while the Cache line above IS working!
-History/
-Trash/
+# we dont want to push our .db files either
 
-# the 'env.json' file in the root contains passwords, etc, so don't push this up to git
-env.json
-# same for the ssl certs, don't push to git as they're just for me!
+*.db
+
+# don't push ssl cert's to git as they're just for me!
 server/sslcert/
 
-# Logs
+##############################################################################################
+##### below this line is 'just stuff' accumulated over years of projects, probably useless ###
+
+# dont send any logs
 logs
 *.log
 npm-debug.log*
@@ -143,3 +149,4 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
