@@ -25,7 +25,7 @@ class DCH_TXA extends FG.DCH_BASE {
     
     
     async exportData() {       // return data to be preserved/exported as a {}
-        return { "C" : this.el.value };
+        return { "C" : this.el.value };   // C for content
     }
     
     async onContentChanged(evt) {

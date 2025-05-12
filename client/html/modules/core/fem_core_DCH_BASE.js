@@ -14,8 +14,6 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     hasDiv = true;          // true = create 'this.__sysDiv' @ construction AND read styles from stream when created via DocImporter
     hasToolbar = false;     // true = create this.toolbar' @ construction
 
-    parent;          // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
-
 // *** these next few are where inheriting classes add their own html elements.  these should never be modified in any other way. ***
     host    = null;    // ownedBy BASE. if hasDiv:     an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
     toolbar = null;    // ownedBy BASE. if hasToolbar: an 'absolute' <div> where child classes add 'icons and toolbar stuff' to
@@ -36,7 +34,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     //        async destruct()               // called immediately before removing all listeners and html, and destroying object
     //        async importData(data)         // populate this component with data{} (calls Object.assign if NOT overridden)
     // text = async exportData()             // return data to be preserved/exported as a {}
-    
+    //        async update()                 // called right after imported or properties of it (or its children) were modified
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create/destroy and other helper functions on baseclass (do not override!)----------------------------------------------------
     //  async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
@@ -68,14 +66,17 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // system-only properties, they should never be modified by the child class in any way
 
-__sysDiv = null;     // ownedBy DCH_BASE. ...  if hasDiv==true, this will be a handle to an 'absolute' <div> that is
+__parent = null;     // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
+__sysDiv = null;     // if hasDiv==true, this will be a handle to an 'absolute' <div>  (null otherwise)
                      // the parent of every other element created by this component (autocreated during create())
-
+__scroll = null;     // DCH_BOX-ONLY a special childOf __sysDiv for the infinite canvas scrolling
+__host   = null;     // all NON-DCH_BOX's get this
+__shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv.__host.__shadow.host);
 
     static async create(dchName, parent=null, style=null) {
         const dch = new DCH[dchName].dchClass();            // create handler, do nothing else!
         dch.srcUrl = DCH[dchName].srcUrl;                   // set the path to its available content
-        dch.parent = parent;
+        dch.__parent = parent;
         if (dch.hasDiv) {                                       // is dch a visible object that needs a <div> to render in? 
             dch.__sysDiv = document.createElement("div");       // create div
             dch.__sysDiv.id = (FG._idCounter++).toString();
@@ -83,10 +84,10 @@ __sysDiv = null;     // ownedBy DCH_BASE. ...  if hasDiv==true, this will be a h
             dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
             dch.__sysDiv._dchMouseOp = "dchComponent";          // to let us know via mouse/kbd evts that this is <el> is a dch component
             let parentDiv;
-            if (dch.parent == null) {                               // if self has no parent...
+            if (dch.__parent == null) {                               // if self has no parent...
                 parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
             } else {
-                parentDiv = dch.parent.host                    // else attach to parent's host <div>
+                parentDiv = dch.__parent.host                    // else attach to parent's host <div>
             }
             dch.__sysDiv.style.position  = "absolute";      // the wrapping 'dch.__sysDiv' is ALWAYS absolute!
             dch.__sysDiv.style.boxSizing = "border-box";    // prevent adding padding and borders to dch's .getBoundingClientRect()
@@ -96,12 +97,17 @@ __sysDiv = null;     // ownedBy DCH_BASE. ...  if hasDiv==true, this will be a h
             dch.__sysDiv.style.minHeight = "20px";
             parentDiv.appendChild(dch.__sysDiv);
 
-            if (dchName == "BOX") {                    // if it's a BOX, DON'T give it a shadowDom! 
-                dch.host = document.createElement("div");   // this is now where all child elements get appended to
+            if (dchName == "BOX") {                    // BOX is SpecialCase, DON'T give it a shadowDom! 
+                dch.__scroll = document.createElement("div"); 
+                dch.__scroll.id = (FG._idCounter++).toString();
+                dch.__scroll.style.position = "absolute";
+                dch.__scroll.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
+                dch.__sysDiv.appendChild(dch.__scroll);      
+
+                dch.host = document.createElement("div");       // this is now where all child elements get appended to
                 dch.host.id = (FG._idCounter++).toString();
                 dch.host.style.position = "absolute";
-                dch.host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
-                dch.__sysDiv.appendChild(dch.host);      
+                dch.__scroll.appendChild(dch.host);
             } else {                                // if it's NOT a BOX, give it a shadowDom!
                 dch.__host = document.createElement("div"); 
                 dch.__host.id = (FG._idCounter++).toString();
@@ -109,9 +115,24 @@ __sysDiv = null;     // ownedBy DCH_BASE. ...  if hasDiv==true, this will be a h
                 dch.__host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
                 dch.__sysDiv.appendChild(dch.__host);      
                 dch.__shadow = dch.__host.attachShadow({ mode: "open" });
+                dch.__shadow.innerHTML = `
+<style>
+    :host {
+        display: block;
+        width:  100%;
+        height: 100%;
+    }
+
+    *, *::before, *::after {
+    box-sizing: border-box;
+    }
+</style>
+`;
                 dch.__host.classList.add("shadowBox");            // see index.css
                 // dch.__host.classList.add("disable");           // dont add this here, example only!
                 dch.host = document.createElement("div")          // this is now where all child elements get appended to
+                dch.host.style.width = "100%";
+                dch.host.style.height = "100%";                   // make sure host always fills parent completely
                 dch.host.id = (FG._idCounter++).toString();
                 dch.host = dch.__shadow.appendChild(dch.host);    // give it its first element as it has none to start with
             }
@@ -150,6 +171,7 @@ __sysDiv = null;     // ownedBy DCH_BASE. ...  if hasDiv==true, this will be a h
     async importData(data) {Object.assign(this, data); }   // *overridable* populate this component with data
     async exportData()     { return {}; }                  // *overridable* return data to be preserved/exported as a {}
     async destruct()       {}                              // *overridable* do any other kind of cleanup before class destruction
+    async update()         {}                              // *overridable*
 
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
         FF.removeAllTrackedListeners(this.__sysDiv);      // remove all listeners registered to this dch FIRST
@@ -159,6 +181,10 @@ __sysDiv = null;     // ownedBy DCH_BASE. ...  if hasDiv==true, this will be a h
         }
         if (this.hasToolbar && this.toolbar) {
             this.toolbar.remove();
+        }
+        if (this.__parent) {                                  // if not at topmost dch
+            const idx = this.__parent.__children.indexOf(this);
+            this.__parent.__children.splice(idx, 1);
         }
     }
 
@@ -178,39 +204,5 @@ __sysDiv = null;     // ownedBy DCH_BASE. ...  if hasDiv==true, this will be a h
         this.host.prepend(el);
 
     }
-
-
-    // static __registeredEventListeners = [];     // [[id, dch(this), el, action, callback, opts]]
-    // static __nextListenerId = 1;
-    // addDCHListener = function(el, action, callback, opts=undefined) {
-    //     let id = FG.DCH_BASE.__nextListenerId++;
-    //     FG.DCH_BASE.__registeredEventListeners.push([id, this, el, action, callback, opts]);
-    //     el.addEventListener(action, callback/*.bind(this)*/, opts); // so the callback knows what dchComp it's working with
-    //     return id;
-    // }
-
-    
-    // removeDCHListenerById = function(id) {
-    //     debugger; for (let idx = 0; idx < FG.DCH_BASE.__registeredEventListeners.length; idx++) {
-    //         let tmp = FG.DCH_BASE.__registeredEventListeners[idx];
-    //         if (tmp[0] == id) {
-    //             tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
-    //             FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
-    
-
-    // removeAllDCHListeners = function() {   //        console.log("fem_core_DCH_BASE.js:removeAllDCHListeners");
-    //     for (let idx = FG.DCH_BASE.__registeredEventListeners.length - 1; idx >= 0; idx--) {
-    //         let tmp = FG.DCH_BASE.__registeredEventListeners[idx];        // [id, dch, el, action, callback, opts]
-    //         if (tmp[1] == this) {
-    //             tmp[2].removeEventListener(tmp[3], tmp[4]);            // unlisten
-    //             FG.DCH_BASE.__registeredEventListeners.splice(idx, 1);    // and remove
-    //         }
-    //     }
-    // }
-}; // end class
+};
 

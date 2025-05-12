@@ -111,6 +111,7 @@ export class DocImporter {   // create and return a DCH from a stream
         for (let idx = 0; idx < dchData.children; idx++) {          // load children of component (if any)
             await this._importNext(dch);
         }
+        await dch.update();
     }
 
 
@@ -121,7 +122,7 @@ export class DocImporter {   // create and return a DCH from a stream
             style:      {}, // if '<>=' was in stream, fill this with the style data that followed
             data:       {}, // everything else
         };
-        dd.children = parseInt(this.sr.readToSem());      // read #children
+        dd.children = parseInt(this.sr.readToSem()); // read #children
         let tmp = this.sr.readEl();                  // read "CNAME=#;...."
         if (!tmp) {
             return null;

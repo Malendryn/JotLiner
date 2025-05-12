@@ -5,7 +5,7 @@ in some places I used "inset:0px" but this will not work when I add .left or .to
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the parent the '>'
+when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the indexView the '>'
 arrow, but does not OPEN the arrow to show the newly inserted document
 -----------------------------------------------------------------------------------------------------------------------
 when we rightclick to open properties, we lose the ghost, can we find a way to keep the ghost there until that menu
@@ -17,7 +17,7 @@ When dragging a node inside a box, and it causes scrollbars to appear/disappear,
     We may need to fetch the boxes TRBL and push it on the ghost rather than calcing it from real mousepos
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-since we now have .modal we really don't need the mask-overlay-above-all any more(?)  we're already trapping/preventing actions
+since we now have .modal we really don't need the mask-above-all any more(?)  we're already trapping/preventing actions
 at the highest level so we can actually remove that <div>
 -----------------------------------------------------------------------------------------------------------------------
 some aspects of this are getting pretty 'deep' and processor intensive.  like:

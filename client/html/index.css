@@ -85,15 +85,24 @@ html,body {
     pointer-events: none;   
     opacity:0.5;
 }
+
 .DCH_BOX {
     position: absolute;
     /* background-color:#C1C1C1;
     background-color:red; */
 }
+.DCH_BOX_scroller {
+    overflow:         auto;      /* enable scrollbars on the __scroll div NOT the __sysDiv */
+    background-color: #C1C1C1;  /* make the scrollbox's background grey */
+
+}
 .DCH_BOX::after {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     pointer-events: none;
     border: 1px dashed black;
     box-sizing: border-box;

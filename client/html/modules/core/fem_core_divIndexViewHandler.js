@@ -29,7 +29,7 @@ async function onCtxDelete() {
     if (yes) {
         let hasChildren = false;
         for (let idx = 0; idx < FG.docTree.length; idx++) {
-            if (FG.docTree[idx].parent == info.uuid) {
+            if (FG.docTree[idx].__parent == info.uuid) {
                 hasChildren = true;
                 break;
             }

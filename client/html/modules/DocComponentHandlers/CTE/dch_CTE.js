@@ -101,11 +101,11 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
     }
 
     async importData(data) {    // populate this component with data
-        this.el.innerHTML = data["C"];        // C for content
+        this.el.innerHTML = data["C"];        // "C" for content
     }
     
     async exportData() {       // return data to be preserved/exported as a {}
-        return { "C" : this.el.innerHTML };
+        return { "C" : this.el.innerHTML };   // "C" for content
     }
     
     async onContentChanged(evt) {

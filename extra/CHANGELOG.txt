@@ -8,7 +8,16 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-12 ------------------------------------------------------------------------------------------------------------
+* moved some of the CTE style settings out to its own CTE.css file now
+* moved most of the BOX style settings out to index.css (BOX is a specialcase system-level DCH)
+* fixed up some sizing problems on the internals of the new shadow DOMs
+* fixed up much of the dragbar issues
+* renamed DCH_BASE.parent to .__parent to signify its an internal var only
+* moved/repaired .destroy() such that it now unlinks itself from its parent rather than the parent unlinking the child
+* added calls to .update() when dch's get dragged or located in the properties popup
+* renamed kmask.el to kmask.sysDiv to be more 'informative'
+
 2025-05-11 ------------------------------------------------------------------------------------------------------------
 * set a minWidth and minHeight on all dch's to 20px
 * fixed issue with properties pane changing L+W to L+R, the style=border was causing problems so now using boxShadow
@@ -20,9 +29,7 @@
 * completely removed 'children' from DCH_BASE as it's now handled entirely within "DCH_BOX
 * changed DCH[] from just having =dch to having ={ dch:dch, srcUrl:path }
 * got DCH_BASE.loadCss(file) working to load a .css file into a <style> element at the top of the .host div
-    the function restricts loading only from its specific directory (yes I know, NO security!)
-    I could maybe change this to use a faux path on the serverside like /dchRoot/... but I can't really limit it
-    beyond that. (EG I cant limit to /dchRoot/CTE since the server has no idea what CTE is! )
+    the function restricts loading only from its specific directory (yes I know, NO security beyond code-review!)
 
 2025-05-10 ------------------------------------------------------------------------------------------------------------
 * modded CTE so it now defaults to wrap

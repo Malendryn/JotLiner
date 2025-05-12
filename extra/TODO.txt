@@ -1,16 +1,17 @@
 -----------------------------------------------------------------------------------------------------------------------
+BOX's need a way to receive updates, in particular after their contents are filled we need to calc the boundaries
+and also after any object is moved
+-----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
 
-I think I may need to start moving a lot of the internal 'style' ops to external .css files
+(I think I may need to start moving a lot of the internal 'style' ops to external .css files)
 
 1 make docTree dragdrop work properly!  (reordering of doctree documents)
-
+    move docs (dragdrop, in/out depth too)
 
 * scrollbars on DCH_BOXes  (see DETAIL: scrollbars below) particularly as this may change doc1.0 format
-* move docs (dragdrop, in/out depth too)
 * front/back depth of dch's within document
 * cut/copy/paste dch's (or delete/copy/move wherein copy/move .cursor('x') the mouseIcon til you click to drop)
-* dch styles (border, background, seethrough,etc)
 * dialogs like colorwheel rgba
         we will use Pickr (see TEST_Pickr.html)  but we want a local copy so no src="https://..."
             remember how to handle the MIT licence on it properly!
@@ -25,11 +26,12 @@ I think I may need to start moving a lot of the internal 'style' ops to external
 -----------------------------------------------------------------------------------------------------------------------
 don't forget that when we add the Colorpikr to license it appropriately!
 -----------------------------------------------------------------------------------------------------------------------
+when storing docs and indexlist, we need to save the scrollbar and opened-indexes as well
+    * the doc scrollbars are systemwide
+    * the opened indexes are per-browser
+
 -----------------------------------------------------------------------------------------------------------------------
 TODO
-* in the left pane we have <ul> with a single depth of <li>, we really should think about using the builtIn multidepth
-    ability of <ul><li><ul...deeper>  autoexpander/shrinker rather than constructing our own using the <div>'s
-
 * I kinda like the little icon cherrytree puts in front of the index entries, but maybe instead we just make a little box
     that you can set the color of?  or maybe color the entire entry?
 
@@ -38,7 +40,7 @@ TODO
     (NOTE THAT THIS SYSTEM would work for the menu dropdown system too!)
 
 * create menubar (file/edit/help)
-    make that allow submenus
+    make that allow submenus  (piggyback off contextMenu system)
 
 * ?UNDO?  (possibly not needed as CTE for example already does this)
 
@@ -46,26 +48,19 @@ TODO
     maybe even adding a ‘timeoutLength’ option too
     and also a way to cancel-expect so at least on the client side we can say ‘try again’ sooner so we don't end up with two responses
 
-* [potentially] VASTLY improve multiclient update pushes, for example if we tell all clients a new docchange was made and a client fetches
-    a new doc because of it,  in the case of a CTE you lose your current cursor position (and focus even!)  
-
-* store dragbar location in table 'extra'
+* store dragbar location in userLocalStore
+* store which indexEntrys are expanded in userLocalStore
 -----------------------------------------------------------------------------------------------------------------------
 DETAIL: scrollbars: so, in order to support scrollbars, we can't ever go left/top=negative
 
-we wont have to worry about updating the screen when dragging/sizing the rects, but when they release it we have to
-push everything to the positive until all negatives are zero
+we now have a special <div> inside the __sysDiv which we can simply reposition based on the zLeft/zTop (or zX zY)
+     and we can now use <div>.style.transform = “translateX(-33px)” on this div to move everything at once!
 
 we also want the scrollbars to move with us in such a way the screen doesn't move, making it appear that the screen
 grew to the left when in reality everything was shoved to the right
 
-AN ALTERNATIVE is to keep a zTop and zLeft value which is always added to all dch's when drawn.  thereby letting us have
-the illusion of negativity, and then we can have a function somewhere that 'shifts' everything to zero zTop and zLeft out again
-for this we need to add 2 elements to the docHeader for zLeft and zTop so for example:
-    change: @1.0;4dc5b290-2f18-419b-be10-427772d92c70;
-    to:     @1.0;4dc5b290-2f18-419b-be10-427772d92c70;-1000;-3000;
+    for this we need to add zX and zY to the BOX import/export (and also scrollX scrollY)
 
-the advantage to this approach is that when someone sets a dch's position, it won't move on them
 -----------------------------------------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------------------------------------

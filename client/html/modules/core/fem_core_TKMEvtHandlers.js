@@ -8,11 +8,6 @@ document.addEventListener("mouseup",     onTkmMouseUp,   true);
 document.addEventListener("keydown",     onTkmKeyDown, true);
 document.addEventListener("keyup",       onTkmKeyUp,   true);
 
-// const div = document.getElementById("divDocView");
-// div.addEventListener("mouseleave", mouseleave, true);
-// function mouseleave(evt) {
-//     // console.log("left");
-// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +39,7 @@ FG.kmStates = {
             H:0,
         }
         divMask:  <div>, // mask rectangle (covers entire divDocView) so we can intercept all clicks/moves
-        el:       <el>,  // dch element currently hovered over
+        sysDiv:   <el>,  // dch.__sysDiv element currently hovered over
         left:     set to pixelInt if lrMode has 'L' in it
         top:      set to ...
         width:    set to ...
@@ -173,6 +168,7 @@ function doFormInput(evt) {
         case 'H':   { ss.height = evt.target.value + "px";  break; }
         case 'B':   { ss.bottom = evt.target.value + "px";  break; }
     }
+    FG.kmStates.dch.__parent.update();  // update the BOX that houses this
 }
 
 
@@ -183,8 +179,8 @@ function doFormClick(evt) {
         formChanged = true;
         const dch = FG.kmStates.dch;
         let c = dch.__sysDiv.style;
-        let p = dch.parent.__sysDiv.style;
-        const pRect = dch.parent.__sysDiv.getBoundingClientRect();
+        let p = dch.__parent.__sysDiv.style;
+        const pRect = dch.__parent.__sysDiv.getBoundingClientRect();
         const rect = dch.__sysDiv.getBoundingClientRect();
 
         const id = evt.target.id;
@@ -206,7 +202,6 @@ function doFormClick(evt) {
             case 'H':   { code = ['H', 'T', 'B']; ss.height = '';  ss.top    = box.T;  ss.bottom = box.B;  break; }
             case 'B':   { code = ['B', 'T', 'H']; ss.bottom = '';  ss.top    = box.T;  ss.height = box.H;  break; }
         }
-
         frmSetEl(code[0], null, false);
         frmSetEl(code[1], null, true);
         frmSetEl(code[2], null, true);
@@ -252,6 +247,7 @@ function onPopupClose(dict) {
         ss.top    = formOrigVals.top;
         ss.height = formOrigVals.height;
         ss.bottom = formOrigVals.bottom;
+        FG.kmStates.dch.update();
     } else {
         if (formChanged) {
             FF.autoSave(0);
@@ -276,7 +272,7 @@ FF.getDCHName = function (dch) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function openDCHContextMenu() {      // based on the el the mouse is over when rightmouse was pressed...
+function openDCHContextMenu() {      // based on the sysDiv the mouse is over when rightmouse was pressed...
    let dch = FG.kmStates.dch;   // the actual dch instance
 
     const dchName = FF.getDCHName(dch);  // the name (as found in the globalThis.DCH{} )
@@ -330,7 +326,7 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
                         return;
                     }
                 }
-                dch.destroy();
+                await dch.destroy();
                 FF.autoSave();
                 break;
             case "setProps":
@@ -343,32 +339,29 @@ function openDCHContextMenu() {      // based on the el the mouse is over when r
 }
 
 
-function getContentBoundingBox(dch) {
-
-}
-
 function dragMaskDiv() {
     let kmask = FG.kmStates.mask;
     const deltaX = FG.kmStates.clientX - kmask.startX;
     const deltaY = FG.kmStates.clientY - kmask.startY;
 
     if (kmask.lrMode.includes("L")) {
-        kmask.el.style.left       = (kmask.left      + deltaX) + "px";
+        kmask.sysDiv.style.left  = (kmask.left    + deltaX) + "px";
         kmask.ghost.div.style.left = (kmask.ghost.L + deltaX) + "px";
     }
     if (kmask.lrMode.includes("R")) {
-        kmask.el.style.right      = (kmask.right     - deltaX) + "px";
+        kmask.sysDiv.style.right   = (kmask.right   - deltaX) + "px";
         kmask.ghost.div.style.left = (kmask.ghost.L + deltaX) + "px";
     }
     if (kmask.tbMode.includes("T")) {
-        kmask.el.style.top       = (kmask.top           + deltaY) + "px";
-        kmask.ghost.div.style.top = (kmask.ghost.T     + deltaY) + "px";
+        kmask.sysDiv.style.top    = (kmask.top      + deltaY) + "px";
+        kmask.ghost.div.style.top = (kmask.ghost.T  + deltaY) + "px";
     }
     if (kmask.tbMode.includes("B")) {
-        kmask.el.style.bottom    = (kmask.bottom    - deltaY) + "px";
-        kmask.ghost.div.style.top = (kmask.ghost.T + deltaY) + "px";
+        kmask.sysDiv.style.bottom = (kmask.bottom   - deltaY) + "px";
+        kmask.ghost.div.style.top = (kmask.ghost.T  + deltaY) + "px";
     }
-    FF.autoSave();          // autosave after 5 secs
+    FG.kmStates.dch.__parent.update();
+    FF.autoSave();          // autosave after n secs
 }
 
 
@@ -378,68 +371,68 @@ function sizeMaskDiv() {
     const deltaY = FG.kmStates.clientY - kmask.startY;
 // console.log(kmask.nesw, kmask.lrMode, kmask.tbMode); 
     if (kmask.nesw.includes("w")) {                                         // move west wall
-        if (kmask.lrMode == "LW") {                                   // if el has style.left+style.width
-            kmask.el.style.left       = (kmask.left       + deltaX) + "px";
-            kmask.el.style.width       = (kmask.width     - deltaX) + "px";
-            kmask.ghost.div.style.left = (kmask.ghost.L  + deltaX) + "px";
-            kmask.ghost.div.style.width = (kmask.ghost.W - deltaX) + "px";
-        }
-        if (kmask.lrMode == "RW") {                                   // if el has style.right+style.width
-            kmask.el.style.width       = (kmask.width     - deltaX) + "px";
+        if (kmask.lrMode == "LW") {                                   // if sysDiv has style.left+style.width
+            kmask.sysDiv.style.left     = (kmask.left    + deltaX) + "px";
+            kmask.sysDiv.style.width    = (kmask.width   - deltaX) + "px";
             kmask.ghost.div.style.left  = (kmask.ghost.L + deltaX) + "px";
             kmask.ghost.div.style.width = (kmask.ghost.W - deltaX) + "px";
         }
-        if (kmask.lrMode == "LR") {                                   // if el has style.left+style.right
-            kmask.el.style.left        = (kmask.left      + deltaX) + "px";
+        if (kmask.lrMode == "RW") {                                   // if sysDiv has style.right+style.width
+            kmask.sysDiv.style.width    = (kmask.width   - deltaX) + "px";
+            kmask.ghost.div.style.left  = (kmask.ghost.L + deltaX) + "px";
+            kmask.ghost.div.style.width = (kmask.ghost.W - deltaX) + "px";
+        }
+        if (kmask.lrMode == "LR") {                                   // if sysDiv has style.left+style.right
+            kmask.sysDiv.style.left     = (kmask.left    + deltaX) + "px";
             kmask.ghost.div.style.left  = (kmask.ghost.L + deltaX) + "px";
             kmask.ghost.div.style.width = (kmask.ghost.W - deltaX) + "px";
         }
     }
     if (kmask.nesw.includes("n")) {                                         // move north wall
-        if (kmask.tbMode == "TH") {                                   // if el has style.top+style.height
-            kmask.el.style.top          = (kmask.top       + deltaY) + "px";
-            kmask.el.style.height       = (kmask.height    - deltaY) + "px";
+        if (kmask.tbMode == "TH") {                                   // if sysDiv has style.top+style.height
+            kmask.sysDiv.style.top       = (kmask.top     + deltaY) + "px";
+            kmask.sysDiv.style.height    = (kmask.height  - deltaY) + "px";
             kmask.ghost.div.style.top    = (kmask.ghost.T + deltaY) + "px";
             kmask.ghost.div.style.height = (kmask.ghost.H - deltaY) + "px";
         }
-        if (kmask.tbMode == "BH") {                                   // if el has style.right+style.height
-            kmask.el.style.height       = (kmask.height    - deltaY) + "px";
+        if (kmask.tbMode == "BH") {                                   // if sysDiv has style.right+style.height
+            kmask.sysDiv.style.height    = (kmask.height  - deltaY) + "px";
             kmask.ghost.div.style.top    = (kmask.ghost.T + deltaY) + "px";
             kmask.ghost.div.style.height = (kmask.ghost.H - deltaY) + "px";
         }
-        if (kmask.tbMode == "TB") {                                   // if el has style.top+style.right
-            kmask.el.style.top          = (kmask.top       + deltaY) + "px";
+        if (kmask.tbMode == "TB") {                                   // if sysDiv has style.top+style.right
+            kmask.sysDiv.style.top       = (kmask.top     + deltaY) + "px";
             kmask.ghost.div.style.top    = (kmask.ghost.L + deltaY) + "px";
             kmask.ghost.div.style.height = (kmask.ghost.H - deltaY) + "px";
         }
     }
     if (kmask.nesw.includes("e")) {                                         // move east wall
-        if (kmask.lrMode == "LW") {                                   // if el has style.left+style.width
-            kmask.el.style.width       = (kmask.width     + deltaX) + "px";
-            kmask.ghost.div.style.width = (kmask.ghost.W + deltaX) + "px";
+        if (kmask.lrMode == "LW") {                                   // if sysDiv has style.left+style.width
+            kmask.sysDiv.style.width     = (kmask.width   + deltaX) + "px";
+            kmask.ghost.div.style.width  = (kmask.ghost.W + deltaX) + "px";
         }
-        if (kmask.lrMode == "RW") {                                   // if el has style.right+style.width
-            kmask.el.style.right       = (kmask.right     - deltaX) + "px";
-            kmask.el.style.width       = (kmask.width     + deltaX) + "px";
-            kmask.ghost.div.style.width = (kmask.ghost.W + deltaX) + "px";
+        if (kmask.lrMode == "RW") {                                   // if sysDiv has style.right+style.width
+            kmask.sysDiv.style.right     = (kmask.right   - deltaX) + "px";
+            kmask.sysDiv.style.width     = (kmask.width   + deltaX) + "px";
+            kmask.ghost.div.style.width  = (kmask.ghost.W + deltaX) + "px";
         }
-        if (kmask.lrMode == "LR") {                                   // if el has style.left+style.right
-            kmask.el.style.right       = (kmask.right     - deltaX) + "px";
-            kmask.ghost.div.style.width = (kmask.ghost.W + deltaX) + "px";
+        if (kmask.lrMode == "LR") {                                   // if sysDiv has style.left+style.right
+            kmask.sysDiv.style.right     = (kmask.right   - deltaX) + "px";
+            kmask.ghost.div.style.width  = (kmask.ghost.W + deltaX) + "px";
         }
     }
     if (kmask.nesw.includes("s")) {                                         // move north wall
-        if (kmask.tbMode == "TH") {                                   // if el has style.top+style.height
-            kmask.el.style.height       = (kmask.height    + deltaY) + "px";
+        if (kmask.tbMode == "TH") {                                   // if sysDiv has style.top+style.height
+            kmask.sysDiv.style.height    = (kmask.height  + deltaY) + "px";
             kmask.ghost.div.style.height = (kmask.ghost.H + deltaY) + "px";
         }
-        if (kmask.tbMode == "BH") {                                   // if el has style.right+style.height
-            kmask.el.style.bottom     = (kmask.bottom    - deltaY) + "px";
-            kmask.el.style.height       = (kmask.height    + deltaY) + "px";
+        if (kmask.tbMode == "BH") {                                   // if sysDiv has style.right+style.height
+            kmask.sysDiv.style.bottom    = (kmask.bottom  - deltaY) + "px";
+            kmask.sysDiv.style.height    = (kmask.height  + deltaY) + "px";
             kmask.ghost.div.style.height = (kmask.ghost.H + deltaY) + "px";
         }
-        if (kmask.tbMode == "TB") {                                   // if el has style.top+style.right
-            kmask.el.style.top          = (kmask.top       + deltaY) + "px";
+        if (kmask.tbMode == "TB") {                                   // if sysDiv has style.top+style.right
+            kmask.sysDiv.style.top       = (kmask.top     + deltaY) + "px";
             kmask.ghost.div.style.top    = (kmask.ghost.L + deltaY) + "px";
             kmask.ghost.div.style.height = (kmask.ghost.H - deltaY) + "px";
         }
@@ -460,28 +453,28 @@ FF.getDchAt = function(clientX, clientY) {
 }
 
 
-function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
+function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set, ctl+alt is pressed
     let kmask = FG.kmStates.mask;
-    let el = null;
+    let sysDiv = null;
     const div = document.getElementById("divDocView");
 
-    if (FG.kmStates.btnLeft) {  // if mouseLeft down, use existing el
+    if (FG.kmStates.btnLeft) {  // if mouseLeft down, use existing sysDiv
         if (!orig.btnLeft) {
-            kmask.startX = FG.kmStates.clientX;     // capture info about mouse startpos and boxsizing info
+            kmask.startX = FG.kmStates.clientX;     // capture mouse startpos
             kmask.startY = FG.kmStates.clientY;
         }
-        el = kmask.el;          // ref the dch el for working with below
-    } else {                    // else find dch el to use
+        sysDiv = kmask.sysDiv;  // ref the dch sysDiv for working with below
+    } else {                    // else find dch sysDiv to use
         FG.kmStates.dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
         const tmp = FG.kmStates.dch && FG.kmStates.dch.__sysDiv;
         if (FG.kmStates.dch != FG.curDoc.rootDch) {     // do not allow them to select/move the docRoot!
-            if (kmask.el && kmask.el != tmp) {          // if there was a dch el already selected but it's not this one any more
-                if (kmask.ghost && kmask.ghost.div) {               // remove any exhisting ghost
+            if (kmask.sysDiv && kmask.sysDiv != tmp) {           // if there was a dch sysDiv already selected but it's not this one any more
+                if (kmask.ghost && kmask.ghost.div) {            // remove any exhisting ghost
                     div.removeChild(FG.kmStates.mask.ghost.div);
                     delete FG.kmStates.mask.ghost;
                 }
             }
-            kmask.el = el = tmp;
+            kmask.sysDiv = sysDiv = tmp;
             kmask.nesw = "";    // set this right away to prevent possible tripup later on
         }
     }
@@ -492,7 +485,7 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
         }
         return;
     }
-    if (!el || el != kmask.el) {    // if we were over a dch el but we're not any more
+    if (!sysDiv || sysDiv != kmask.sysDiv) {    // if we were over a dch sysDiv but we're not any more
         if (kmask.ghost) {
             div.removeChild(FG.kmStates.mask.ghost.div);
             delete FG.kmStates.mask.ghost;
@@ -500,11 +493,11 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
     }
 
     let rect;
-    if (el) {
-        rect = el.getBoundingClientRect();
+    if (sysDiv) {
+        rect = sysDiv.getBoundingClientRect();
     }
-    if (el && !FG.kmStates.mask.ghost) {     // we're over an element but no ghost was created yet
-        // let rect = window.getComputedStyle(el);
+    if (sysDiv && !FG.kmStates.mask.ghost) {     // we're over an element but no ghost was created yet
+        // let rect = window.getComputedStyle(sysDiv);
         let ghost = document.createElement("div");
         ghost.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
         ghost.style.left    = rect.x + "px";
@@ -522,16 +515,16 @@ function doCmdStateDrawing(orig) { // only called when FG.kmStates.mask = set
         };
         kmask.lrMode = "";
         kmask.tbMode = "";
-        if (el.style.left)  {  kmask.lrMode += "L"; kmask.left  = parseInt(el.style.left);  }
-        if (el.style.right) {  kmask.lrMode += "R"; kmask.right = parseInt(el.style.right); }
-        if (el.style.width) {  kmask.lrMode += "W"; kmask.width = parseInt(el.style.width); }     // not used, only care about LR
+        if (sysDiv.style.left)  {  kmask.lrMode += "L"; kmask.left  = parseInt(sysDiv.style.left);  }
+        if (sysDiv.style.right) {  kmask.lrMode += "R"; kmask.right = parseInt(sysDiv.style.right); }
+        if (sysDiv.style.width) {  kmask.lrMode += "W"; kmask.width = parseInt(sysDiv.style.width); }     // not used, only care about LR
 
-        if (el.style.top)    {  kmask.tbMode += "T"; kmask.top    = parseInt(el.style.top);    }
-        if (el.style.bottom) {  kmask.tbMode += "B"; kmask.bottom = parseInt(el.style.bottom); }
-        if (el.style.height) {  kmask.tbMode += "H"; kmask.height = parseInt(el.style.height); }  // not used, only care about TB
+        if (sysDiv.style.top)    {  kmask.tbMode += "T"; kmask.top    = parseInt(sysDiv.style.top);    }
+        if (sysDiv.style.bottom) {  kmask.tbMode += "B"; kmask.bottom = parseInt(sysDiv.style.bottom); }
+        if (sysDiv.style.height) {  kmask.tbMode += "H"; kmask.height = parseInt(sysDiv.style.height); }  // not used, only care about TB
 
     }
-    if (el) {                            // if we're over a dch...
+    if (sysDiv) {                        // if we're over a dch...
         if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
             const slop = 6;              // compute the cursortype (as kmask.nesw)
             rect.r = rect.x + rect.width - 1;

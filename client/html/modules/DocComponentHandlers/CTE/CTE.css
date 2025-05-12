@@ -1,18 +1,16 @@
 .CTE {
     background-color: aqua;
-    /* position: absolute; */
-    inset: 0px;
-    /* left: 0px;
-    top: 0px;
-    right: 0px;
-    bottom: 0px; */
-    /* resize: none; */
-    padding: 2px;  /* without this the cursor gets lost at start-of-line if there's a solid border */
-    border: 1px solid white;      /*??RSTEMP?? get-us-going mods to experiment on the el */
+    width:100%;
+    height:100%;                 /* if we don't do this it won't fill the host */
+    padding: 2px;                /* without this the cursor gets lost at start-of-line if there's a solid border */
+    border: 1px solid white;   /*??RSTEMP?? get-us-going mods to experiment on the el */
     overflow: hidden;
     white-space: pre-wrap;       /* preserve whitespace and wrap as needed */
     word-wrap  : break-word;     /* auto-break very large words if needed */
 }
-.CTE[contenteditable]:focus {
-    outline: none;
-}
+
+/* turn off 'show border when this has focus' */
+/* .CTE[contenteditable]:focus {
+   outline: none;
+} */
+ 
