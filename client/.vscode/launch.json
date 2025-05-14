@@ -7,6 +7,10 @@
           "name": "Launch jotliner.html",
           "url": "http://localhost:3000",
           "webRoot": "${workspaceFolder}/html",
-          "userDataDir": "${workspaceFolder}/.vscode/chrome"        }
+          "userDataDir": "${workspaceFolder}/.vscode/chrome",
+          "runtimeArgs": [
+            "--remote-debugging-port=9222"
+          ],
+      }
   ]
 }

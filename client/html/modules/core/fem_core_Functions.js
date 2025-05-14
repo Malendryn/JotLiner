@@ -11,7 +11,6 @@ module = async loadModule(modulePath)   load and return module, if has an export
 -------- async msDelay(ms)              cause a delay of ms,  EG: 'await FF.msDelay(1500);'
 uuid   = async makeUUID()               make and return a UUID
 hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
-int    =       parseIntFromStyle(txt)   convert "12px" to 12 (and most importantly "" to 0 and not NaN)
 
 -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
 -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
@@ -42,6 +41,10 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 
 ==== FROM fem_core_TKMEvtHandlers.js ==================================================================================
 --------       getDCHName(dch)          return name of dch as the subdirName in DocComponentHandlers
+--------       getRawRect(el)           return LWRTHB of el direct from .style property
+--------       moveDivRelative(el, deltaX, deltaY)  move a div by x/y pixels, accounting for LWRTHB anchors too
+--------       moveDivAbsolute(el, locX, locY)      move a div to locX/Y, accounting for LWRTHB anchors too
+--------       sizeDivRelative(el, nesw, dltX,dlty) resize a div based on nesw walls, (n,ne,e,se,...)  acct. anchors too
 
 ==== FROM fem_core_ContextMenu.js ====================================================================================
 --------       openContextMenu(entries, callback)
@@ -92,15 +95,6 @@ FF.makeHash = async (txt) => {
 		),
 		(byte) => byte.toString(16).padStart(2, '0')
 	).join('');
-}
-
-
-FF.parseIntFromStyle = function(styleVal) {
-    styleVal = parseInt(styleVal);
-    if (Number.isNaN(styleVal)) {
-        return 0;
-    }
-    return styleVal;
 }
 
 
@@ -210,6 +204,7 @@ FF.reTimer = function(callback) {
 		}
 	}
 	return startTimeout;
+    console.log(FF.__FILE__(), "*** AUTOSAVE DISABLED ***");
 }
 
 

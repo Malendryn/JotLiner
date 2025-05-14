@@ -11,11 +11,10 @@ FG._idCounter = 0;
 
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
-    hasDiv = true;          // true = create 'this.__sysDiv' @ construction AND read styles from stream when created via DocImporter
     hasToolbar = false;     // true = create this.toolbar' @ construction
 
 // *** these next few are where inheriting classes add their own html elements.  these should never be modified in any other way. ***
-    host    = null;    // ownedBy BASE. if hasDiv:     an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
+    host    = null;    // ownedBy BASE. an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
     toolbar = null;    // ownedBy BASE. if hasToolbar: an 'absolute' <div> where child classes add 'icons and toolbar stuff' to
                      // for listeners, use this.addDCHListener() & this.removeDCHListener...()  so dch can autoremove when destroying
 
@@ -39,7 +38,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 // create/destroy and other helper functions on baseclass (do not override!)----------------------------------------------------
     //  async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
                     // whos parent is parent
-                    // and if .hasDiv and style populate div style with style data
+                    // and populate div style with style data
                     // finally call this.construct() for post-construction activities
 
     //  async destroy(); // recursive, calls this.destruct(), then removes all listeners, then destroys it
@@ -67,9 +66,7 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 // system-only properties, they should never be modified by the child class in any way
 
 __parent = null;     // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
-__sysDiv = null;     // if hasDiv==true, this will be a handle to an 'absolute' <div>  (null otherwise)
-                     // the parent of every other element created by this component (autocreated during create())
-__scroll = null;     // DCH_BOX-ONLY a special childOf __sysDiv for the infinite canvas scrolling
+__sysDiv = null;     // handle to a toplevel <div absolute>  housing the entire dch element tree (autocreated during create())
 __host   = null;     // all NON-DCH_BOX's get this
 __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv.__host.__shadow.host);
 
@@ -77,45 +74,38 @@ __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv
         const dch = new DCH[dchName].dchClass();            // create handler, do nothing else!
         dch.srcUrl = DCH[dchName].srcUrl;                   // set the path to its available content
         dch.__parent = parent;
-        if (dch.hasDiv) {                                       // is dch a visible object that needs a <div> to render in? 
-            dch.__sysDiv = document.createElement("div");       // create div
-            dch.__sysDiv.id = (FG._idCounter++).toString();
-            dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
-            dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
-            dch.__sysDiv._dchMouseOp = "dchComponent";          // to let us know via mouse/kbd evts that this is <el> is a dch component
-            let parentDiv;
-            if (dch.__parent == null) {                               // if self has no parent...
-                parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
-            } else {
-                parentDiv = dch.__parent.host                    // else attach to parent's host <div>
-            }
-            dch.__sysDiv.style.position  = "absolute";      // the wrapping 'dch.__sysDiv' is ALWAYS absolute!
-            dch.__sysDiv.style.boxSizing = "border-box";    // prevent adding padding and borders to dch's .getBoundingClientRect()
-            dch.__sysDiv.style.padding   = "0px";
-            dch.__sysDiv.style.margin    = "0px";
-            dch.__sysDiv.style.minWidth = "20px";
-            dch.__sysDiv.style.minHeight = "20px";
-            parentDiv.appendChild(dch.__sysDiv);
+        dch.__sysDiv = document.createElement("div");       // create div
+        dch.__sysDiv.id = (FG._idCounter++).toString();
+        dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
+        dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
+        dch.__sysDiv._dchMouseOp = "dchComponent";          // to let us know via mouse/kbd evts that this is <el> is a dch component
+        let parentDiv;
+        if (dch.__parent == null) {                               // if self has no parent...
+            parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
+        } else {
+            parentDiv = dch.__parent.host                    // else attach to parent's host <div>
+        }
+        dch.__sysDiv.style.position  = "absolute";      // the wrapping 'dch.__sysDiv' is ALWAYS absolute!
+        dch.__sysDiv.style.boxSizing = "border-box";    // prevent adding padding and borders to dch's .getBoundingClientRect()
+        dch.__sysDiv.style.padding   = "0px";
+        dch.__sysDiv.style.margin    = "0px";
+        dch.__sysDiv.style.minWidth = "20px";           //prevent resizing smaller than 20px
+        dch.__sysDiv.style.minHeight = "20px";
+        parentDiv.appendChild(dch.__sysDiv);
 
-            if (dchName == "BOX") {                    // BOX is SpecialCase, DON'T give it a shadowDom! 
-                dch.__scroll = document.createElement("div"); 
-                dch.__scroll.id = (FG._idCounter++).toString();
-                dch.__scroll.style.position = "absolute";
-                dch.__scroll.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
-                dch.__sysDiv.appendChild(dch.__scroll);      
-
-                dch.host = document.createElement("div");       // this is now where all child elements get appended to
-                dch.host.id = (FG._idCounter++).toString();
-                dch.host.style.position = "absolute";
-                dch.__scroll.appendChild(dch.host);
-            } else {                                // if it's NOT a BOX, give it a shadowDom!
-                dch.__host = document.createElement("div"); 
-                dch.__host.id = (FG._idCounter++).toString();
-                dch.__host.style.position = "absolute";
-                dch.__host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
-                dch.__sysDiv.appendChild(dch.__host);      
-                dch.__shadow = dch.__host.attachShadow({ mode: "open" });
-                dch.__shadow.innerHTML = `
+        if (dchName == "BOX") {                    // BOX is SpecialCase, DON'T give it a shadowDom! 
+            dch.host = document.createElement("div");       // this is now where all child elements get appended to
+            dch.host.id = (FG._idCounter++).toString();
+            dch.host.style.position = "absolute";
+            dch.__sysDiv.appendChild(dch.host);
+        } else {                                // if it's NOT a BOX, give it a shadowDom!
+            dch.__host = document.createElement("div"); 
+            dch.__host.id = (FG._idCounter++).toString();
+            dch.__host.style.position = "absolute";
+            dch.__host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
+            dch.__sysDiv.appendChild(dch.__host);      
+            dch.__shadow = dch.__host.attachShadow({ mode: "open" });
+            dch.__shadow.innerHTML = `
 <style>
     :host {
         display: block;
@@ -128,26 +118,25 @@ __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv
     }
 </style>
 `;
-                dch.__host.classList.add("shadowBox");            // see index.css
-                // dch.__host.classList.add("disable");           // dont add this here, example only!
-                dch.host = document.createElement("div")          // this is now where all child elements get appended to
-                dch.host.style.width = "100%";
-                dch.host.style.height = "100%";                   // make sure host always fills parent completely
-                dch.host.id = (FG._idCounter++).toString();
-                dch.host = dch.__shadow.appendChild(dch.host);    // give it its first element as it has none to start with
-            }
+            dch.__host.classList.add("shadowBox");            // see index.css
+            // dch.__host.classList.add("disable");           // dont add this here, example only!
+            dch.host = document.createElement("div")          // this is now where all child elements get appended to
+            dch.host.style.width = "100%";
+            dch.host.style.height = "100%";                   // make sure host always fills parent completely
+            dch.host.id = (FG._idCounter++).toString();
+            dch.host = dch.__shadow.appendChild(dch.host);    // give it its first element as it has none to start with
+        }
 
-            if (style) {
-                for (const key in style) {              // get and parse the style values
-                    const val = style[key] + "px";      // get the value and append "px"
-                    switch(key) {
-                        case 'L':   dch.__sysDiv.style.left   = val;   break;
-                        case 'R':   dch.__sysDiv.style.right  = val;   break;
-                        case 'W':   dch.__sysDiv.style.width  = val;   break;
-                        case 'T':   dch.__sysDiv.style.top    = val;   break;
-                        case 'B':   dch.__sysDiv.style.bottom = val;   break;
-                        case 'H':   dch.__sysDiv.style.height = val;   break;
-                    }
+        if (style) {
+            for (const key in style) {              // get and parse the style values
+                const val = style[key] + "px";      // get the value and append "px"
+                switch(key) {
+                    case 'L':   dch.__sysDiv.style.left   = val;   break;
+                    case 'R':   dch.__sysDiv.style.right  = val;   break;
+                    case 'W':   dch.__sysDiv.style.width  = val;   break;
+                    case 'T':   dch.__sysDiv.style.top    = val;   break;
+                    case 'B':   dch.__sysDiv.style.bottom = val;   break;
+                    case 'H':   dch.__sysDiv.style.height = val;   break;
                 }
             }
         }
@@ -176,10 +165,8 @@ __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
         FF.removeAllTrackedListeners(this.__sysDiv);      // remove all listeners registered to this dch FIRST
         await this.destruct();
-        if (this.hasDiv && this.__sysDiv) {
-            this.__sysDiv.remove();
-        }
-        if (this.hasToolbar && this.toolbar) {
+        this.__sysDiv.remove();
+        if (this.hasToolbar) {
             this.toolbar.remove();
         }
         if (this.__parent) {                                  // if not at topmost dch

@@ -16,8 +16,8 @@ function onPopMouseDown(evt) {
         startX = FG.kmStates.clientX;
         startY = FG.kmStates.clientY;
         const el = document.getElementById("popupForm");
-        origLeft = FF.parseIntFromStyle(el.style.left);
-        origTop  = FF.parseIntFromStyle(el.style.top);
+        origLeft = parseInt(el.style.left) || 0;
+        origTop  = parseInt(el.style.top)  || 0;
         isDown = true;
     }
 }

@@ -16,6 +16,11 @@ html,body {
     background-color: rgb(200, 200, 230);
 
 }
+#divTitleBar #tbContent {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
 /*********************************************************************************************************************/
 #divToolbar {
     position: absolute;
@@ -88,13 +93,9 @@ html,body {
 
 .DCH_BOX {
     position: absolute;
+    overflow: hidden;
     /* background-color:#C1C1C1;
     background-color:red; */
-}
-.DCH_BOX_scroller {
-    overflow:         auto;      /* enable scrollbars on the __scroll div NOT the __sysDiv */
-    background-color: #C1C1C1;  /* make the scrollbox's background grey */
-
 }
 .DCH_BOX::after {
     content: "";

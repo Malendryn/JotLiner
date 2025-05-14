@@ -2,6 +2,8 @@
 BOX's need a way to receive updates, in particular after their contents are filled we need to calc the boundaries
 and also after any object is moved
 -----------------------------------------------------------------------------------------------------------------------
+add using cmdCombo+arrowkeys to move the boxes one pixel at a time
+-----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
 
 (I think I may need to start moving a lot of the internal 'style' ops to external .css files)

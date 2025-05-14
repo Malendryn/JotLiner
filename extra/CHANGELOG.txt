@@ -8,6 +8,27 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+* added a toolbar that shows LWR THB dims when cmdCombo+mouse is down over a dch for visual dragging/sizing info
+    still 'glitchy' when dragging off left/top of outer BOX
+* replaced dragMaskDiv and sizeMaskDiv with FF.moveDivRelative, FF.moveDivAbsolute, and FF.sizeDivRelative
+* got rid of DCH_BASE.hasDiv -- all dch's have a __sysDiv so this was irrelevant
+* got rid of FG.kmStates.sysDiv as redundant (same as FG.kmStates.dch.__sysDiv)
+
+system overhaul: MUCH needs to change now to handle infinite canvas!
+* changed ctrl+alt to alt+shift for better generic os-compatibility,  (still want to consider making this user defined)
+* added alt+shift=mode1 (mode one), then release either key + press again = mode2,  (repeat toggles between mode1 and 2)
+  when neither are pressed , is mode0
+* removed scrollbars entirely and going with mode2 = drag
+      lots to fix/debug because of this
+* without scrollbars removed dch.__scroll entirely as children now 'float' within the host
+* .zX/Y now simply defines an offset, positive OR negative, to style.transform all children by
+
+
+TODO:
+    . when anything exists outside the scrollregion we want to show that edge's border in a diff pattern or color
+        (but only when mode1 or 2)
+    . change the way export/import works so that these objects actually get output with proper negative l/r/t/b! *****!!!!!*****!!!!!!*****!!!!
+
 2025-05-12 ------------------------------------------------------------------------------------------------------------
 * moved some of the CTE style settings out to its own CTE.css file now
 * moved most of the BOX style settings out to index.css (BOX is a specialcase system-level DCH)
@@ -15,7 +36,7 @@
 * fixed up much of the dragbar issues
 * renamed DCH_BASE.parent to .__parent to signify its an internal var only
 * moved/repaired .destroy() such that it now unlinks itself from its parent rather than the parent unlinking the child
-* added calls to .update() when dch's get dragged or located in the properties popup
+* added calls to .__update() when dch's get dragged or located in the properties popup
 * renamed kmask.el to kmask.sysDiv to be more 'informative'
 
 2025-05-11 ------------------------------------------------------------------------------------------------------------
@@ -111,7 +132,7 @@
 * finally renamed this file from STATUS.txt to CHANGELOG.txt!
 * got rid of <div id="docWrapper"> inside <div id="divDocView"> as it was redundant, now using divDocView directly
 lets get to working on resizing the dch's!
-* reworked ENTIRE ctl+alt dragging system, now greys hovered boxes even if they're partially covered!
+* reworked ENTIRE cmdCombo dragging system, now greys hovered boxes even if they're partially covered!
 * reworked divIndexDoc dragbar system as well
     there is a minor quirk where if you have c+a down, then click+drag, then with c+a STILL down you click+drag a diff
     object, its starting x/y is a little off and it 'jumps' a short distance.  I haven't yet found what's causing that

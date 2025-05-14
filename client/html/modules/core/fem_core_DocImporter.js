@@ -111,7 +111,7 @@ export class DocImporter {   // create and return a DCH from a stream
         for (let idx = 0; idx < dchData.children; idx++) {          // load children of component (if any)
             await this._importNext(dch);
         }
-        await dch.update();
+        await dch.update();     //finally AFTER ALL children loaded, update scrollRegion
     }
 
 

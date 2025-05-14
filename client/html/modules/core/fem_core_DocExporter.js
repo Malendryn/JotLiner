@@ -29,15 +29,14 @@ export class DocExporter {
             }
         }
         let str = "";
-        if (dch.hasDiv) {
-            if (dch.__sysDiv.style.left   != '') {  str += this._elToStr("L", parseInt(dch.__sysDiv.style.left));   }
-            if (dch.__sysDiv.style.right  != '') {  str += this._elToStr("R", parseInt(dch.__sysDiv.style.right));  }
-            if (dch.__sysDiv.style.width  != '') {  str += this._elToStr("W", parseInt(dch.__sysDiv.style.width));  }
-            if (dch.__sysDiv.style.top    != '') {  str += this._elToStr("T", parseInt(dch.__sysDiv.style.top));    }
-            if (dch.__sysDiv.style.bottom != '') {  str += this._elToStr("B", parseInt(dch.__sysDiv.style.bottom)); }
-            if (dch.__sysDiv.style.height != '') {  str += this._elToStr("H", parseInt(dch.__sysDiv.style.height)); }
-            str = this._elToStr("<>", str);             // now wrap it all in a "<>" 
-        }
+        if (dch.__sysDiv.style.left   != '') {  str += this._elToStr("L", parseInt(dch.__sysDiv.style.left));   }
+        if (dch.__sysDiv.style.right  != '') {  str += this._elToStr("R", parseInt(dch.__sysDiv.style.right));  }
+        if (dch.__sysDiv.style.width  != '') {  str += this._elToStr("W", parseInt(dch.__sysDiv.style.width));  }
+        if (dch.__sysDiv.style.top    != '') {  str += this._elToStr("T", parseInt(dch.__sysDiv.style.top));    }
+        if (dch.__sysDiv.style.bottom != '') {  str += this._elToStr("B", parseInt(dch.__sysDiv.style.bottom)); }
+        if (dch.__sysDiv.style.height != '') {  str += this._elToStr("H", parseInt(dch.__sysDiv.style.height)); }
+        str = this._elToStr("<>", str);             // now wrap it all in a "<>" 
+
         let data = await dch.exportData();
         for (const key in data) {
             str += this._elToStr(key, data[key]);       // append all dch's private data to the str
