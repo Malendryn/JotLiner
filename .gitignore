@@ -6,12 +6,15 @@
 ### git ls-files '*.db' -z | xargs -0 git rm --cached
 ##############################################################################################
 
+node_modules/
+
 # we dont want the 'chrome' debug garbage in git
 client/.vscode/chrome/
 
-# we dont want to push our .db files either
+# we dont want to push our .db files either (except for example.db)
+server/db/*.db
+!server/db/example.db
 
-*.db
 
 # don't push ssl cert's to git as they're just for me!
 server/sslcert/

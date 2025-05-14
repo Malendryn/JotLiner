@@ -32,7 +32,6 @@ system overhaul: MUCH needs to change now to handle infinite canvas!
 * fixed the ghosting so now it stays ghosted when opening contextmenu and properties so you see the ghost as well as 
     the actual box being edited while properties is open (makes knowing which box is being edited much easier!)
 
-
 2025-05-12 ------------------------------------------------------------------------------------------------------------
 * moved some of the CTE style settings out to its own CTE.css file now
 * moved most of the BOX style settings out to index.css (BOX is a specialcase system-level DCH)
