@@ -27,7 +27,6 @@ class DCH_BOX extends FG.DCH_BASE {
 
     async importData(data) {    // populate this component with data
         if (Object.keys(data).length > 0) {     
-            console.log(FF.__FILE__(), "importData xZ xY etc...")
             this.zX      = parseInt(data.zX);       // how far all children are shifted over to give the infinite canvas illusion
             this.zY      = parseInt(data.zY);
         }

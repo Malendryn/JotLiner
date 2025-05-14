@@ -1,8 +1,14 @@
 -----------------------------------------------------------------------------------------------------------------------
-BOX's need a way to receive updates, in particular after their contents are filled we need to calc the boundaries
-and also after any object is moved
+when anything exists outside the scrollregion we want to show that edge's border in a diff pattern or color
+    (but only when mode1 or 2, not 0)
+-----------------------------------------------------------------------------------------------------------------------
+we ALSO when in mode2 want to show ghosts over all the children SO THAT WE CAN SEE the invisible ones outside the box!
 -----------------------------------------------------------------------------------------------------------------------
 add using cmdCombo+arrowkeys to move the boxes one pixel at a time
+    problem with this is as I have to remain hovering over the object to move, but that's not really a biggie is it?
+        of course if you shift the box away from the mouse you'll have issues...
+-----------------------------------------------------------------------------------------------------------------------
+add a popup for mode2 moving (or at the very least add the values to the titlebar in the __tmpKBModeTitlebar)
 -----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
 
@@ -25,6 +31,9 @@ PRE-GITHUB Todos
     CODE codeblock (monospaced, linenumbered)
     MDN Markdown (Github compatible)
 
+
+__tmpKBModeTitlebar
+__tmpKBModeToolbar
 -----------------------------------------------------------------------------------------------------------------------
 don't forget that when we add the Colorpikr to license it appropriately!
 -----------------------------------------------------------------------------------------------------------------------

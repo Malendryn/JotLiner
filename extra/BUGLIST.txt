@@ -1,49 +1,11 @@
 -----------------------------------------------------------------------------------------------------------------------
-BUG: 
-GOOD: if we drag a node left outside the scrollarea, we get a scrollbar.   if we drag it back inside, scrollbar goes away
-BAD:  if we drag left outside, THEN MOVE the scrollbar, THEN move the node back inside, all OTHER nodes visibly move too
-      AND the ghost sticks with the mouse properly, but the real node sticks to 0 until it goes positive
-
-ALSO: if the scrollbar is moved to the right,  /but not all the way/ then when node is dragged back in, everything is 
-      peachy until that area of the scrollbar is caught up with AND THEN nodes start to visibly move
-
-SOLVE: maybe while moving, we only show the ghost moving, and don't actually update until mouse released?
-ALSO:  if scrollbar is moved, but not all the way we can still shrink zX/Y until scrollbar left needs to change, but then
-       we have to 'keep zX/Y positive' until they drag the scrollbar over until it disappears
-
-MAYBE:  consider not having scrollbars at all?  but how then to visually show regions outside the bounds?
-
-
-OKAY!  we're GETTING RID OF SCROLLBARS!  and we'll add ctrl+alt+shift as a dragOption  (maybe as an accelerator so the 
-farther left/right you move it the faster it scrolls, until you release a key)
 -----------------------------------------------------------------------------------------------------------------------
-dragging now supports scrollbars BUT it's still wonky when we dragTo upperLeft causing the scrollbars to 'expand'
-in that draggy direction.  The problem MAY be solvable by computing position based on the ghostDiv rather than the
-actual element's position since the ghost is relative solely to the entire viewport and is never affected by dragbars
-
-so to do this when we press mouseDown we want the startX/Y which we get, but we ALSO want the startXY of the dch! 
-
-see dragMaskDiv()
-
-    we need to try to get the scrollbar position logic working in the DCH_BOX.__update() routine which may be tricky
-    as we cant really set a 'scrollbar was here at moment of mousedown' (although theres nothing stpping us from
-    setting that up in doCmdStateDrawing() as kmask.scrollX/Y and referencing that from within the DCH_BOX 
-        !!! since BOX is a special builtin DCH !!!!)
-
-ok we need to ditch the 'transform()' logic entirely and just set their left/top posns directly, and to do that
-  we need to back to tracking zX and zY  (or do we?)
-
-There may be a problem if we don't grab the rect before we even begin
-
-this may fix the following bug too:  ----------------------------------------------------------------------------------
-When dragging a node inside a box, and it causes scrollbars to appear/disappear, the ghost /sometimes/ misaligns as 
-    everything 'jumped'
-    We may need to fetch the boxes TRBL and push it on the ghost rather than calcing it from real mousepos
-
 -----------------------------------------------------------------------------------------------------------------------
-BUG: when cancelling the properties popup it doesn't reset the boxwidth or .sX/Y or .scrollX/Y or __scroll.scrollLeft
 -----------------------------------------------------------------------------------------------------------------------
-BUG: when dragging DCH_BOX children, the mouse activity is entirely delta-from-prior-movement based, and this can get
+-----------------------------------------------------------------------------------------------------------------------
+BUG: consider requestAnimationFrame()
+
+when dragging DCH_BOX children, the mouse activity is entirely delta-from-prior-movement based, and this can get
 glitchy.  The proper way to do it is to track the box's position seperately (for example trap boxData at moment of
 mousedown) and delta it from there, calling 'id = requestAnimationFrame()' to do actual boxMovement and scrollboxSizing
 (and with the id we can call cancelAnimationFrame() to remove any unprocessed ones off the queue first)
@@ -68,9 +30,7 @@ function scheduleFrame(data) {
     const id = requestAnimationFrame(() => {
         ProcessData(data);
         const index = frameArray.indexOf(frameId);
-//        if (index != -1) {             // should not be needed, if we got HERE, is guaranteed to be in array
-            frameArray.splice(index, 1); // Remove the ID from the array
-//        }
+          frameArray.splice(index, 1); // Remove the ID from the array
     });
     frameArray.push(id);
 }

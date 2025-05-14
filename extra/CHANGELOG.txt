@@ -7,7 +7,7 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-14 ------------------------------------------------------------------------------------------------------------
 * added a toolbar that shows LWR THB dims when cmdCombo+mouse is down over a dch for visual dragging/sizing info
     still 'glitchy' when dragging off left/top of outer BOX
 * replaced dragMaskDiv and sizeMaskDiv with FF.moveDivRelative, FF.moveDivAbsolute, and FF.sizeDivRelative
@@ -23,11 +23,15 @@ system overhaul: MUCH needs to change now to handle infinite canvas!
 * without scrollbars removed dch.__scroll entirely as children now 'float' within the host
 * .zX/Y now simply defines an offset, positive OR negative, to style.transform all children by
 
+* fixed up many issues with the new overhaul, handling drag/resize of mode1 nodes, and drag/offsetting in mode2 as well
+    things are looking pretty stable right now!
+* added a titlebar msg now too, 
+    when in mode1, it shows the zX/Y offset of the parent BOX (or self if is a BOX)
+    when in mode2, it shows the zX/Y offset of the box you're infiniShifting
+* zX/Y is also now being stored in the doc on export and read back in reliably
+* fixed the ghosting so now it stays ghosted when opening contextmenu and properties so you see the ghost as well as 
+    the actual box being edited while properties is open (makes knowing which box is being edited much easier!)
 
-TODO:
-    . when anything exists outside the scrollregion we want to show that edge's border in a diff pattern or color
-        (but only when mode1 or 2)
-    . change the way export/import works so that these objects actually get output with proper negative l/r/t/b! *****!!!!!*****!!!!!!*****!!!!
 
 2025-05-12 ------------------------------------------------------------------------------------------------------------
 * moved some of the CTE style settings out to its own CTE.css file now

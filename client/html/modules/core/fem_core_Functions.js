@@ -182,8 +182,37 @@ function __getFileLineInfo(err) {
 		return "<?noFileInfo?>.???";
 	}
 }
-FF.__FILE__ = function() {
-	return __getFileLineInfo(new Error());
+FF.__FILE__ = function(all = false) {
+	try {
+		throw new Error();
+	} catch (error) {
+		const stackLines = error.stack.split('\n');		// convert stack trace to array
+
+        const lines = [];
+        for (let idx = 0; idx < stackLines.length; idx++) {
+            if (stackLines[idx].indexOf('@') > -1 || stackLines[idx].indexOf('at ') > -1) { // look for '@' or 'at '
+                let filename = stackLines[idx].substring(stackLines[idx].lastIndexOf('/') + 1);
+                filename = filename.substring(0, filename.lastIndexOf(':')); // of 'fname.js:lineno:idx)'return 'fname:lno'      //.indexOf(')'));
+                lines.push(filename);
+            }
+        }
+
+        let line = "";
+        if (!all) {
+            if (lines) {
+                line = lines[1];
+            }
+        } else {
+            for (let idx = lines.length; idx >= 1; idx--) {     // never use 0 as that's the 'throw new Error(' line above
+                line += "\n >> " + lines[idx];
+            }
+        }
+	
+		if (line) { 
+			return line;
+		}
+		return "<?noFileName?>.??:???";
+	}
 }
 
 
