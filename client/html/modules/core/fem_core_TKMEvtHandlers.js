@@ -18,8 +18,20 @@ document.addEventListener("keyup",       onTkmKeyUp,       { capture: true, pass
 // browser window, but NOT if click+hold is NOT down!
 // this doesnt work on buttons 3 and 4, only on 0,1,2 (left,middle,right)
 
+FG.mgStates = {     // mask and ghost states
+    divMask:  null,
+    divGhost: null,
+    nesw:     "",   //"n", "ne", "e", "se", "s", "sw", "w", "nw" <-- when mouse near edge of divGhost, this lets us set the appropriate cursor
+    // lrMode:   "",   //"LW", "WR", or "LR"
+    // tbMode:   "",   //"TH", "HB", or "TB"
+    // left:     0,    //set to pixelInt if lrMode has 'L' in it
+    // top:      0,    //set to ...
+    // width:    0,    //set to ...
+    // height:   0,    //set to ...
+};
+
 FG.kmStates = {
-    mode:     0,       // 0= no alt+shift, 1 = alt+shift, 2=alt+shift, then alt OR shift released then pressed again
+    mode:     0,        // 0= no alt+shift, 1 = alt+shift, 2=alt+shift, then alt OR shift released then pressed again
     clientX:  0,        // to track mouse position at ALL times (while in browserspace of course) 
     clientY:  0,
     inDocView:false,    // set when mouse moves over/away from divDocView rect
@@ -30,32 +42,22 @@ FG.kmStates = {
     keyCtrl:  false,
     keyShift: false,
     keyMeta:  false,    // on windows this is the 'Win' key
+    keyZ:     false,    // moves us to mode=2
     modal:    false,    // true when any menu, contextmenu, or dialog is open, else false
     dch:      null,     // the dch the target belongs to  (IF, else null)
-    mask:     null, /*{ // set when cmdKeys are both pressed (keyShift+keyAlt)
-        ghost: {
-            div: <div>, // ghost rectangle (greyed rectangle showing hovered-over element even if partially hidden)
-            L:0,
-            T:0,
-            W:0,
-            H:0,
-        }
-        divMask:  <div>, // mask rectangle (covers entire divDocView) so we can intercept all clicks/moves
-        left:     set to pixelInt if lrMode has 'L' in it
-        top:      set to ...
-        width:    set to ...
-        height:   set to ...
-        lrMode:   "LW", "WR", or "LR"
-        nesw:     "n", "ne", "e", "se", "s", "sw", "w", "nw" <-- when mouse near edge of divGhost, this lets us set the appropriate cursor
-XDELX        startX:   if btnLeft goes down, capture mousepos here
-XDELX        startY:
-        lastX:    track position of mouse from one call to next for delta movement
-        lastY:
-        tbMode:   "TH", "HB", or "TB"
-    }*/
+    // mask:     null, /*{ // set when cmdKeys are both pressed (keyShift+keyAlt)
+    //     divMask:  <div>, // mask rectangle (covers entire divDocView) so we can intercept all clicks/moves
+    //     left:     set to pixelInt if lrMode has 'L' in it
+    //     top:      set to ...
+    //     width:    set to ...
+    //     height:   set to ...
+    //     lrMode:   "LW", "WR", or "LR"
+    //     nesw:     "n", "ne", "e", "se", "s", "sw", "w", "nw" <-- when mouse near edge of divGhost, this lets us set the appropriate cursor
+    //     tbMode:   "TH", "HB", or "TB"
+    // }*/
     // target:   null,     // the element the mouse is presently over (or null)  (NOT always a dch!)  ... not used any more??? 
 };
-
+FG.kmPrior = null;  // clone of FG.kmStates prior to onStateChange() so we can test if something JUST changed
 
 // had to use <div> instead of <form> else the style="..." stuff didn't work at-all!
 const anchorForm = `
@@ -174,7 +176,7 @@ function onFormInput(evt) {                         // if an inputBox's value ch
     }
 
     let rect = dch.__sysDiv.getBoundingClientRect();
-    FF.moveDivAbsolute(FG.kmStates.mask.divGhost, rect.left, rect.top);
+    FF.moveDivAbsolute(FG.mgStates.divGhost, rect.left, rect.top);
 }
 
 
@@ -360,6 +362,7 @@ FF.getDchAt = function(clientX, clientY) {
     return null;
 }
 
+
 function setKBModeTitlebarText(dch) {
     dch = FF.getBoxAroundDch(dch);      // we dont care about the dch, only the BOX around it (or self if is a BOX)
     let el = document.getElementById("__tmpKBModeTitlebar");
@@ -416,20 +419,6 @@ function setKBModeToolbarText(dch) {
 `;
     }
 
-try{
-//     let P = dch.__parent.host.getBoundingClientRect();  // get the parent's scrollbox this dch lives inside of
-//     let H = dch.__sysDiv.getBoundingClientRect();       // get the dch-to-display's bounding box
-
-// // console.log(P.left, H.left, zX, P.left - H.left     - zX, P.left - H.left)
-//     const box = {
-//         left:     H.left   - P.left,
-//         width:    H.width,
-//         right:  -(H.right  - P.right),
-//         top:      H.top    - P.top,
-//         height:   H.height,
-//         bottom: -(H.bottom - P.bottom),
-//     }
-
     function getstylVal(val) {
         let qq = parseInt(val);
         if (isNaN(qq)) {
@@ -448,9 +437,7 @@ try{
     for (const key in box) {
         foo(key, box[key], dch.__sysDiv.style[key]);
     }
-} catch (e) {
-    debugger;
-}
+
     txt += `
 </div>`;
 
@@ -463,10 +450,10 @@ function showGhost(dch) {
     let ghost = document.getElementById("__ghostDiv");
     if (!dch) {
         // console.log(FF.__FILE__(), "showGhost:  deleting ghostDiv");
-        if (FG.kmStates.mask) {
-            if (FG.kmStates.mask.divGhost) {
-                FG.kmStates.mask.divGhost.remove();
-                delete FG.kmStates.mask.divGhost;
+        if (FG.mgStates.divMask) {
+            if (FG.mgStates.divGhost) {
+                FG.mgStates.divGhost.remove();
+                FG.mgStates.divGhost = null;
             }
         }
         return;
@@ -478,8 +465,8 @@ function showGhost(dch) {
         ghost.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
         ghost.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
         const docDiv = document.getElementById("divDocView");
-        docDiv.insertBefore(ghost, FG.kmStates.mask.divMask);    // insert new div UNDER the divMask
-        FG.kmStates.mask.divGhost = ghost;
+        docDiv.insertBefore(ghost, FG.mgStates.divMask);    // insert new div UNDER the divMask
+        FG.mgStates.divGhost = ghost;
     }
     let rect = dch.__sysDiv.getBoundingClientRect();
     ghost.style.left    = rect.x + "px";
@@ -489,19 +476,12 @@ function showGhost(dch) {
 }
 
 
-function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.kmStates.mask = set)
-    let kmask = FG.kmStates.mask;
+function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.mgStates.divMask != null)
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
     if (FG.kmStates.btnLeft) {                              // if mouseLeft down, use existing hovered-over sysDiv
         dch = FG.kmStates.dch;
-        if (dch && !orig.btnLeft) {                         // if over a valid dch && mouseleft wasn't down but is now down
-//            setKMStateMode(1);    // we SHOULD already BE mode 1
-            // setKBModeToolbarText(dch);
-            kmask.lastX  = FG.kmStates.clientX;     // capture initial mouse startpos
-            kmask.lastY  = FG.kmStates.clientY;
-        }
     } else {                                                // mouseleft NOT down, find dch currently hovering over
         if (orig.btnLeft) {                         // if mouseleft WAS down but is now released
             // setKMStateMode(0);
@@ -512,21 +492,21 @@ function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.kmStat
         }
         if (FG.kmStates.dch != FG.curDoc.rootDch) {      
             if (dch && dch != FG.kmStates.dch) {                // if there was a dch already selected but it's not this one any more
-                if (kmask.divGhost) {                           // remove any exhisting ghost
-                    // docDiv.removeChild(FG.kmStates.mask.divGhost);
+                if (FG.mgStates.divGhost) {                           // remove any exhisting ghost
+                    // docDiv.removeChild(FG.mgStates.divGhost);
                     // console.log(FF.__FILE__(), "doDchOpMode1: deleting divGhost");
-                    FG.kmStates.mask.divGhost.remove();
-                    delete FG.kmStates.mask.divGhost;
+                    FG.mgStates.divGhost.remove();
+                    FG.mgStates.divGhost = null;
                 }
             }
             FG.kmStates.dch = dch;
-            kmask.nesw = "";                        // clear this right away to prevent possible tripup later on
+            FG.mgStates.nesw = "";                        // clear this right away to prevent possible tripup later on
             setKBModeTitlebarText(FG.kmStates.dch); // fire 'first time' to get data on screen (else wont show til mousemove)
             setKBModeToolbarText(FG.kmStates.dch);
         }
     }
     if (!dch || dch != FG.kmStates.dch) {    // if we were over a dch but we're not any more (or it changed)
-        if (kmask.divGhost) {
+        if (FG.mgStates.divGhost) {
             showGhost(null);                 // delete the current ghost
         }
     }
@@ -543,22 +523,21 @@ function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.kmStat
         }
         return;
     }
-    if (!FG.kmStates.mask.divGhost) {     // we're over an element but no ghost was created yet
-        showGhost(dch);
-        kmask.lrMode = "";
-        kmask.tbMode = "";
-        if (dch.__sysDiv.style.left)  {  kmask.lrMode += "L"; kmask.left  = parseInt(dch.__sysDiv.style.left);  }
-        if (dch.__sysDiv.style.right) {  kmask.lrMode += "R"; kmask.right = parseInt(dch.__sysDiv.style.right); }
-        if (dch.__sysDiv.style.width) {  kmask.lrMode += "W"; kmask.width = parseInt(dch.__sysDiv.style.width); }     // not used, only care about LR
+    if (!FG.mgStates.divGhost) {     // we're over an element but no ghost was created yet
+        showGhost(dch);              // create the ghost
+        // FG.mgStates.lrMode = "";     // and set up the lrtb modes of the dch.__sysDiv we're over
+        // FG.mgStates.tbMode = "";
+        // if (dch.__sysDiv.style.left)  {  FG.mgStates.lrMode += "L"; FG.mgStates.left  = parseInt(dch.__sysDiv.style.left);  }
+        // if (dch.__sysDiv.style.right) {  FG.mgStates.lrMode += "R"; FG.mgStates.right = parseInt(dch.__sysDiv.style.right); }
+        // if (dch.__sysDiv.style.width) {  FG.mgStates.lrMode += "W"; FG.mgStates.width = parseInt(dch.__sysDiv.style.width); }     // not used, only care about LR
 
-        if (dch.__sysDiv.style.top)    {  kmask.tbMode += "T"; kmask.top    = parseInt(dch.__sysDiv.style.top);    }
-        if (dch.__sysDiv.style.bottom) {  kmask.tbMode += "B"; kmask.bottom = parseInt(dch.__sysDiv.style.bottom); }
-        if (dch.__sysDiv.style.height) {  kmask.tbMode += "H"; kmask.height = parseInt(dch.__sysDiv.style.height); }  // not used, only care about TB
-
+        // if (dch.__sysDiv.style.top)    {  FG.mgStates.tbMode += "T"; FG.mgStates.top    = parseInt(dch.__sysDiv.style.top);    }
+        // if (dch.__sysDiv.style.bottom) {  FG.mgStates.tbMode += "B"; FG.mgStates.bottom = parseInt(dch.__sysDiv.style.bottom); }
+        // if (dch.__sysDiv.style.height) {  FG.mgStates.tbMode += "H"; FG.mgStates.height = parseInt(dch.__sysDiv.style.height); }  // not used, only care about TB
     }
     if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
         let rect = dch.__sysDiv.getBoundingClientRect();
-        const slop = 6;              // figure out if mouse is over a dch border and set kmask.nesw accordingly
+        const slop = 6;              // figure out if mouse is over a dch border and set FG.mgStates.nesw accordingly
         rect.r = rect.x + rect.width - 1;
         rect.b = rect.y + rect.height - 1;
         const irect = {
@@ -567,37 +546,35 @@ function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.kmStat
             r: rect.r - slop,
             b: rect.b - slop,
         };
-        kmask.nesw = "";
+        FG.mgStates.nesw = "";
         if (FG.kmStates.clientY >= rect.y && FG.kmStates.clientY <= irect.y) {
-            kmask.nesw += "n"
+            FG.mgStates.nesw += "n"
         }
         if (FG.kmStates.clientY <= rect.b && FG.kmStates.clientY >= irect.b) {
-            kmask.nesw += "s"
+            FG.mgStates.nesw += "s"
         }
         if (FG.kmStates.clientX <= rect.r && FG.kmStates.clientX >= irect.r) {
-            kmask.nesw += "e"
+            FG.mgStates.nesw += "e"
         }
         if (FG.kmStates.clientX >= rect.x && FG.kmStates.clientX <= irect.x) {
-            kmask.nesw += "w"
+            FG.mgStates.nesw += "w"
         }
         
-        if (kmask.nesw.length > 0) {                // set cursor based on mouse over border or content
-            docDiv.style.cursor = kmask.nesw + "-resize";
+        if (FG.mgStates.nesw.length > 0) {                // set cursor based on mouse over border or content
+            docDiv.style.cursor = FG.mgStates.nesw + "-resize";
         } else {
             docDiv.style.cursor = "grab";
         }
     } else {                            // if mouseLeft IS down...
-        const deltaX = FG.kmStates.clientX - kmask.lastX;
-        const deltaY = FG.kmStates.clientY - kmask.lastY;
+        const deltaX = FG.kmStates.clientX - FG.kmPrior.clientX;
+        const deltaY = FG.kmStates.clientY - FG.kmPrior.clientY;
         if (deltaX || deltaY) {
-            kmask.lastX = FG.kmStates.clientX;      // update last mousepos to current
-            kmask.lastY = FG.kmStates.clientY;
-            if (kmask.nesw.length > 0) {            // if over an edge or corner, resize...
-                FF.sizeDivRelative(dch.__sysDiv, kmask.nesw, deltaX, deltaY);
-                FF.sizeDivRelative(kmask.divGhost, kmask.nesw, deltaX, deltaY);
+            if (FG.mgStates.nesw.length > 0) {            // if over an edge or corner, resize...
+                FF.sizeDivRelative(dch.__sysDiv, FG.mgStates.nesw, deltaX, deltaY);
+                FF.sizeDivRelative(FG.mgStates.divGhost, FG.mgStates.nesw, deltaX, deltaY);
             } else {                                // ...else move
                 FF.moveDivRelative(dch.__sysDiv, deltaX, deltaY);
-                FF.moveDivRelative(kmask.divGhost, deltaX, deltaY);
+                FF.moveDivRelative(FG.mgStates.divGhost, deltaX, deltaY);
             }
         }
 
@@ -606,20 +583,14 @@ function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.kmStat
         setKBModeToolbarText(FG.kmStates.dch);
     }
 }
-function doDchOpMode2(orig) { // only called when cmdCombo is pressed (FG.kmStates.mask = set)
-// note, we did this without using kmask.divMask AT ALL! (can we remove from doDchOpMode1 too?)
+function doDchOpMode2(orig) { // only called when cmdCombo is pressed (FG.mgStates.divMask = set)
+// note, we did this without using FG.mgStates.divMask AT ALL! (can we remove from doDchOpMode1 too?)
 
-    let kmask = FG.kmStates.mask;
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
     if (FG.kmStates.btnLeft) {                     // if mousleft down, use existing hovered-over dch
         dch = FG.kmStates.dch;
-        if (dch && !orig.btnLeft) {                // if over a valid dch && mouseleft wasn't down but is now down
-            // setKBModeTitlebarText(dch);
-            kmask.lastX = FG.kmStates.clientX;     // capture initial mouse startpos
-            kmask.lastY = FG.kmStates.clientY;
-        }
     } else {
         if (orig.btnLeft) {                        // if mouseleft WAS down but is now released
 // RSTODO
@@ -632,11 +603,6 @@ function doDchOpMode2(orig) { // only called when cmdCombo is pressed (FG.kmStat
         setKBModeToolbarText(FG.kmStates.dch);
     }
     showGhost(dch);                 // delete the current ghost (if any)
-    // if (!dch || dch != FG.kmStates.dch) {    // if we were over a dch but we're not any more (or it changed)
-    //     if (kmask.divGhost) {
-    //         showGhost(null);                 // delete the current ghost
-    //     }
-    // }
     if (!dch) {         // there's no dch under the mouse,  nothing to do!
         docDiv.style.cursor = "";
         return;
@@ -646,17 +612,15 @@ function doDchOpMode2(orig) { // only called when cmdCombo is pressed (FG.kmStat
     if (FG.kmStates.btnRight) {     // if contextMenu button down, ...
 //RSTODO
     }
-    if (!FG.kmStates.mask.divGhost) {     // we're over an element but no ghost was created yet
+    if (!FG.mgStates.divGhost) {     // we're over an element but no ghost was created yet
         showGhost(dch);
     }
 
     if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
     } else {                         // if mouseLeft IS down...
-        const deltaX = FG.kmStates.clientX - kmask.lastX;
-        const deltaY = FG.kmStates.clientY - kmask.lastY;
+        const deltaX = FG.kmStates.clientX - FG.kmPrior.clientX;
+        const deltaY = FG.kmStates.clientY - FG.kmPrior.clientY;
         if (deltaX || deltaY) {
-            kmask.lastX = FG.kmStates.clientX;      // update last mousepos to current
-            kmask.lastY = FG.kmStates.clientY;
             dch.zX += deltaX;
             dch.zY += deltaY;
             dch.update();
@@ -708,21 +672,13 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
         const docDiv = document.getElementById("divDocView");
         docDiv.style.cursor = "";          // undo all cursor settings when commandState released
 
-        // let qq = "####  .mask=" + ((FG.kmStates.mask == null) ? "null" : "{..}");
-        if (FG.kmStates.mask) {            // if there was a mask and/or ghost, nuke em!
-            if (FG.kmStates.mask.divGhost) {
-                // qq += "  deleting .mask.divGhost";
-                // docDiv.removeChild(FG.kmStates.mask.divGhost);     // remove ghost div
-                FG.kmStates.mask.divGhost.remove();     // remove ghost div
-            }
-            if (FG.kmStates.mask.divMask) {
-                // qq += "  deleting .mask.divMask";
-                // docDiv.removeChild(FG.kmStates.mask.divMask);       // remove mask div
-                FG.kmStates.mask.divMask.remove();       // remove mask div
-                // clearAllButtons();
-            }
-            // console.log(FF.__FILE__(), qq);
-            FG.kmStates.mask = null;                     // nullout mask
+        if (FG.mgStates.divGhost) {
+            FG.mgStates.divGhost.remove();     // remove ghost div
+            FG.mgStates.divGhost = null;
+        }
+        if (FG.mgStates.divMask) {
+            FG.mgStates.divMask.remove();       // remove mask div
+            FG.mgStates.divMask = null;
         }
     } else {
         let el = document.getElementById("__tmpKBModeTitlebar");
@@ -735,8 +691,6 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
             el.style.backgroundColor = "white";
             let tBar = document.getElementById("divTitleBar");
             tBar.appendChild(el);
-            // let el2 = document.getElementById("tbContent"); // other box causes problems so just hide it
-            // el2.style.display = "none";
         }
         el = document.getElementById("__tmpKBModeToolbar");
         if (!el) {
@@ -745,7 +699,6 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
             el.style.position = "absolute";
             el.style.width = "100%";
             el.style.height = "100%";
-            // el.style.zIndex = "99999999";
             el.style.backgroundColor = "white";
             let tBar = document.getElementById("divToolbar");
             tBar.appendChild(el);
@@ -754,20 +707,40 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
         setKBModeToolbarText(FG.kmStates.dch);
     }
 }
+
+function getCmdMode(src = FG.kmStates) {      // alternately pass in FG.kmPrior
+    // if (!src.keyAlt && !src.keyShift) {
+    //     return 0;
+    // }
+    if (src.keyAlt && src.keyShift) {       // if both keys are down
+        if (src.keyZ) {
+            return 2;
+        }
+        return 1;
+    }
+    return 0;                               // if only one or neither are down
+}
+
+
 // sets/zeros FG.kmStates.mode based on cmdKeys pressed/released OR toggled
-// sets/nulls FG.kmStates.mask {divMask} if cmdState changed (bothkeys down or bothkeys up ONLY) (mode1/2 doesnt matter)
+// sets/nulls FG.mgStates.divMask if cmdState changed (bothkeys down or bothkeys up ONLY) (mode1/2 doesnt matter)
 function onStateChange(orig) {  // detect commandState change and create a faux invis window over entire divDocView
     if (FG.kmStates.modal) {            // a modal operation is happening, ignore state activities after this point
         return;
     }
     const docDiv = document.getElementById("divDocView");
 
+    let oldCmd = (orig.keyAlt && orig.keyShift);                  // get old and new <RSTODO configurable> commandStates (currently ctrl+alt)
+    let newCmd = (FG.kmStates.keyAlt && FG.kmStates.keyShift);
+
+    let oldCMode = getCmdMode(orig);
+    let newCMode = getCmdMode();
+
+    console.log(FF.__FILE__(), oldCmd, newCmd, " -- ", oldCMode, newCMode)    
+    
     if (!FG.kmStates.keyAlt && !FG.kmStates.keyShift) {     // if both keys are up, clear the mode
         setKMStateMode(0);
     }
-    let oldCmd = (orig.keyAlt && orig.keyShift);                  // get old and new <RSTODO configurable> commandStates (currently ctrl+alt)
-    let newCmd = (FG.kmStates.keyAlt && FG.kmStates.keyShift);
-    // console.log(FF.__FILE__(), "kmStates", FG.kmStates.keyCtrl, FG.kmStates.keyAlt, FG.kmStates.keyShift);
     if (oldCmd != newCmd) {                                // if commandState changed
         if (newCmd) {                                      // if commandState started  (ctrl+alt pressed)
             if (!FG.kmStates.inDocView) {
@@ -786,10 +759,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
                 maskEl.style.inset = "0px";
                 docDiv.appendChild(maskEl);
                 // console.log(FF.__FILE__(), "creating mask");
-                FG.kmStates.mask = {
-                    divMask: maskEl,
-                    divGhost: null,
-                };
+                FG.mgStates.divMask = maskEl;
             }
         } else {                            // if EITHER cmdKey released!
         }
@@ -798,7 +768,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
         return;
     }
 
-    if (FG.kmStates.mask) {             // if mask is present (any cmdKey was raised)
+    if (FG.mgStates.divMask) {             // if mask is present (any cmdKey was raised)
         if (FG.kmStates.mode == 1) {    
             doDchOpMode1(orig);
         } else if (FG.kmStates.mode == 2) {
@@ -845,15 +815,18 @@ function debugStates(states) {
 
 function clearAllButtons(callSetKMState = true) {
     // console.log("CAB");
+
     const states = {          // inject an 'all buttons released' statechange
         "btnLeft":  false,
         "btnMid":   false,
         "btnRight": false,
-        "keyAlt":   false,
-        "keyCtrl":  false,
-        "keyMeta":  false,
-        "keyShift": false,
     };
+    
+    for (const key in FG.kmStates) {
+        if (key.startsWith("key")) {
+            states[key] = false;
+        }
+    }
     setKMStateMode(0);
 
     if (callSetKMState) {
@@ -862,7 +835,7 @@ function clearAllButtons(callSetKMState = true) {
 }
 
 function setKMState(states) {
-    let orig = Object.assign({}, FG.kmStates);       // clone the original FG.kmStates before changing them
+    FG.kmPrior = Object.assign({}, FG.kmStates);     // clone the original FG.kmStates before changing them
     let changed = false;
 
        for (const key in states) {                   // test field-by-field to see if anything changed
@@ -873,15 +846,13 @@ function setKMState(states) {
     }
 
 // if mouse moved from inside to outside (or vica/versa) the scope of divDocView
-    if ("inDocView" in states && states.inDocView == false && states.inDocView != orig.inDocView) {   
+    if ("inDocView" in states && states.inDocView == false && states.inDocView != FG.kmPrior.inDocView) {   
         clearAllButtons(false);                  // false to prevent recursive calling of setKMState()
-// debugger;//            return;
     }
     // debugStates(states);
 
-
     if (changed) {
-        onStateChange(orig);                // if anything changed, call the handler
+        onStateChange(FG.kmPrior);                // if anything changed, call the handler
     }
 }
 
@@ -895,6 +866,9 @@ function onTkmKeyDown(evt) {
         keyMeta:  evt.metaKey,
     };
 
+    if (evt.key == 'z' || evt.key == 'Z') {
+        states.keyZ = true;
+    }
     // if (states.keyShift && states.keyAlt) {
     //     debugger;
     // }
@@ -910,8 +884,12 @@ function onTkmKeyUp(evt) {
         keyShift: evt.shiftKey,
         keyMeta:  evt.metaKey,
     };
+    if (evt.key == 'z' || evt.key == 'Z') {
+        states.keyZ = false;
+    }
     setKMState(states);
 }
+
 
 function onTkmBlur(evt) {       // this hardly EVER happens but just in case it makes a difference when it does...
     // console.log(FF.__FILE__());

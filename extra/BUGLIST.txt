@@ -1,5 +1,32 @@
 -----------------------------------------------------------------------------------------------------------------------
+BUG: Object.assign is shallow therefore FG.kmStates.mask{} doesnt get cloned only pointer is copied
+
+we need to change it all from mask.divMask to mask._div etc
+
+also kmStates is about input device changes,  kmStates.mask doesnt really belong in there
+
+lets make a new maskState object and move that stuff there instead
+   we had been using kmask = FG.kmStates.mask
+   changeto kmask = FG.mgStates  (for mask+ghost state)
+    THIS one doesn't need to be clonable!
+
+maybe change kmStates to idStates (for 'input device States' rather than 'keyboard mouse states')
+
+  let kmask = FG.kmStates.mask;
+
+
+  getCmdMode()  is intended to replace the individual requests for keyAlt and keyShift
+  
 -----------------------------------------------------------------------------------------------------------------------
+BUG -- still some screwy gotchas with modeSel and mask=null in particular regarding the rootDch
+if I HOVER(noclick) over rootDch and go mode0->1  1->2 2->1 I can now click+drag the rootDch
+  (see debugStates())
+
+-----------------------------------------------------------------------------------------------------------------------
+BUG: add the modeTest() func that checks keyAlt + keyShift  and find a way to change to + 'z' instead of toggling
+SEE NEW FUNCTION modeTest()
+-----------------------------------------------------------------------------------------------------------------------
+BUG: the mouse cursor icon doesn't change properly in all cases when changing modes 1 and 2 sometimes
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
