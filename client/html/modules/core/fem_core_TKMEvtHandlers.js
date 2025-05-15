@@ -45,17 +45,6 @@ FG.kmStates = {
     keyZ:     false,    // moves us to mode=2
     modal:    false,    // true when any menu, contextmenu, or dialog is open, else false
     dch:      null,     // the dch the target belongs to  (IF, else null)
-    // mask:     null, /*{ // set when cmdKeys are both pressed (keyShift+keyAlt)
-    //     divMask:  <div>, // mask rectangle (covers entire divDocView) so we can intercept all clicks/moves
-    //     left:     set to pixelInt if lrMode has 'L' in it
-    //     top:      set to ...
-    //     width:    set to ...
-    //     height:   set to ...
-    //     lrMode:   "LW", "WR", or "LR"
-    //     nesw:     "n", "ne", "e", "se", "s", "sw", "w", "nw" <-- when mouse near edge of divGhost, this lets us set the appropriate cursor
-    //     tbMode:   "TH", "HB", or "TB"
-    // }*/
-    // target:   null,     // the element the mouse is presently over (or null)  (NOT always a dch!)  ... not used any more??? 
 };
 FG.kmPrior = null;  // clone of FG.kmStates prior to onStateChange() so we can test if something JUST changed
 
@@ -476,16 +465,17 @@ function showGhost(dch) {
 }
 
 
-function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.mgStates.divMask != null)
+function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
-    if (FG.kmStates.btnLeft) {                              // if mouseLeft down, use existing hovered-over sysDiv
+    if (FG.kmStates.dch == FG.curDoc.rootDch) {     // if rootDch WAS selected via mode2, then we came back here to mode1
+        FG.kmStates.dch = dch = null;
+    }
+
+    if (FG.kmStates.btnLeft) {                      // if mouseLeft down, use existing hovered-over sysDiv
         dch = FG.kmStates.dch;
-    } else {                                                // mouseleft NOT down, find dch currently hovering over
-        if (orig.btnLeft) {                         // if mouseleft WAS down but is now released
-            // setKMStateMode(0);
-        }
+    } else {                                        // mouseleft NOT down, find dch currently hovering over
         dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
         if (dch == FG.curDoc.rootDch) {                         // in mode1, do not allow them to select/move the docRoot!
             dch = null;
@@ -493,30 +483,28 @@ function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.mgStat
         if (FG.kmStates.dch != FG.curDoc.rootDch) {      
             if (dch && dch != FG.kmStates.dch) {                // if there was a dch already selected but it's not this one any more
                 if (FG.mgStates.divGhost) {                           // remove any exhisting ghost
-                    // docDiv.removeChild(FG.mgStates.divGhost);
-                    // console.log(FF.__FILE__(), "doDchOpMode1: deleting divGhost");
                     FG.mgStates.divGhost.remove();
                     FG.mgStates.divGhost = null;
                 }
             }
             FG.kmStates.dch = dch;
-            FG.mgStates.nesw = "";                        // clear this right away to prevent possible tripup later on
-            setKBModeTitlebarText(FG.kmStates.dch); // fire 'first time' to get data on screen (else wont show til mousemove)
+            FG.mgStates.nesw = "";                      // clear this right away to prevent possible tripup later on
+            setKBModeTitlebarText(FG.kmStates.dch);     // fire 'first time' to get data on screen (else wont show til mousemove)
             setKBModeToolbarText(FG.kmStates.dch);
         }
     }
-    if (!dch || dch != FG.kmStates.dch) {    // if we were over a dch but we're not any more (or it changed)
+    if (!dch || dch != FG.kmStates.dch) {   // if we were over a dch but we're not any more (or it changed)
         if (FG.mgStates.divGhost) {
-            showGhost(null);                 // delete the current ghost
+            showGhost(null);                // delete the current ghost
         }
     }
-    if (!dch) {         // there's no dch under the mouse,  nothing to do!
+    if (!dch) {                             // there's no dch under the mouse,  nothing to do!
         docDiv.style.cursor = "";
         return;
     }
 // dch now refs the FG.kmStates.dch currently hovered over
 
-    if (FG.kmStates.btnRight) {  // if contextMenu button down, ...
+    if (FG.kmStates.btnRight) {             // if contextMenu button down, ...
         let tmp = document.getElementById("sysContextMenu");
         if (!tmp) {     // only open if a menu isn't already open
             openDCHContextMenu();
@@ -583,7 +571,7 @@ function doDchOpMode1(orig) { // only called when cmdCombo is pressed (FG.mgStat
         setKBModeToolbarText(FG.kmStates.dch);
     }
 }
-function doDchOpMode2(orig) { // only called when cmdCombo is pressed (FG.mgStates.divMask = set)
+function doDchOpMode2(orig) { // only called when FG.kmStates == 1
 // note, we did this without using FG.mgStates.divMask AT ALL! (can we remove from doDchOpMode1 too?)
 
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
@@ -592,10 +580,7 @@ function doDchOpMode2(orig) { // only called when cmdCombo is pressed (FG.mgStat
     if (FG.kmStates.btnLeft) {                     // if mousleft down, use existing hovered-over dch
         dch = FG.kmStates.dch;
     } else {
-        if (orig.btnLeft) {                        // if mouseleft WAS down but is now released
-// RSTODO
-        }
-        dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dch under cursor
+        dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dch under cursor (even if it is the root!)
         dch = FF.getBoxAroundDch(dch);                                  // get parent BOX (or self if is a BOX)
         FG.kmStates.dch = dch;
 
@@ -609,9 +594,6 @@ function doDchOpMode2(orig) { // only called when cmdCombo is pressed (FG.mgStat
     }
 // dch now refs the BOX the FG.kmStates.dch currently hovered over resides within (or self if is a BOX)
 
-    if (FG.kmStates.btnRight) {     // if contextMenu button down, ...
-//RSTODO
-    }
     if (!FG.mgStates.divGhost) {     // we're over an element but no ghost was created yet
         showGhost(dch);
     }
@@ -657,6 +639,7 @@ function disableAllShadowHosts(yesno) { // if yes, disable(prevent pointer event
 
 function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the __tmpKBModeTitlebar/Toolbar
     FG.kmStates.mode = mode;
+    disableAllShadowHosts(mode != 0);  // enable if 0, else disable all dch shadow DOMS
     if (mode == 0) {
         let el = document.getElementById("__tmpKBModeToolbar");
         if (el) {
@@ -668,7 +651,6 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
             // el = document.getElementById("tbContent");
             // el.style.display = "";      // revert back to the display style in index.css
         }
-        disableAllShadowHosts(false);      // enable shadow DOMS once again
         const docDiv = document.getElementById("divDocView");
         docDiv.style.cursor = "";          // undo all cursor settings when commandState released
 
@@ -730,27 +712,13 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
     }
     const docDiv = document.getElementById("divDocView");
 
-    let oldCmd = (orig.keyAlt && orig.keyShift);                  // get old and new <RSTODO configurable> commandStates (currently ctrl+alt)
-    let newCmd = (FG.kmStates.keyAlt && FG.kmStates.keyShift);
-
     let oldCMode = getCmdMode(orig);
     let newCMode = getCmdMode();
+    // console.log(FF.__FILE__(), oldCMode, newCMode);
 
-    console.log(FF.__FILE__(), oldCmd, newCmd, " -- ", oldCMode, newCMode)    
-    
-    if (!FG.kmStates.keyAlt && !FG.kmStates.keyShift) {     // if both keys are up, clear the mode
-        setKMStateMode(0);
-    }
-    if (oldCmd != newCmd) {                                // if commandState changed
-        if (newCmd) {                                      // if commandState started  (ctrl+alt pressed)
-            if (!FG.kmStates.inDocView) {
-                return;
-            }
-            FG.kmStates.mode = 1 + ((FG.kmStates.mode) % 2);  // toggle between mode1 and 2
-            // console.log(FF.__FILE__(), "kmStates.mode =", FG.kmStates.mode);
-            setKMStateMode(FG.kmStates.mode);
-
-            disableAllShadowHosts(true);
+    if (oldCMode != newCMode) {             // if commandState changed
+        setKMStateMode(newCMode);           // set kmStates.mode, add/rmv mask+ghost title/toolbars, dis/enable shadow DOMs
+        if (oldCMode == 0)  {               // if commandState started (was 0, now 1 or 2)
             let maskEl = document.getElementById("__divMask");
             if (!maskEl) {
                 maskEl = document.createElement("div");  // create the overlay mask
@@ -764,7 +732,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
         } else {                            // if EITHER cmdKey released!
         }
     }
-    if (FG.kmStates.modal) {            // a modal operation is happening, ignore state activities after this point
+    if (FG.kmStates.modal) {            // a modal operation is happening, ignore further activities after this point
         return;
     }
 
