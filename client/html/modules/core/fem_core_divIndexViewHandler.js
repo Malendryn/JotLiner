@@ -390,7 +390,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     let pkt = WS.makePacket("GetDocTree")
     pkt = await WS.sendWait(pkt);           // SELECT * from docTree order by parent,listOrder
 
-    const parents = {};
+    const parents = {'': []};               // start with an empty toplevel (for when absolutely no recs exist yet)
     for (let idx = 0; idx < pkt.list.length; idx++) {   // break list down into {}-by-parents
         const entry = pkt.list[idx];
         if (!parents.hasOwnProperty(entry.parent)) {

@@ -1,7 +1,7 @@
 // TKMEvtHandlers = Toplevel Keyboard and Mouse Event Handlers
 
 document.addEventListener("contextmenu", onTkmContextMenu, { capture: true, passive: false }); // listen for contextmenu specifically
-//   window.addEventListener("blur",        onTkmBlur);                                           // listen for 'leaving browser' specifically
+  window.addEventListener("blur",        onTkmBlur);                                           // listen for 'leaving browser' specifically
 document.addEventListener("mousedown",   onTkmMousedown,   { capture: true, passive: false }); // listen for mouseup/down/move ANYwhere on doc
 document.addEventListener("mousemove",   onTkmMouseMove,   { capture: true, passive: false });
 document.addEventListener("mouseup",     onTkmMouseUp,     { capture: true, passive: false });
@@ -18,16 +18,9 @@ document.addEventListener("keyup",       onTkmKeyUp,       { capture: true, pass
 // browser window, but NOT if click+hold is NOT down!
 // this doesnt work on buttons 3 and 4, only on 0,1,2 (left,middle,right)
 
-FG.mgStates = {     // mask and ghost states
-    divMask:  null,
+FG.ghosts = {     // mode1 ghost info
     divGhost: null,
     nesw:     "",   //"n", "ne", "e", "se", "s", "sw", "w", "nw" <-- when mouse near edge of divGhost, this lets us set the appropriate cursor
-    // lrMode:   "",   //"LW", "WR", or "LR"
-    // tbMode:   "",   //"TH", "HB", or "TB"
-    // left:     0,    //set to pixelInt if lrMode has 'L' in it
-    // top:      0,    //set to ...
-    // width:    0,    //set to ...
-    // height:   0,    //set to ...
 };
 
 FG.kmStates = {
@@ -165,7 +158,7 @@ function onFormInput(evt) {                         // if an inputBox's value ch
     }
 
     let rect = dch.__sysDiv.getBoundingClientRect();
-    FF.moveDivAbsolute(FG.mgStates.divGhost, rect.left, rect.top);
+    FF.moveDivAbsolute(FG.ghosts.divGhost, rect.left, rect.top);
 }
 
 
@@ -254,7 +247,7 @@ function onPopupClose(dict) {
         }
     }
     FG.kmStates.modal = false;  // HACK!  popupHandler clears this for us but we MUST have it cleared for onStateChange()!
-    onStateChange({});      // just to bump an update so mask & ghost clear
+    onStateChange({});      // just to bump an update so ghost clears
 }
 function onContextDCHProps() {
     const dict={};//{foo:"bar"};
@@ -352,31 +345,27 @@ FF.getDchAt = function(clientX, clientY) {
 }
 
 
-// function setKBModeTitlebarText(dch) {
-//     if (dch) {          // dch can be null when first entering mode1/2 from mode0
-//         dch = FF.getBoxAroundDch(dch);      // we dont care about the dch, only the BOX around it (or self if is a BOX)
-//         let el = document.getElementById("__tmpKBModeTitlebar");
-//         if (el) {
-//             let ss;
-//             if (FG.kmStates.mode == 1) {
-//                 ss = "Drag/Resize: &nbsp; &nbsp; Node Location &nbsp; &nbsp; ";
-//             } else {
-//                 ss = "Infinite Pan: &nbsp; &nbsp; Spatial Offset &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY
-//             }
-//             let txt = `
-// <div style="display:flex;align-items:center;height:100%;"><!-- center vertically-->
-//     Mode: ${ss}`;
+function setKBModeTitlebarText(dch) {
+    if (dch) {          // dch can be null when first entering mode1/2 from mode0
+        let el = document.getElementById("__tmpKBModeTitlebar");
+        if (el) {
+            let txt = `
+<div style="display:flex;align-items:center;height:100%;">
+    Node: ${dch.constructor.pluginName} &nbsp; &nbsp; Mode: `;
 
-//     // if (FF.getDCHName(dch) == "BOX") {
-//     //     txt += "&nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY;
-//     // }
-//         txt += `
-// </div>`;
+            let ss;
+            if (FG.kmStates.mode == 2) {
+                txt += "Infinite Pan";
+            } else {
+                txt += "Drag/Resize";
+            }
 
-//             el.innerHTML = txt;
-//         }
-//     }
-// }
+            txt += `</div>`;
+
+            el.innerHTML = txt;
+        }
+    }
+}
 
 
 const __skbmtbtxtStyle = /*setup the styles used by the setKBModeToolbarText() func*/`
@@ -385,14 +374,12 @@ const __skbmtbtxtStyle = /*setup the styles used by the setKBModeToolbarText() f
         display:    inline-block;
         width:      60px;
         text-align: right;
-        /* background-color: lightgreen; */
     }
     .aD {                        /* D for Data */
         display:    inline-block;
         width:      50px;
         text-align: left;
         padding-left:8px;
-        /* background-color: orange; */
         height:     1em;
     }
 </style>
@@ -414,15 +401,13 @@ function setKBModeToolbarText(dch) {
     let el = document.getElementById("__tmpKBModeToolbar");
     if (el) {
         let txt = __skbmtbtxtStyle + `
-<div style="display:flex;align-items:center;height:100%;"><!-- center vertically in the toolbar region -->
-    Node Type: ${dch.constructor.pluginName} &nbsp; &nbsp; Mode: `;
+<div style="display:flex;align-items:center;height:100%;">`;
 
         let ss;
         if (FG.kmStates.mode == 2) {
-            txt += "Infinite Pan: &nbsp; &nbsp;  Offset: &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY
+            txt += "Offset: &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY
 
         } else {
-            txt += "Drag/Resize:";
             function getstylVal(val) {      // return a num or '---' if isNaN
                 let qq = parseInt(val);
                 if (isNaN(qq)) {
@@ -485,34 +470,68 @@ function setKBModeToolbarText(dch) {
 
 
 function showGhost(dch) {
-    let ghost = document.getElementById("__ghostDiv");
-    if (!dch) {
-        // console.log(FF.__FILE__(), "showGhost:  deleting ghostDiv");
-        if (FG.mgStates.divMask) {
-            if (FG.mgStates.divGhost) {
-                FG.mgStates.divGhost.remove();
-                FG.mgStates.divGhost = null;
+    console.log(FF.__FILE__(), "showGhosts");
+    const mDiff = FG.kmStates.mode != FG.kmPrior.mode;  // did the current mode change?
+    const dDiff = FG.kmStates.dch  != FG.kmPrior.dch;   // did the dch under mouse change?
+    if (mDiff || dDiff) {
+        console.log(FF.__FILE__(), "showGhosts, CLEAR!", mDiff, dDiff, FG.kmStates.mode, FG.kmPrior.mode, FG.kmStates.inDocView, FG.kmPrior.inDocView);
+        if (FG.ghosts.divGhost) {
+            FG.ghosts.divGhost.remove();
+            FG.ghosts.divGhost = null;
+        }
+        if (FG.kmPrior.mode == 2) {                             // when switching AWAY FROM mode2...
+            for (const child of FG.kmPrior.dch.__children) {    // delete and remove all child __ghostDiv's
+                child.__ghostDiv.remove();
+                delete child.__ghostDiv;
             }
         }
+    }
+    if (!dch) {
         return;
     }
+    let ghost = FG.ghosts.divGhost;
     if (!ghost) {
         // console.log(FF.__FILE__(), "showGhost:  creating ghostDiv");
         ghost = document.createElement("div");
-        ghost.id = "__ghostDiv";
         ghost.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
-        ghost.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
         const docDiv = document.getElementById("divDocView");
-        docDiv.insertBefore(ghost, FG.mgStates.divMask);    // insert new div UNDER the divMask
-        FG.mgStates.divGhost = ghost;
+        docDiv.appendChild(ghost);
+        FG.ghosts.divGhost = ghost;
+        if (FG.kmStates.mode == 2) {    // we're in mode 2 and dch is guaranteed to be a box
+            for (const child of dch.__children) {
+                const el = document.createElement("div");
+                el.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
+                el.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
+                let rect = child.__sysDiv.getBoundingClientRect();
+                el.style.left    = rect.x + "px";
+                el.style.top     = rect.y + "px";
+                el.style.width   = rect.width + "px";
+                el.style.height  = rect.height + "px";
+                docDiv.appendChild(el);
+                child.__ghostDiv = el;
+            }
+        }
+    }
+    if (FG.kmStates.mode == 1) {
+        FG.ghosts.divGhost.style.backgroundColor = "rgba(0, 0, 0, 0.25)";       // darken covering
+    } else {
+        FG.ghosts.divGhost.style.backgroundColor = "rgba(0, 0, 0, 0.15)"; // lighten covering
     }
     let rect = dch.__sysDiv.getBoundingClientRect();
     ghost.style.left    = rect.x + "px";
     ghost.style.top     = rect.y + "px";
     ghost.style.width   = rect.width + "px";
     ghost.style.height  = rect.height + "px";
+    if (FG.kmStates.mode == 2) {
+        for (const child of dch.__children) {
+            rect = child.__sysDiv.getBoundingClientRect();
+            child.__ghostDiv.style.left    = rect.x + "px";
+            child.__ghostDiv.style.top     = rect.y + "px";
+            child.__ghostDiv.style.width   = rect.width + "px";
+            child.__ghostDiv.style.height  = rect.height + "px";
+        }
+    }
 }
-
 
 function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
@@ -529,22 +548,18 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
         dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
         // if (FG.kmStates.dch != FG.curDoc.rootDch) {      
             if (dch && dch != FG.kmStates.dch) {                // if there was a dch already selected but it's not this one any more
-                if (FG.mgStates.divGhost) {                           // remove any exhisting ghost
-                    FG.mgStates.divGhost.remove();
-                    FG.mgStates.divGhost = null;
+                if (FG.ghosts.divGhost) {                           // remove any exhisting ghost
+                    FG.ghosts.divGhost.remove();
+                    FG.ghosts.divGhost = null;
                 }
             }
             FG.kmStates.dch = dch;
-            FG.mgStates.nesw = "";                      // clear this right away to prevent possible tripup later on
-            // setKBModeTitlebarText(FG.kmStates.dch);     // fire 'first time' to get data on screen (else wont show til mousemove)
+            FG.ghosts.nesw = "";                      // clear this right away to prevent possible tripup later on
+            setKBModeTitlebarText(FG.kmStates.dch);     // fire 'first time' to get data on screen (else wont show til mousemove)
             setKBModeToolbarText(FG.kmStates.dch);
         // }
     }
-    if (!dch || dch != FG.kmStates.dch) {   // if we were over a dch but we're not any more (or it changed)
-        if (FG.mgStates.divGhost) {
-            showGhost(null);                // delete the current ghost
-        }
-    }
+    showGhost(dch);                // show any changes to the ghosting state
     if (FG.kmStates.btnRight) {             // if contextMenu button down, ...
         let tmp = document.getElementById("sysContextMenu");
         if (!tmp) {     // only open if a menu isn't already open
@@ -561,21 +576,12 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     }
 // dch now refs the FG.kmStates.dch currently hovered over
 
-    if (!FG.mgStates.divGhost) {     // we're over an element but no ghost was created yet
+    if (!FG.ghosts.divGhost) {     // we're over an element but no ghost was created yet
         showGhost(dch);              // create the ghost
-        // FG.mgStates.lrMode = "";     // and set up the lrtb modes of the dch.__sysDiv we're over
-        // FG.mgStates.tbMode = "";
-        // if (dch.__sysDiv.style.left)  {  FG.mgStates.lrMode += "L"; FG.mgStates.left  = parseInt(dch.__sysDiv.style.left);  }
-        // if (dch.__sysDiv.style.right) {  FG.mgStates.lrMode += "R"; FG.mgStates.right = parseInt(dch.__sysDiv.style.right); }
-        // if (dch.__sysDiv.style.width) {  FG.mgStates.lrMode += "W"; FG.mgStates.width = parseInt(dch.__sysDiv.style.width); }     // not used, only care about LR
-
-        // if (dch.__sysDiv.style.top)    {  FG.mgStates.tbMode += "T"; FG.mgStates.top    = parseInt(dch.__sysDiv.style.top);    }
-        // if (dch.__sysDiv.style.bottom) {  FG.mgStates.tbMode += "B"; FG.mgStates.bottom = parseInt(dch.__sysDiv.style.bottom); }
-        // if (dch.__sysDiv.style.height) {  FG.mgStates.tbMode += "H"; FG.mgStates.height = parseInt(dch.__sysDiv.style.height); }  // not used, only care about TB
     }
     if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
         let rect = dch.__sysDiv.getBoundingClientRect();
-        const slop = 6;              // figure out if mouse is over a dch border and set FG.mgStates.nesw accordingly
+        const slop = 6;              // figure out if mouse is over a dch border and set FG.ghosts.nesw accordingly
         rect.r = rect.x + rect.width - 1;
         rect.b = rect.y + rect.height - 1;
         const irect = {
@@ -584,22 +590,22 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
             r: rect.r - slop,
             b: rect.b - slop,
         };
-        FG.mgStates.nesw = "";
+        FG.ghosts.nesw = "";
         if (FG.kmStates.clientY >= rect.y && FG.kmStates.clientY <= irect.y) {
-            FG.mgStates.nesw += "n"
+            FG.ghosts.nesw += "n"
         }
         if (FG.kmStates.clientY <= rect.b && FG.kmStates.clientY >= irect.b) {
-            FG.mgStates.nesw += "s"
+            FG.ghosts.nesw += "s"
         }
         if (FG.kmStates.clientX <= rect.r && FG.kmStates.clientX >= irect.r) {
-            FG.mgStates.nesw += "e"
+            FG.ghosts.nesw += "e"
         }
         if (FG.kmStates.clientX >= rect.x && FG.kmStates.clientX <= irect.x) {
-            FG.mgStates.nesw += "w"
+            FG.ghosts.nesw += "w"
         }
         
-        if (FG.mgStates.nesw.length > 0) {                // set cursor based on mouse over border or content
-            docDiv.style.cursor = FG.mgStates.nesw + "-resize";
+        if (FG.ghosts.nesw.length > 0) {                // set cursor based on mouse over border or content
+            docDiv.style.cursor = FG.ghosts.nesw + "-resize";
         } else {
             docDiv.style.cursor = "grab";
         }
@@ -607,12 +613,12 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
         const deltaX = FG.kmStates.clientX - FG.kmPrior.clientX;
         const deltaY = FG.kmStates.clientY - FG.kmPrior.clientY;
         if (deltaX || deltaY) {
-            if (FG.mgStates.nesw.length > 0) {            // if over an edge or corner, resize...
-                FF.sizeDivRelative(dch.__sysDiv, FG.mgStates.nesw, deltaX, deltaY);
-                FF.sizeDivRelative(FG.mgStates.divGhost, FG.mgStates.nesw, deltaX, deltaY);
+            if (FG.ghosts.nesw.length > 0) {            // if over an edge or corner, resize...
+                FF.sizeDivRelative(dch.__sysDiv, FG.ghosts.nesw, deltaX, deltaY);
+                FF.sizeDivRelative(FG.ghosts.divGhost, FG.ghosts.nesw, deltaX, deltaY);
             } else {                                // ...else move
                 FF.moveDivRelative(dch.__sysDiv, deltaX, deltaY);
-                FF.moveDivRelative(FG.mgStates.divGhost, deltaX, deltaY);
+                FF.moveDivRelative(FG.ghosts.divGhost, deltaX, deltaY);
             }
         }
 
@@ -622,8 +628,6 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     }
 }
 function doDchOpMode2(orig) { // only called when FG.kmStates == 1
-// note, we did this without using FG.mgStates.divMask AT ALL! (can we remove from doDchOpMode1 too?)
-
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
@@ -634,19 +638,19 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
         dch = FF.getBoxAroundDch(dch);                                  // get parent BOX (or self if is a BOX)
         FG.kmStates.dch = dch;
 
-        // setKBModeTitlebarText(dch); // fire 'first time' to get data on screen (else wont show til mousemove)
+        setKBModeTitlebarText(dch); // fire 'first time' to get data on screen (else wont show til mousemove)
         setKBModeToolbarText(dch);
     }
-    showGhost(dch);                 // delete the current ghost (if any)
+    showGhost(dch);                 // delete-or-show ghost over the BOX
     if (!dch) {         // there's no dch under the mouse,  nothing to do!
         docDiv.style.cursor = "";
         return;
     }
 // dch now refs the BOX the FG.kmStates.dch currently hovered over resides within (or self if is a BOX)
 
-    if (!FG.mgStates.divGhost) {     // we're over an element but no ghost was created yet
-        showGhost(dch);
-    }
+    // if (!FG.ghosts.divGhost) {     // we're over an element but no ghost was created yet
+    //     showGhost(dch);
+    // }
 
     if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
     } else {                         // if mouseLeft IS down...
@@ -658,12 +662,14 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
             dch.update();
         }
     }
-    // setKBModeTitlebarText(dch);
+    setKBModeTitlebarText(dch);
     setKBModeToolbarText(dch);
 }
 
 
 function disableAllShadowHosts(yesno) { // if yes, disable(prevent pointer events) the shadowRoot rect and give it 0.5 alpha, else enable it
+    console.log(FF.__FILE__(),"disableAllShadowHosts:  is this obsolete?");
+    return;
     function findAllShadowHosts(root) {
         const found = [];
         const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null, false);
@@ -699,22 +705,14 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
         el = document.getElementById("__tmpKBModeTitlebar");
         if (el) {
             el.remove();
-            // el = document.getElementById("tbContent");
-            // el.style.display = "";      // revert back to the display style in index.css
         }
         const docDiv = document.getElementById("divDocView");
         docDiv.style.cursor = "";          // undo all cursor settings when commandState released
 
-        if (FG.mgStates.divGhost) {
-            FG.mgStates.divGhost.remove();     // remove ghost div
-            FG.mgStates.divGhost = null;
-        }
-        if (FG.mgStates.divMask) {
-            FG.mgStates.divMask.remove();       // remove mask div
-            FG.mgStates.divMask = null;
+        if (FG.ghosts.divGhost) {
+            showGhost(null);
         }
         if (FG.kmStates.dch) {
-            console.log(FF.__FILE__(), "setting FG.kmStates.dch to null!  (remove the 'if' around this!");
             FG.kmStates.dch = null;                 // unset any selected dch;
         }
     } else {
@@ -740,7 +738,7 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
             let tBar = document.getElementById("divToolbar");
             tBar.appendChild(el);
         }
-        // setKBModeTitlebarText(FG.kmStates.dch);
+        setKBModeTitlebarText(FG.kmStates.dch);
         setKBModeToolbarText(FG.kmStates.dch);
     }
 }
@@ -769,7 +767,6 @@ function getCmdMode(src = FG.kmStates) {      // alternately pass in FG.kmPrior
 
 
 // sets/zeros FG.kmStates.mode based on cmdKeys pressed/released OR toggled
-// sets/nulls FG.mgStates.divMask if cmdState changed (bothkeys down or bothkeys up ONLY) (mode1/2 doesnt matter)
 function onStateChange(orig) {  // detect commandState change and create a faux invis window over entire divDocView
     if (FG.kmStates.modal) {            // a modal operation is happening, ignore state activities after this point
         return;
@@ -781,31 +778,16 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
     // console.log(FF.__FILE__(), oldCMode, newCMode);
 
     if (oldCMode != newCMode) {             // if commandState changed
-        setKMStateMode(newCMode);           // set kmStates.mode, add/rmv mask+ghost title/toolbars, dis/enable shadow DOMs
-        if (oldCMode == 0)  {               // if commandState started (was 0, now 1 or 2)
-            let maskEl = document.getElementById("__divMask");
-            if (!maskEl) {
-                maskEl = document.createElement("div");  // create the overlay mask
-                maskEl.id = "__divMask";
-                maskEl.style.position = "absolute";
-                maskEl.style.inset = "0px";
-                docDiv.appendChild(maskEl);
-                // console.log(FF.__FILE__(), "creating mask");
-                FG.mgStates.divMask = maskEl;
-            }
-        } else {                            // if EITHER cmdKey released!
-        }
+        setKMStateMode(newCMode);           // set kmStates.mode, add/rmv ghosts, title/toolbars, dis/enable shadow DOMs
     }
     if (FG.kmStates.modal) {            // a modal operation is happening, ignore further activities after this point
         return;
     }
 
-    if (FG.mgStates.divMask) {             // if mask is present (any cmdKey was raised)
-        if (FG.kmStates.mode == 1) {    
-            doDchOpMode1(orig);
-        } else if (FG.kmStates.mode == 2) {
-            doDchOpMode2(orig);
-        }
+    if (FG.kmStates.mode == 1) {    
+        doDchOpMode1(orig);
+    } else if (FG.kmStates.mode == 2) {
+        doDchOpMode2(orig);
     } else {
         if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != orig.btnLeft) {
             const dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
@@ -924,8 +906,8 @@ function onTkmKeyUp(evt) {
 
 
 function onTkmBlur(evt) {       // this hardly EVER happens but just in case it makes a difference when it does...
-    // console.log(FF.__FILE__());
-    // clearAllButtons();   // BAD!  caused buttonrelease during drag IF clicked in! nogood!
+    console.log(FF.__FILE__(), "BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! ");
+     clearAllButtons();   // BAD!  caused buttonrelease during drag IF clicked in! nogood!
 }
 function onTkmContextMenu(evt) {
     if (FG.kmStates.dch == null) {      // if no dch, this should be popping the system default context menu
@@ -977,6 +959,9 @@ function onTkmMouseMove(evt) {
     if (!FG.kmStates.modal) {
         setKMState({ "inDocView": docDiv.contains(evt.target) });
     }
+    if (!FG.kmStates.inDocView) {
+        return;
+    }
     FG.kmStates.evt = evt;
     if (sizerStartPos) {        //if dragging the sizerBar
         const m = sizerStartPos;
@@ -1017,25 +1002,32 @@ function onTkmMouseUp(evt) {
 }
 
 
-FF.moveDivRelative = function(el, deltaX, deltaY) {  // from :588 
-    const rect = FF.getRawRect(el);
-    if (rect.lrMode.includes("L")) { el.style.left   = (rect.L + deltaX) + "px"; }
-    if (rect.lrMode.includes("R")) { el.style.right  = (rect.R - deltaX) + "px"; }
-    if (rect.tbMode.includes("T")) { el.style.top    = (rect.T + deltaY) + "px"; }
-    if (rect.tbMode.includes("B")) { el.style.bottom = (rect.B - deltaY) + "px"; }
+FF.moveDivRelative = function(el, deltaX, deltaY) {
+    if (el) {
+        const rect = FF.getRawRect(el);
+        if (rect.lrMode.includes("L")) { el.style.left   = (rect.L + deltaX) + "px"; }
+        if (rect.lrMode.includes("R")) { el.style.right  = (rect.R - deltaX) + "px"; }
+        if (rect.tbMode.includes("T")) { el.style.top    = (rect.T + deltaY) + "px"; }
+        if (rect.tbMode.includes("B")) { el.style.bottom = (rect.B - deltaY) + "px"; }
+    }
 }
 
 
 FF.moveDivAbsolute = function(el, locX, locY) {
-    const rect = FF.getRawRect(el);
-    if (rect.lrMode.includes("L")) { el.style.left   = locX + "px"; }
-    if (rect.lrMode.includes("R")) { el.style.right  = locX + "px"; }
-    if (rect.tbMode.includes("T")) { el.style.top    = locY + "px"; }
-    if (rect.tbMode.includes("B")) { el.style.bottom = locY + "px"; }
+    if (el) {
+        const rect = FF.getRawRect(el);
+        if (rect.lrMode.includes("L")) { el.style.left   = locX + "px"; }
+        if (rect.lrMode.includes("R")) { el.style.right  = locX + "px"; }
+        if (rect.tbMode.includes("T")) { el.style.top    = locY + "px"; }
+        if (rect.tbMode.includes("B")) { el.style.bottom = locY + "px"; }
+    }
 }
 
 
 FF.sizeDivRelative = function(el, walls, deltaX, deltaY) {  // wall is n|ne|e|se|s|sw|w|nw
+    if (!el) {
+        return;
+    }
     const rect = FF.getRawRect(el);
     const styl = el.style;
     if (walls.includes("w")) {                  // move west wall

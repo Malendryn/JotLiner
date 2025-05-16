@@ -17,6 +17,12 @@ Jotliner features a flexible plugin system that allows you to create custom edit
 Real-Time Sync: Syncs notes and content across all open browsers.
 
 ## Getting Started
+prereq: must have node.js installed
+cd to server subdir and type 
+    "npm install"
+
+
+
 la la la install node etc etc
 
 ### Usage

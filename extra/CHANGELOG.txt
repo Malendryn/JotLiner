@@ -4,7 +4,13 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-16 ------------------------------------------------------------------------------------------------------------
+* successful rename of origin/master to origin/main
+* removed all of mask & divMask from the system,  seems to have caused no issues!  We now only use divGhost!
+* reinstituded the titlebar override and moved the texts for Node: <name> and Mode: <drag/pan> up to it
+* have ghosting in mode2 working nicely now.  (each child has its own ghost that's visible even when child is 
+    outside parentBox)
+
 2025-05-16 ------------------------------------------------------------------------------------------------------------
 * cleaned up the toolbar override for cmdMode1/2 coordinates display
 * removed the titlebar override entirely (for now at least)
