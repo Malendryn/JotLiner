@@ -10,6 +10,12 @@
 FG._idCounter = 0;
 
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// these next values are static so we can access them at the class level for building menus and accessing files, etc
+static srcUrl      = "";   // SYSTEM supplied; (do not change!) relative url to module's subdir (so can access own icons, etc...)
+static pluginName  = "Unnamed Plugin";  // PLUGIN supplied; the plugin's name as shown in menus and command modes
+static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName is hovered over in menus (skipped if null)
+
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
     hasToolbar = false;     // true = create this.toolbar' @ construction
 
@@ -17,12 +23,6 @@ FG.DCH_BASE = class DCH_BASE {   // base class of all document components
     host    = null;    // ownedBy BASE. an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
     toolbar = null;    // ownedBy BASE. if hasToolbar: an 'absolute' <div> where child classes add 'icons and toolbar stuff' to
                      // for listeners, use this.addDCHListener() & this.removeDCHListener...()  so dch can autoremove when destroying
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// these next values are static so we can access them at the class level for building menus and accessing files, etc
-    static srcUrl = "";        // SYSTEM supplied; (do not change!) relative url to module's subdir (so can access own icons, etc...)
-    static menuText    = null; // CHILD supplied;  text to show in 'add editor' menus (skipped if null)
-    static menuTooltip = null; // CHILD supplied;  tooltip to show when hovering over menuText in menus (skipped if null)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-CAN-IMPLEMENT functions -------------------------------------------------------------------------------------

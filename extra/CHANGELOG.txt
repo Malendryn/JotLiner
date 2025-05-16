@@ -5,13 +5,20 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05-15 ------------------------------------------------------------------------------------------------------------
+2025-05-16 ------------------------------------------------------------------------------------------------------------
+* cleaned up the toolbar override for cmdMode1/2 coordinates display
+* removed the titlebar override entirely (for now at least)
+* about to rename all of git's origin/master to origin/main
+* about to work on the ghosts being different between mode1 and mode2
+
+2025-05-16 ------------------------------------------------------------------------------------------------------------
 * accidentally 'undid' some changes via a wrong git command, but they seem to have been pretty minor as nothing broke
 * changed direct testing for keyAlt+keyShift to a function getCmdMode() to make future configuration options easier
+* changed the alt+shift-then-releaseOne-then-alt+shift to go to mode2, to now be alt+shift+z
 * solved a bug that allowed rootDch to be dragged if you went to mode1 AFTER going to mode2
-
-
+* started fleshing out some README/FEATURESCONTRIBUTING .md files for eventual pushing to github
+* moved the whole mask/ghost tracking data OUT of .mkStates and into .mgStates so that both are now 'flat' and can be
+    shallow-cloned reliably
 2025-05-14 ------------------------------------------------------------------------------------------------------------
 * added a toolbar that shows LWR THB dims when cmdCombo+mouse is down over a dch for visual dragging/sizing info
     still 'glitchy' when dragging off left/top of outer BOX

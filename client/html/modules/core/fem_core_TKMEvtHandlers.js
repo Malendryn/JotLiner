@@ -282,8 +282,8 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
     if (dch.__children) {           // if rightclicked dchHandler allows children...  (is a BOX)
         for (const key in DCH) {    // add all the addable dch's to the menuEntries
             const dchClass = DCH[key].dchClass;
-            if (dchClass.menuText !== null) {   
-                entries.push(["insert_" + key, "Insert new " + dchClass.menuText, dchClass.menuTooltip]);
+            if (dchClass.pluginName !== null) {   
+                entries.push(["insert_" + key, "Insert new " + dchClass.pluginName, dchClass.menuTooltip]);
             }
         }
     }
@@ -352,34 +352,34 @@ FF.getDchAt = function(clientX, clientY) {
 }
 
 
-function setKBModeTitlebarText(dch) {
-    if (dch) {          // dch can be null when first entering mode1/2 from mode0
-        dch = FF.getBoxAroundDch(dch);      // we dont care about the dch, only the BOX around it (or self if is a BOX)
-        let el = document.getElementById("__tmpKBModeTitlebar");
-        if (el) {
-            let txt = `
-<div style="display:flex;align-items:center;height:100%;"><!-- center vertically-->
-    Command Mode: ${FG.kmStates.mode}`;
+// function setKBModeTitlebarText(dch) {
+//     if (dch) {          // dch can be null when first entering mode1/2 from mode0
+//         dch = FF.getBoxAroundDch(dch);      // we dont care about the dch, only the BOX around it (or self if is a BOX)
+//         let el = document.getElementById("__tmpKBModeTitlebar");
+//         if (el) {
+//             let ss;
+//             if (FG.kmStates.mode == 1) {
+//                 ss = "Drag/Resize: &nbsp; &nbsp; Node Location &nbsp; &nbsp; ";
+//             } else {
+//                 ss = "Infinite Pan: &nbsp; &nbsp; Spatial Offset &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY
+//             }
+//             let txt = `
+// <div style="display:flex;align-items:center;height:100%;"><!-- center vertically-->
+//     Mode: ${ss}`;
 
-    if (FG.kmStates.mode > 0 && dch && FF.getDCHName(dch) == "BOX") {
-        txt += ",&nbsp; &nbsp; Canvas Offset &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY;
-    }
-        txt += `
-</div>`;
+//     // if (FF.getDCHName(dch) == "BOX") {
+//     //     txt += "&nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY;
+//     // }
+//         txt += `
+// </div>`;
 
-            el.innerHTML = txt;
-        }
-    }
-}
+//             el.innerHTML = txt;
+//         }
+//     }
+// }
 
 
-function setKBModeToolbarText(dch) {
-    if (!dch) {
-        return;
-    }
-    let el = document.getElementById("__tmpKBModeToolbar");
-    if (el) {
-        let txt = `
+const __skbmtbtxtStyle = /*setup the styles used by the setKBModeToolbarText() func*/`
 <style>
     .aT {                        /* T for Text */
         display:    inline-block;
@@ -396,45 +396,92 @@ function setKBModeToolbarText(dch) {
         height:     1em;
     }
 </style>
-<div style="display:flex;align-items:center;height:100%;"><!-- center vertically-->
-    DCH Type: ${FF.getDCHName(dch)}`;
-
-    function foo(wrd, val, show) {
-        let bgc;
-        if (show) {
-            bgc="white"
-        } else {
-            bgc="#CCCCCC"
-        }
-        txt += `    <span  style="background-color:${bgc};"><span class="aT">${wrd}:</span><span class="aD"">${val}</span></span>
 `;
+function __mkSkbmtbtxtFld(wrd, val, show) { // create the <span>s to display val in the toolbar
+    let bgc;
+    if (show) {
+        bgc="white"
+    } else {
+        bgc="#CCCCCC"
     }
+    return `    <span  style="background-color:${bgc};"><span class="aT">${wrd}:</span><span class="aD"">${val}</span></span>`;
+}
 
-    function getstylVal(val) {
-        let qq = parseInt(val);
-        if (isNaN(qq)) {
-            return "---";
+function setKBModeToolbarText(dch) {
+    if (!dch) {
+        return;
+    }
+    let el = document.getElementById("__tmpKBModeToolbar");
+    if (el) {
+        let txt = __skbmtbtxtStyle + `
+<div style="display:flex;align-items:center;height:100%;"><!-- center vertically in the toolbar region -->
+    Node Type: ${dch.constructor.pluginName} &nbsp; &nbsp; Mode: `;
+
+        let ss;
+        if (FG.kmStates.mode == 2) {
+            txt += "Infinite Pan: &nbsp; &nbsp;  Offset: &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY
+
+        } else {
+            txt += "Drag/Resize:";
+            function getstylVal(val) {      // return a num or '---' if isNaN
+                let qq = parseInt(val);
+                if (isNaN(qq)) {
+                    return "---";
+                }
+                return qq;
+            }
+            const box = {
+                left:     getstylVal(dch.__sysDiv.style.left),
+                width:    getstylVal(dch.__sysDiv.style.width),
+                right:    getstylVal(dch.__sysDiv.style.right),
+                top:      getstylVal(dch.__sysDiv.style.top),
+                height:   getstylVal(dch.__sysDiv.style.height),
+                bottom:   getstylVal(dch.__sysDiv.style.bottom),
+            }
+            for (const key in box) {
+                txt += __mkSkbmtbtxtFld(key, box[key], dch.__sysDiv.style[key]); // create the <span>s to display val in the toolbar
+            }
         }
-        return qq;
-    }
-    const box = {
-        left:     getstylVal(dch.__sysDiv.style.left),
-        width:    getstylVal(dch.__sysDiv.style.width),
-        right:    getstylVal(dch.__sysDiv.style.right),
-        top:      getstylVal(dch.__sysDiv.style.top),
-        height:   getstylVal(dch.__sysDiv.style.height),
-        bottom:   getstylVal(dch.__sysDiv.style.bottom),
-    }
-    for (const key in box) {
-        foo(key, box[key], dch.__sysDiv.style[key]);
-    }
-
-    txt += `
-</div>`;
+        txt += `</div>`;
 
         el.innerHTML = txt;
     }
 }
+// function setKBModeToolbarText(dch) {
+//     if (!dch) {
+//         return;
+//     }
+//     let el = document.getElementById("__tmpKBModeToolbar");
+//     if (el) {
+//         let txt = __skbmtbtxtStyle + `
+// <div style="display:flex;align-items:center;height:100%;"><!-- center vertically-->
+//     Node Type: ${dch.constructor.pluginName}`;//FF.getDCHName(dch)}`;
+
+//     function getstylVal(val) {
+//         let qq = parseInt(val);
+//         if (isNaN(qq)) {
+//             return "---";
+//         }
+//         return qq;
+//     }
+//     const box = {
+//         left:     getstylVal(dch.__sysDiv.style.left),
+//         width:    getstylVal(dch.__sysDiv.style.width),
+//         right:    getstylVal(dch.__sysDiv.style.right),
+//         top:      getstylVal(dch.__sysDiv.style.top),
+//         height:   getstylVal(dch.__sysDiv.style.height),
+//         bottom:   getstylVal(dch.__sysDiv.style.bottom),
+//     }
+//     for (const key in box) {
+//         __mkSkbmtbtxtFld(key, box[key], dch.__sysDiv.style[key]); // create the <span>s to display val in the toolbar
+//     }
+
+//     txt += `
+// </div>`;
+
+//         el.innerHTML = txt;
+//     }
+// }
 
 
 function showGhost(dch) {
@@ -489,7 +536,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
             }
             FG.kmStates.dch = dch;
             FG.mgStates.nesw = "";                      // clear this right away to prevent possible tripup later on
-            setKBModeTitlebarText(FG.kmStates.dch);     // fire 'first time' to get data on screen (else wont show til mousemove)
+            // setKBModeTitlebarText(FG.kmStates.dch);     // fire 'first time' to get data on screen (else wont show til mousemove)
             setKBModeToolbarText(FG.kmStates.dch);
         // }
     }
@@ -587,8 +634,8 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
         dch = FF.getBoxAroundDch(dch);                                  // get parent BOX (or self if is a BOX)
         FG.kmStates.dch = dch;
 
-        setKBModeTitlebarText(FG.kmStates.dch); // fire 'first time' to get data on screen (else wont show til mousemove)
-        setKBModeToolbarText(FG.kmStates.dch);
+        // setKBModeTitlebarText(dch); // fire 'first time' to get data on screen (else wont show til mousemove)
+        setKBModeToolbarText(dch);
     }
     showGhost(dch);                 // delete the current ghost (if any)
     if (!dch) {         // there's no dch under the mouse,  nothing to do!
@@ -611,7 +658,8 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
             dch.update();
         }
     }
-    setKBModeTitlebarText(dch);
+    // setKBModeTitlebarText(dch);
+    setKBModeToolbarText(dch);
 }
 
 
@@ -692,7 +740,7 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
             let tBar = document.getElementById("divToolbar");
             tBar.appendChild(el);
         }
-        setKBModeTitlebarText(FG.kmStates.dch);
+        // setKBModeTitlebarText(FG.kmStates.dch);
         setKBModeToolbarText(FG.kmStates.dch);
     }
 }
