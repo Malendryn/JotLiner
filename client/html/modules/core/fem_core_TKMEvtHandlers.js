@@ -249,7 +249,7 @@ function onPopupClose(dict) {
         ss.height = formOrigVals.height;
         ss.bottom = formOrigVals.bottom;
         console.log(FF.__FILE__(), "onPopupClose: .update() should only be called when mode=2 and we're dragging the infinite canvas!");
-        FG.kmStates.dch.update();       // nothing should've changed at this point BUT it calls autoSave()!
+//      FG.kmStates.dch.update();       // nothing should've changed at this point BUT it calls autoSave()!  (actually it doesnt autoSave!())
     } else {
         if (formChanged) {
             FF.autoSave(0);
@@ -529,7 +529,11 @@ function showOOB() {
             console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "parent=", JSON.stringify(pRect));
             console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "childs=", JSON.stringify(cRect));
 
-// RSTODO ?? add zX/Y to this cRect?
+            dch.__sysDiv.classList.remove("border-T");
+            dch.__sysDiv.classList.remove("border-R");
+            dch.__sysDiv.classList.remove("border-B");
+            dch.__sysDiv.classList.remove("border-L");
+    
             if (cRect.T < pRect.top)    { dch.__sysDiv.classList.add("border-T"); }
             if (cRect.R > pRect.right)  { dch.__sysDiv.classList.add("border-R"); }
             if (cRect.B > pRect.bottom) { dch.__sysDiv.classList.add("border-B"); }
@@ -537,26 +541,27 @@ function showOOB() {
         }
     }
 }
-function clearOOB() {
-    console.log(FF.__FILE__(), "clearOOB");
-    FG.ghosts.showOOB = false;
-    const dchList = FF.getAllDch();
-    for (const dch of dchList) {
-        dch.__sysDiv.classList.remove("border-T");
-        dch.__sysDiv.classList.remove("border-R");
-        dch.__sysDiv.classList.remove("border-B");
-        dch.__sysDiv.classList.remove("border-L");
-    }
-}
+// function clearOOB() {
+//     console.log(FF.__FILE__(), "clearOOB");
+//     FG.ghosts.showOOB = false;
+//     const dchList = FF.getAllDch();
+//     for (const dch of dchList) {
+//         dch.__sysDiv.classList.remove("border-T");
+//         dch.__sysDiv.classList.remove("border-R");
+//         dch.__sysDiv.classList.remove("border-B");
+//         dch.__sysDiv.classList.remove("border-L");
+//     }
+// }
 function showGhosts(dch) {
     const mDiff = FG.kmStates.mode != FG.kmPrior.mode;  // did the current mode change?
     const dDiff = FG.kmStates.dch  != FG.kmPrior.dch;   // did the dch under mouse change?
     // console.log(FF.__FILE__(), "showGhosts dch=", dch != null, "mode=", FG.kmStates.mode, "mDiff=", mDiff, "dDiff=", dDiff);
-    if (FG.kmStates.mode != 2 && !FG.ghosts.showOOB) {  // if mode0 and not showing OOBs
-        showOOB();
-    } else if (FG.kmStates.mode == 0 && FG.ghosts.showOOB) {  // if mode NOT 0 and IS showing OOBs
-        clearOOB();
-    }
+    showOOB();
+    // if (FG.kmStates.mode != 2 && !FG.ghosts.showOOB) {  // if mode0 and not showing OOBs
+    //     showOOB();
+    // } else if (FG.kmStates.mode == 0 && FG.ghosts.showOOB) {  // if mode NOT 0 and IS showing OOBs
+    //     clearOOB();
+    // }
     if (mDiff || dDiff) {                               // if mode or dch under mouse changed, clear all ghosts
         if (FG.ghosts.divGhost) {
             FG.ghosts.divGhost.remove();
@@ -707,7 +712,6 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
             }
         }
 
-// FG.kmStates.dch.__parent.update();      // update scrollRegion of parent (no longer matters as update() only applies in mode2 now!)
         FF.autoSave();          // autosave after n secs
         setKBModeToolbarText(FG.kmStates.dch);
     }
@@ -745,6 +749,7 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
             dch.zX += deltaX;
             dch.zY += deltaY;
             dch.update();
+            FF.autoSave();          // autosave after n secs
         }
     }
     setKBModeTitlebarText(dch);
