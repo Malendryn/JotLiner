@@ -110,6 +110,18 @@ html,body {
     right: 0;
     bottom: 0;
     pointer-events: none;
-    border: 1px dashed black;
+    border: 1px dashed black;   /*default when no ".border-X" applied */
     box-sizing: border-box;
+}
+.DCH_BOX.border-T::after {
+    border-top:    5px solid rgba(255, 0, 0, 0.85);
+}
+.DCH_BOX.border-R::after {
+    border-right:  5px solid rgba(255, 0, 0, 0.85);
+}
+.DCH_BOX.border-B::after {
+    border-bottom: 5px solid rgba(255, 0, 0, 0.85);
+}
+.DCH_BOX.border-L::after {
+    border-left:   5px solid rgba(255, 0, 0, 0.85);
 }

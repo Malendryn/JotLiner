@@ -40,7 +40,8 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 -------- async selectAndLoadDoc(uuid,force)   update selection in indexView, load selected doc in dchView
 
 ==== FROM fem_core_TKMEvtHandlers.js ==================================================================================
---------       getDCHName(dch)          return name of dch as the subdirName in DocComponentHandlers
+[]     =       getAllDch()              get list of all dch's in FF.curDoc.rootDch. (in same order as exporter puts them)
+--------       getDchName(dch)          return name of dch as the subdirName in DocComponentHandlers
 --------       getRawRect(el)           return LWRTHB of el direct from .style property
 --------       moveDivRelative(el, deltaX, deltaY)  move a div by x/y pixels, accounting for LWRTHB anchors too
 --------       moveDivAbsolute(el, locX, locY)      move a div to locX/Y, accounting for LWRTHB anchors too

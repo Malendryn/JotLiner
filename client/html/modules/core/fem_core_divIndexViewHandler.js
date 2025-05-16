@@ -188,10 +188,10 @@ let draggedItem       = null;                             // ptr to <li> current
 let placeholder       = document.createElement('div');    // create the thin-black-line that shows where a dragDrop will go on dragEnd
 placeholder.className = 'placeholder';
 
-// div.addEventListener('click',       onLeftClick);      // add left,right click listeners on entire divIndexView (no! added below)
+div.addEventListener('click',       onLeftClick);      // testfor clickOn deadspace (no <UL> els) and desel curDoc
 div.addEventListener("contextmenu", onContextMenu);
 
-let ul = document.createElement("ul");          // create the topmost <ul> for the index view & attach all listeners
+let ul = document.createElement("ul");                 // create the topmost <ul> for the index view & attach all listeners
 ul.id = "divIndexViewUL";
 ul.addEventListener('dragstart',   onDragStart);
 ul.addEventListener('dragover',    onDragOver);
@@ -304,13 +304,12 @@ function onClickULItem(evt) {
 }
 
 
-// async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
-//     evt.preventDefault();
-//     if (!FG.kmStates.modal) {
-//         const uuid = getDocTreeLIUuid(evt);
-//         await FF.selectAndLoadDoc(uuid);
-//     }
-// }
+async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
+    evt.preventDefault();
+    if (!FG.kmStates.modal) {
+        await FF.selectAndLoadDoc('');
+    }
+}
 
 
 async function onContextMenu(evt) {     // desel any sel,  sel current one under mouse, then open a context menu

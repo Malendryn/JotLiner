@@ -6,41 +6,27 @@
 when anything exists outside the scrollregion we want to show that edge's border in a diff pattern or color
     (but only when mode1 or 2, not 0)
 
-I think to achieve this we may need to completely rewrite the mask/ghost system specifically for mode2 such that:
-mask isnt really needed at all, even in mode 1.
+I tried doing this in showGhosts() but there's an anomaly where if you go to mode2 -> mode0 (lift alt/shift before z) 
+it doesn't catch it.  ALSO I'd like that red border to stay visible at all times in 'live action' mode such that while
+DRAGGING zX/Y it will update the red border instantly!
 
-ghosts are needed such that the dragged zX/Y window has one 
-every item within that dch needs one even if it's not visible on screen! 
-    we want to show ghosts over all the children SO THAT WE CAN SEE the invisible ones OUTSIDE the infinite region!
+BUT I would also like to NOT show the red border AT ALL when in mode0! (but ALWAYS in mode1/2 for ALL dch's)
 
-CAN WE GET RID OF THE MASK! ??
-CAN WE GET RID OF THE MASK! ??
-CAN WE GET RID OF THE MASK! ??
+so we could puta toggle in showGhosts()  that checks against FG.ghosts{} for a stateflag? 
 
-so for mode 1, it works just fine as is methinks
-    * alt+shift shows ghost over any object mouse is over
-    * mouseDown lets us drag, and the ghost stays visible even if drag goes outside the dchBox it's inside of
-        (the control itself hides cuz its in the box, but the ghost is created at <body> level so it stays visible always!)
-    * mode1 DOES NOT allow selecting dchRoot box!
+like .showOOB that we test if mode=0 and true then clearRED and set false, and vica versa
 
-CAN WE GET RID OF THE MASK! ??
-mode2:
-    * alt+shift+z should immediately ghost over any BOX we're over (if we're over another plugin, parent-walk until BOX)
-            this ghost needs to be different color-or-shade than the others too
-        * ALSO all children (ALL even if wildly off screen!)  get a ghost of their own, so that when...
-    ..mouseDown lets us drag ALL the ghosts (except the one on BOX itself) //as well as// the nodes/plugins just like
-        mode1 does, except for all nodes AND ghosts together! 
-        
-
+showOOB:  false,    // if false when mode 0, set true and clear OOB's,  if true when mode NOT0, set false and set OOBs 
 
 -----------------------------------------------------------------------------------------------------------------------
-when properties popup for DCH_BOX we want to show 'infinite Pan offset' and let user edit it
+when properties popup for DCH_BOX we want to show 'infinite Pan offset' and let user edit it (in the properties popup!)
 -----------------------------------------------------------------------------------------------------------------------
 add using cmdCombo+arrowkeys to move the boxes one pixel at a time
     problem with this is as I have to remain hovering over the object to move, but that's not really a biggie is it?
         of course if you shift the box away from the mouse you'll have issues...
 -----------------------------------------------------------------------------------------------------------------------
-add a popup for mode2 moving (or at the very least add the values to the titlebar in the __tmpKBModeTitlebar)
+NICE TO HAVE if when mode1 we could drag corners of a box that we see the shadow of but the corner we want to drag
+is invisible cuz it's outside the frame of the parent BOX
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
@@ -114,3 +100,37 @@ grew to the left when in reality everything was shoved to the right
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 
+-----------------------------------------------------------------------------------------------------------------------
+TODO: consider requestAnimationFrame()
+
+when dragging DCH_BOX children, the mouse activity is entirely delta-from-prior-movement based, and this can get
+glitchy.  The proper way to do it is to track the box's position seperately (for example trap boxData at moment of
+mousedown) and delta it from there, calling 'id = requestAnimationFrame()' to do actual boxMovement and scrollboxSizing
+(and with the id we can call cancelAnimationFrame() to remove any unprocessed ones off the queue first)
+
+NOTE: I can't know if a returned id actually fired but I can track it myself with an incrementer or a [] of id's, and 
+then have the requestAnimationFrame's (callback) delete its own id from the list,  thereby letting me iterate through
+the list of uncancelled ones and cancelling them
+
+howabout array.push(requestAnimationFrame(callbacK)) and then in callback delete that id from array cuz its now 
+processing, and then also before calling array.push(...) iterate through the array and cancelAnimationFrame() 
+on any id's still present (and empty the array too)
+
+SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- 
+SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- 
+SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- 
+const frameArray = [];
+function scheduleFrame(data) {
+    for (let idx = 0; idx < frameArray.length; idx++) {   // cancel all non-processed frames
+        cancelAnimationFrame(frameArray[idx]);
+    }
+    frameArray.length = 0;  // blowout the array
+    const id = requestAnimationFrame(() => {
+        ProcessData(data);
+        const index = frameArray.indexOf(frameId);
+          frameArray.splice(index, 1); // Remove the ID from the array
+    });
+    frameArray.push(id);
+}
+
+scheduleFrame("test");

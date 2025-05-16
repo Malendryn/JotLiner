@@ -1,13 +1,20 @@
 // TKMEvtHandlers = Toplevel Keyboard and Mouse Event Handlers
 
+let el = document.getElementById("divDocView");
+// el.addEventListener("focus",       onTkmDocViewFocus, true);                                           // listen for 'leaving browser' specifically
+// el.addEventListener("blur",        onTkmDocViewBlur, true);                                           // listen for 'leaving browser' specifically
+// el.addEventListener("mouseleave",  onTkmDocViewLeave, true);
+// el.addEventListener("mouseenter",  onTkmDocViewEnter, true);
 document.addEventListener("contextmenu", onTkmContextMenu, { capture: true, passive: false }); // listen for contextmenu specifically
-  window.addEventListener("blur",        onTkmBlur);                                           // listen for 'leaving browser' specifically
 document.addEventListener("mousedown",   onTkmMousedown,   { capture: true, passive: false }); // listen for mouseup/down/move ANYwhere on doc
 document.addEventListener("mousemove",   onTkmMouseMove,   { capture: true, passive: false });
 document.addEventListener("mouseup",     onTkmMouseUp,     { capture: true, passive: false });
 document.addEventListener("keydown",     onTkmKeyDown,     { capture: true, passive: false });
 document.addEventListener("keyup",       onTkmKeyUp,       { capture: true, passive: false });
 
+// function onTkmDocViewFocus(evt) {
+//     console.log(FF.__FILE__(), "onTkmDocViewFocus")
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +28,7 @@ document.addEventListener("keyup",       onTkmKeyUp,       { capture: true, pass
 FG.ghosts = {     // mode1 ghost info
     divGhost: null,
     nesw:     "",   //"n", "ne", "e", "se", "s", "sw", "w", "nw" <-- when mouse near edge of divGhost, this lets us set the appropriate cursor
+    showOOB:  false,    // if true when mode 2, set false and show OOB's,  if false when mode NOT2, set true and clear OOBs 
 };
 
 FG.kmStates = {
@@ -38,6 +46,7 @@ FG.kmStates = {
     keyZ:     false,    // moves us to mode=2
     modal:    false,    // true when any menu, contextmenu, or dialog is open, else false
     dch:      null,     // the dch the target belongs to  (IF, else null)
+    evt:      null,     // any event that happened (does NOT cause a 'change' call tho!)
 };
 FG.kmPrior = null;  // clone of FG.kmStates prior to onStateChange() so we can test if something JUST changed
 
@@ -255,7 +264,7 @@ function onContextDCHProps() {
 }
 
 
-FF.getDCHName = function (dch) {
+FF.getDchName = function (dch) {
     for (const key in DCH) {            // get it's dchName by searching for it in the loaded DCH ComponentHandlers
         if (dch instanceof DCH[key].dchClass) {  
             return key;
@@ -269,7 +278,7 @@ FF.getDCHName = function (dch) {
 function openDCHContextMenu() {      // based on the dch the mouse is over when rightmouse was pressed...
    let dch = FG.kmStates.dch;   // the actual dch instance
 
-    const dchName = FF.getDCHName(dch);  // the name (as found in the globalThis.DCH{} )
+    const dchName = FF.getDchName(dch);  // the name (as found in the globalThis.DCH{} )
 
     const entries = [];
     if (dch.__children) {           // if rightclicked dchHandler allows children...  (is a BOX)
@@ -309,7 +318,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
                 console.log(str);
                 break;
             case "delete":
-                const dchName = FF.getDCHName(dch);
+                const dchName = FF.getDchName(dch);
                 let yes = window.confirm("Delete node '" + dchName + ", are you sure?");
                 if (!yes) {
                     return;
@@ -320,6 +329,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
                         return;
                     }
                 }
+                setKMStateMode(0);  // obliterate all ghosting and modeing 
                 await dch.destroy();
                 FF.autoSave();
                 break;
@@ -334,6 +344,9 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
 
 
 FF.getDchAt = function(clientX, clientY) {
+    if (!FG.kmStates.inDocView) {
+        return null;
+    }
     const list = document.elementsFromPoint(clientX, clientY);
     for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
         const tmp = list[idx];
@@ -440,7 +453,7 @@ function setKBModeToolbarText(dch) {
 //     if (el) {
 //         let txt = __skbmtbtxtStyle + `
 // <div style="display:flex;align-items:center;height:100%;"><!-- center vertically-->
-//     Node Type: ${dch.constructor.pluginName}`;//FF.getDCHName(dch)}`;
+//     Node Type: ${dch.constructor.pluginName}`;//FF.getDchName(dch)}`;
 
 //     function getstylVal(val) {
 //         let qq = parseInt(val);
@@ -469,20 +482,91 @@ function setKBModeToolbarText(dch) {
 // }
 
 
-function showGhost(dch) {
-    console.log(FF.__FILE__(), "showGhosts");
+FF.getAllDch = function() {
+    if (!FG.curDoc) {
+        return [];
+    }
+    let dch = FG.curDoc.rootDch;
+    let list = [dch];                     // add rootDch right away
+
+    function getKids(dch) {
+        if (dch.__children && dch.__children.length > 0) {
+            for (let child of dch.__children) {
+                list.push(child);           // add child, and get it's kids next too
+                getKids(child);
+            }
+        }
+    }
+    getKids(dch);
+    return list;
+}
+
+
+function getChildrenBoundingRect(dch) {
+    let rect = {
+        L: 999999999,
+        R: 0,
+        T: 999999999,
+        B: 0,
+    }
+    for (const tmp of dch.__children) {
+        const box = tmp.__sysDiv.getBoundingClientRect();
+        if (box.left < rect.L)               { rect.L = box.x;                }
+        if ((box.left + box.width) > rect.R) { rect.R = box.left + box.width; }
+        if (box.top < rect.T)                { rect.T = box.top;              }
+        if ((box.top + box.height) > rect.B) { rect.B = box.top + box.height; }
+    }
+    return rect;
+}
+function showOOB() {
+    console.log(FF.__FILE__(), "showOOB");
+    FG.ghosts.showOOB = true;
+    const dchList = FF.getAllDch();
+    for (const dch of dchList) {
+        if (FF.getDchName(dch) == "BOX") {  // only do this to BOXes
+            let pRect = dch.__sysDiv.getBoundingClientRect();
+            let cRect = getChildrenBoundingRect(dch);
+            console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "parent=", JSON.stringify(pRect));
+            console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "childs=", JSON.stringify(cRect));
+
+// RSTODO ?? add zX/Y to this cRect?
+            if (cRect.T < pRect.top)    { dch.__sysDiv.classList.add("border-T"); }
+            if (cRect.R > pRect.right)  { dch.__sysDiv.classList.add("border-R"); }
+            if (cRect.B > pRect.bottom) { dch.__sysDiv.classList.add("border-B"); }
+            if (cRect.L < pRect.left)   { dch.__sysDiv.classList.add("border-L"); }
+        }
+    }
+}
+function clearOOB() {
+    console.log(FF.__FILE__(), "clearOOB");
+    FG.ghosts.showOOB = false;
+    const dchList = FF.getAllDch();
+    for (const dch of dchList) {
+        dch.__sysDiv.classList.remove("border-T");
+        dch.__sysDiv.classList.remove("border-R");
+        dch.__sysDiv.classList.remove("border-B");
+        dch.__sysDiv.classList.remove("border-L");
+    }
+}
+function showGhosts(dch) {
     const mDiff = FG.kmStates.mode != FG.kmPrior.mode;  // did the current mode change?
     const dDiff = FG.kmStates.dch  != FG.kmPrior.dch;   // did the dch under mouse change?
-    if (mDiff || dDiff) {
-        console.log(FF.__FILE__(), "showGhosts, CLEAR!", mDiff, dDiff, FG.kmStates.mode, FG.kmPrior.mode, FG.kmStates.inDocView, FG.kmPrior.inDocView);
+    // console.log(FF.__FILE__(), "showGhosts dch=", dch != null, "mode=", FG.kmStates.mode, "mDiff=", mDiff, "dDiff=", dDiff);
+    if (FG.kmStates.mode != 2 && !FG.ghosts.showOOB) {  // if mode0 and not showing OOBs
+        showOOB();
+    } else if (FG.kmStates.mode == 0 && FG.ghosts.showOOB) {  // if mode NOT 0 and IS showing OOBs
+        clearOOB();
+    }
+    if (mDiff || dDiff) {                               // if mode or dch under mouse changed, clear all ghosts
         if (FG.ghosts.divGhost) {
             FG.ghosts.divGhost.remove();
-            FG.ghosts.divGhost = null;
+            FG.ghosts.divGhost = null;      // RSTODO can we eliminate this 'divGhost' entirely now that we use __divGhost ?
         }
-        if (FG.kmPrior.mode == 2) {                             // when switching AWAY FROM mode2...
-            for (const child of FG.kmPrior.dch.__children) {    // delete and remove all child __ghostDiv's
-                child.__ghostDiv.remove();
-                delete child.__ghostDiv;
+        let dchList = FF.getAllDch();       // also delete all child ghosts everywhere
+        for (const tmp of dchList) {
+            if (tmp.__divGhost) {
+                tmp.__divGhost.remove();
+                delete tmp.__divGhost;
             }
         }
     }
@@ -508,27 +592,28 @@ function showGhost(dch) {
                 el.style.width   = rect.width + "px";
                 el.style.height  = rect.height + "px";
                 docDiv.appendChild(el);
-                child.__ghostDiv = el;
+                child.__divGhost = el;
             }
         }
     }
+
     if (FG.kmStates.mode == 1) {
-        FG.ghosts.divGhost.style.backgroundColor = "rgba(0, 0, 0, 0.25)";       // darken covering
+        FG.ghosts.divGhost.style.backgroundColor = "rgba(0, 0, 0, 0.25)";       // mode1, darkern covering
     } else {
-        FG.ghosts.divGhost.style.backgroundColor = "rgba(0, 0, 0, 0.15)"; // lighten covering
+        FG.ghosts.divGhost.style.backgroundColor = "rgba(0, 0, 0, 0.15)";       // mode2, lighter covering
     }
-    let rect = dch.__sysDiv.getBoundingClientRect();
+    let rect = dch.__sysDiv.getBoundingClientRect();    // match the toplevel ghost to the selected dch
     ghost.style.left    = rect.x + "px";
     ghost.style.top     = rect.y + "px";
     ghost.style.width   = rect.width + "px";
     ghost.style.height  = rect.height + "px";
-    if (FG.kmStates.mode == 2) {
+    if (FG.kmStates.mode == 2) {                        // if mode2, move the ghosts of the children too
         for (const child of dch.__children) {
             rect = child.__sysDiv.getBoundingClientRect();
-            child.__ghostDiv.style.left    = rect.x + "px";
-            child.__ghostDiv.style.top     = rect.y + "px";
-            child.__ghostDiv.style.width   = rect.width + "px";
-            child.__ghostDiv.style.height  = rect.height + "px";
+            child.__divGhost.style.left    = rect.x + "px";
+            child.__divGhost.style.top     = rect.y + "px";
+            child.__divGhost.style.width   = rect.width + "px";
+            child.__divGhost.style.height  = rect.height + "px";
         }
     }
 }
@@ -559,7 +644,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
             setKBModeToolbarText(FG.kmStates.dch);
         // }
     }
-    showGhost(dch);                // show any changes to the ghosting state
+    showGhosts(dch);                // show any changes to the ghosting state
     if (FG.kmStates.btnRight) {             // if contextMenu button down, ...
         let tmp = document.getElementById("sysContextMenu");
         if (!tmp) {     // only open if a menu isn't already open
@@ -577,7 +662,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
 // dch now refs the FG.kmStates.dch currently hovered over
 
     if (!FG.ghosts.divGhost) {     // we're over an element but no ghost was created yet
-        showGhost(dch);              // create the ghost
+        showGhosts(dch);              // create the ghost
     }
     if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
         let rect = dch.__sysDiv.getBoundingClientRect();
@@ -641,7 +726,7 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
         setKBModeTitlebarText(dch); // fire 'first time' to get data on screen (else wont show til mousemove)
         setKBModeToolbarText(dch);
     }
-    showGhost(dch);                 // delete-or-show ghost over the BOX
+    showGhosts(dch);                 // delete-or-show ghost over the BOX
     if (!dch) {         // there's no dch under the mouse,  nothing to do!
         docDiv.style.cursor = "";
         return;
@@ -649,7 +734,7 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
 // dch now refs the BOX the FG.kmStates.dch currently hovered over resides within (or self if is a BOX)
 
     // if (!FG.ghosts.divGhost) {     // we're over an element but no ghost was created yet
-    //     showGhost(dch);
+    //     showGhosts(dch);
     // }
 
     if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
@@ -667,36 +752,36 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
 }
 
 
-function disableAllShadowHosts(yesno) { // if yes, disable(prevent pointer events) the shadowRoot rect and give it 0.5 alpha, else enable it
-    console.log(FF.__FILE__(),"disableAllShadowHosts:  is this obsolete?");
-    return;
-    function findAllShadowHosts(root) {
-        const found = [];
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null, false);
-        while (walker.nextNode()) {
-            const el = walker.currentNode;
-            if (el.shadowRoot) {          // if this is a shadow DOM root node
-                found.push(el);
-            }
-        }
-        return found;
-    }
-    const div = document.getElementById("divDocView");
-    let found = findAllShadowHosts(div);
-    for (let idx = 0; idx < found.length; idx++) {
-        const el = found[idx];
-        if (yesno) {
-            el.classList.add("disable");
-        } else {
-            el.classList.remove("disable");
-        }
-    }
-}
+// function disableAllShadowHosts(yesno) { // if yes, disable(prevent pointer events) the shadowRoot rect and give it 0.5 alpha, else enable it
+//     console.log(FF.__FILE__(),"disableAllShadowHosts:  is this obsolete?");
+//     return;
+//     function findAllShadowHosts(root) {
+//         const found = [];
+//         const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null, false);
+//         while (walker.nextNode()) {
+//             const el = walker.currentNode;
+//             if (el.shadowRoot) {          // if this is a shadow DOM root node
+//                 found.push(el);
+//             }
+//         }
+//         return found;
+//     }
+//     const div = document.getElementById("divDocView");
+//     let found = findAllShadowHosts(div);
+//     for (let idx = 0; idx < found.length; idx++) {
+//         const el = found[idx];
+//         if (yesno) {
+//             el.classList.add("disable");
+//         } else {
+//             el.classList.remove("disable");
+//         }
+//     }
+// }
 
 
 function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the __tmpKBModeTitlebar/Toolbar
     FG.kmStates.mode = mode;
-    disableAllShadowHosts(mode != 0);  // enable if 0, else disable all dch shadow DOMS
+    // disableAllShadowHosts(mode != 0);  // enable if 0, else disable all dch shadow DOMS
     if (mode == 0) {
         let el = document.getElementById("__tmpKBModeToolbar");
         if (el) {
@@ -710,7 +795,7 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
         docDiv.style.cursor = "";          // undo all cursor settings when commandState released
 
         if (FG.ghosts.divGhost) {
-            showGhost(null);
+            showGhosts(null);
         }
         if (FG.kmStates.dch) {
             FG.kmStates.dch = null;                 // unset any selected dch;
@@ -772,7 +857,6 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
         return;
     }
     const docDiv = document.getElementById("divDocView");
-
     let oldCMode = getCmdMode(orig);
     let newCMode = getCmdMode();
     // console.log(FF.__FILE__(), oldCMode, newCMode);
@@ -789,7 +873,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
     } else if (FG.kmStates.mode == 2) {
         doDchOpMode2(orig);
     } else {
-        if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != orig.btnLeft) {
+        if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != orig.btnLeft) {       // show toolbar for dch, hide all others
             const dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
             if (dch) {
                 const div = document.getElementById("divToolbar");
@@ -852,7 +936,7 @@ function setKMState(states) {
     FG.kmPrior = Object.assign({}, FG.kmStates);     // clone the original FG.kmStates before changing them
     let changed = false;
 
-       for (const key in states) {                   // test field-by-field to see if anything changed
+    for (const key in states) {                      // test field-by-field to see if anything changed
         if (FG.kmStates[key] != states[key]) {
             FG.kmStates[key] = states[key];          // if changed, update FG.kmStates and set changed flag
             changed = true;
@@ -860,8 +944,10 @@ function setKMState(states) {
     }
 
 // if mouse moved from inside to outside (or vica/versa) the scope of divDocView
-    if ("inDocView" in states && states.inDocView == false && states.inDocView != FG.kmPrior.inDocView) {   
+    if (FG.kmStates.inDocView != FG.kmPrior.inDocView) {   
+    // if ("inDocView" in states && states.inDocView == false && states.inDocView != FG.kmPrior.inDocView) {   
         clearAllButtons(false);                  // false to prevent recursive calling of setKMState()
+        console.log("FEFWE1")
     }
     // debugStates(states);
 
@@ -872,7 +958,7 @@ function setKMState(states) {
 
 
 function onTkmKeyDown(evt) {
-    FG.kmStates.evt = evt;
+    //AAA FG.kmStates.evt = evt;
     const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
@@ -891,7 +977,7 @@ function onTkmKeyDown(evt) {
 }
 
 function onTkmKeyUp(evt) {
-    FG.kmStates.evt = evt;
+    //AAA FG.kmStates.evt = evt;
     const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
@@ -905,10 +991,34 @@ function onTkmKeyUp(evt) {
 }
 
 
-function onTkmBlur(evt) {       // this hardly EVER happens but just in case it makes a difference when it does...
-    console.log(FF.__FILE__(), "BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! ");
-     clearAllButtons();   // BAD!  caused buttonrelease during drag IF clicked in! nogood!
-}
+// let __isInsideDivDocView = false;
+// let __isProcessingDivDocViewLeave = false;
+// function onTkmDocViewEnter(evt) {
+//     if (__isInsideDivDocView) {
+//         return;
+//     }
+//     __isInsideDivDocView = true;
+//     setKMState({inDocView: true});
+//     console.log(FF.__FILE__(), "onTkmDocViewEnter")
+// }
+// function onTkmDocViewLeave(evt) {
+//     if (__isProcessingDivDocViewLeave) {
+//         return;
+//     }
+//     let el = document.getElementById("divDocView");
+//     if (el.contains(evt.relatedTarget)) {    //check if 'new target el' is still inside divDocView and abort if so
+//         return;
+//     }
+//     __isInsideDivDocView = false;
+//     __isProcessingDivDocViewLeave = true;
+//     console.log(FF.__FILE__(), "onTkmDocViewLeave inDocView=FALSE");
+//     setKMState({inDocView: false});
+//     // console.log("FEFWE2")
+//     // console.log(FF.__FILE__(), "BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! ");
+//     clearAllButtons();   // BAD!  caused buttonrelease during drag IF clicked in! nogood!
+//     __isProcessingDivDocViewLeave = false;
+// }
+
 function onTkmContextMenu(evt) {
     if (FG.kmStates.dch == null) {      // if no dch, this should be popping the system default context menu
         console.log(FF.__FILE__(), "onTkmContextMenu rightBtn NoDCH");
@@ -926,7 +1036,7 @@ function onTkmContextMenu(evt) {
 
 let sizerStartPos = null;         // 'sizerStartPos' = mouse Operation (presently only for click+drag of divHandlers)
 function onTkmMousedown(evt) {
-    FG.kmStates.evt = evt;
+    //AAA FG.kmStates.evt = evt;
     if (evt.target.id == "divIndexDocSizer") {  // if clicked on the sizerBar
         if (!FG.kmStates.modal) {               // and ONLY if a modal isn't open!
             let m = {                       // create and init 'global' sizerStartPos object
@@ -954,16 +1064,15 @@ function onTkmMousedown(evt) {
 }
 
 
+function testInDocView(evt) {
+    let el = document.getElementById("divDocView");
+    let rect = el.getBoundingClientRect();
+    FG.kmStates.inDocView = evt.clientX >= rect.left && evt.clientX <= rect.right
+             && evt.clientY >= rect.top && evt.clientY <= rect.bottom;
+}
 function onTkmMouseMove(evt) {
-    const docDiv = document.getElementById("divDocView");
-    if (!FG.kmStates.modal) {
-        setKMState({ "inDocView": docDiv.contains(evt.target) });
-    }
-    if (!FG.kmStates.inDocView) {
-        return;
-    }
-    FG.kmStates.evt = evt;
-    if (sizerStartPos) {        //if dragging the sizerBar
+    testInDocView(evt);
+    if (sizerStartPos) {                //check/move dragging sizerBar BEFORE checking inDocView
         const m = sizerStartPos;
         const deltaX = (evt.screenX - m.startX);
         const deltaY = (evt.screenY - m.startY);
@@ -977,17 +1086,28 @@ function onTkmMouseMove(evt) {
             elM.style.left  = (m.dragBarLeft + deltaX) + "px";                   // set left  of divIndexDocSizer
             elL.style.width = (m.dragBarLeft + deltaX) + "px";                   // set width of divIndexView
         }
-
-        evt.stopPropagation();
-        evt.preventDefault();
-    } else {                    // if NOT dragging the sizerbar
-        setKMState({"clientX": evt.clientX, "clientY": evt.clientY});
+        // evt.stopPropagation();
+        // evt.preventDefault();
+        return;
     }
+    
+    const docDiv = document.getElementById("divDocView");
+    // if (!FG.kmStates.modal) {
+    //     console.log(FF.__FILE__(), "onTkmMouseMOve inDocView=", docDiv.contains(evt.target));
+    //     setKMState({ "inDocView": docDiv.contains(evt.target) });
+    // }
+    if (!FG.kmStates.inDocView) {
+        return;
+    }
+    //AAA FG.kmStates.evt = evt;
+
+    // if NOT dragging the sizerbar
+    setKMState({"clientX": evt.clientX, "clientY": evt.clientY});
 }
 
 
 function onTkmMouseUp(evt) {
-    FG.kmStates.evt = evt;
+    //AAA FG.kmStates.evt = evt;      // record, but don't flag as a change
     if (sizerStartPos) {
         const el = document.getElementById("divIndexDocSizer");
         el.style.cursor = "";
@@ -997,7 +1117,7 @@ function onTkmMouseUp(evt) {
         if      (evt.button == 0) {  states["btnLeft"]  = false; }
         else if (evt.button == 1) {  states["btnMid"]   = false; }
         else if (evt.button == 2) {  states["btnRight"] = false; }
-        setKMState(states, evt.target);
+        setKMState(states);
     }
 }
 
@@ -1110,7 +1230,7 @@ FF.getRawRect = function(el) {
 FF.getBoxAroundDch = function(dch) {
     if (dch) {                                     // !!DO!! allow them to select/move the docroot! 
         let el = dch.__sysDiv;
-        while (FF.getDCHName(dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
+        while (FF.getDchName(dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
             dch = dch.__parent;
         }
         //     let el = dch.__sysDiv;

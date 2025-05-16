@@ -4,6 +4,10 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+* removed disableAllShadowHosts() as obsolete
+* fixed bug where in mode2 hovering from one BOX to another would leave old ghosts lying around
+* added a 5px 'red edge' to BOX nodes to indicate there's children that extend past the edge in that direction
+
 2025-05-16 ------------------------------------------------------------------------------------------------------------
 * successful rename of origin/master to origin/main
 * removed all of mask & divMask from the system,  seems to have caused no issues!  We now only use divGhost!

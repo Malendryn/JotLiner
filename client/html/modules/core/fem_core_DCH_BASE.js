@@ -76,7 +76,7 @@ __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv
         dch.__parent = parent;
         dch.__sysDiv = document.createElement("div");       // create div
         dch.__sysDiv.id = (FG._idCounter++).toString();
-        dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
+        // dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
         dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
         dch.__sysDiv._dchMouseOp = "dchComponent";          // to let us know via mouse/kbd evts that this is <el> is a dch component
         let parentDiv;
