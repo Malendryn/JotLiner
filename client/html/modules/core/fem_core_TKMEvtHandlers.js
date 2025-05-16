@@ -353,20 +353,22 @@ FF.getDchAt = function(clientX, clientY) {
 
 
 function setKBModeTitlebarText(dch) {
-    dch = FF.getBoxAroundDch(dch);      // we dont care about the dch, only the BOX around it (or self if is a BOX)
-    let el = document.getElementById("__tmpKBModeTitlebar");
-    if (el) {
-        let txt = `
+    if (dch) {          // dch can be null when first entering mode1/2 from mode0
+        dch = FF.getBoxAroundDch(dch);      // we dont care about the dch, only the BOX around it (or self if is a BOX)
+        let el = document.getElementById("__tmpKBModeTitlebar");
+        if (el) {
+            let txt = `
 <div style="display:flex;align-items:center;height:100%;"><!-- center vertically-->
     Command Mode: ${FG.kmStates.mode}`;
 
-if (FG.kmStates.mode > 0 && dch && FF.getDCHName(dch) == "BOX") {
-    txt += ",&nbsp; &nbsp; Canvas Offset &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY;
-}
-    txt += `
+    if (FG.kmStates.mode > 0 && dch && FF.getDCHName(dch) == "BOX") {
+        txt += ",&nbsp; &nbsp; Canvas Offset &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY;
+    }
+        txt += `
 </div>`;
 
-        el.innerHTML = txt;
+            el.innerHTML = txt;
+        }
     }
 }
 
@@ -469,18 +471,16 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
-    if (FG.kmStates.dch == FG.curDoc.rootDch) {     // if rootDch WAS selected via mode2, then we came back here to mode1
+    if (FG.kmStates.dch == FG.curDoc.rootDch) {     // if rootDch WAS selected via mode2, THEN we came back here to mode1
         FG.kmStates.dch = dch = null;
     }
+    // console.log(FF.__FILE__(), "doDchOpMode1: dch=", FG.kmStates.dch);
 
     if (FG.kmStates.btnLeft) {                      // if mouseLeft down, use existing hovered-over sysDiv
         dch = FG.kmStates.dch;
     } else {                                        // mouseleft NOT down, find dch currently hovering over
         dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
-        if (dch == FG.curDoc.rootDch) {                         // in mode1, do not allow them to select/move the docRoot!
-            dch = null;
-        }
-        if (FG.kmStates.dch != FG.curDoc.rootDch) {      
+        // if (FG.kmStates.dch != FG.curDoc.rootDch) {      
             if (dch && dch != FG.kmStates.dch) {                // if there was a dch already selected but it's not this one any more
                 if (FG.mgStates.divGhost) {                           // remove any exhisting ghost
                     FG.mgStates.divGhost.remove();
@@ -491,19 +491,13 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
             FG.mgStates.nesw = "";                      // clear this right away to prevent possible tripup later on
             setKBModeTitlebarText(FG.kmStates.dch);     // fire 'first time' to get data on screen (else wont show til mousemove)
             setKBModeToolbarText(FG.kmStates.dch);
-        }
+        // }
     }
     if (!dch || dch != FG.kmStates.dch) {   // if we were over a dch but we're not any more (or it changed)
         if (FG.mgStates.divGhost) {
             showGhost(null);                // delete the current ghost
         }
     }
-    if (!dch) {                             // there's no dch under the mouse,  nothing to do!
-        docDiv.style.cursor = "";
-        return;
-    }
-// dch now refs the FG.kmStates.dch currently hovered over
-
     if (FG.kmStates.btnRight) {             // if contextMenu button down, ...
         let tmp = document.getElementById("sysContextMenu");
         if (!tmp) {     // only open if a menu isn't already open
@@ -511,6 +505,15 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
         }
         return;
     }
+    if (dch == FG.curDoc.rootDch) {         // in mode1, do not allow them to select/move the docRoot!
+        dch = null;
+    }
+    if (!dch) {                             // there's no dch under the mouse,  nothing to do!
+        docDiv.style.cursor = "";
+        return;
+    }
+// dch now refs the FG.kmStates.dch currently hovered over
+
     if (!FG.mgStates.divGhost) {     // we're over an element but no ghost was created yet
         showGhost(dch);              // create the ghost
         // FG.mgStates.lrMode = "";     // and set up the lrtb modes of the dch.__sysDiv we're over
@@ -662,6 +665,10 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
             FG.mgStates.divMask.remove();       // remove mask div
             FG.mgStates.divMask = null;
         }
+        if (FG.kmStates.dch) {
+            console.log(FF.__FILE__(), "setting FG.kmStates.dch to null!  (remove the 'if' around this!");
+            FG.kmStates.dch = null;                 // unset any selected dch;
+        }
     } else {
         let el = document.getElementById("__tmpKBModeTitlebar");
         if (!el) {
@@ -691,15 +698,24 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
 }
 
 function getCmdMode(src = FG.kmStates) {      // alternately pass in FG.kmPrior
-    // if (!src.keyAlt && !src.keyShift) {
-    //     return 0;
-    // }
     if (src.keyAlt && src.keyShift) {       // if both keys are down
         if (src.keyZ) {
             return 2;
         }
         return 1;
     }
+
+    if (FG.kmStates.dch) {  // mode=0, close anything open
+        setKMStateMode(0);
+    }
+//EEEE
+    // I think right here (mode=0) we should test if FG.kmStates.dch != null and if not we should call all the 'closeme' stuff and 'restore shadow' stuff
+    // and then set dch to null.
+
+    // then in the oncontextmenu() we can check and if dch=null (which it should now ALWAYS be if we do this) then we can 'FG.kmStates.btnRight = false'
+    // and that SHOULD solve our keyboard mapping issue with the rightbutton context menu thingy leaving rightbutton in a faux-states
+
+
     return 0;                               // if only one or neither are down
 }
 
@@ -864,6 +880,13 @@ function onTkmBlur(evt) {       // this hardly EVER happens but just in case it 
     // clearAllButtons();   // BAD!  caused buttonrelease during drag IF clicked in! nogood!
 }
 function onTkmContextMenu(evt) {
+    if (FG.kmStates.dch == null) {      // if no dch, this should be popping the system default context menu
+        console.log(FF.__FILE__(), "onTkmContextMenu rightBtn NoDCH");
+        FG.kmStates.btnRight = false;   // so 'lose the right button' which it gets stuck on
+    } else {
+        console.log(FF.__FILE__(), "onTkmContextMenu rightBtn YesDCH");
+    }
+
     if (FG.kmStates.modal || (FG.kmStates.keyAlt && FG.kmStates.keyShift)) { // if menu/popup isopen or alt+shift, ...
         evt.stopPropagation();
         evt.preventDefault();
@@ -1048,15 +1071,17 @@ FF.getBoxAroundDch = function(dch) {
     if (dch) {                                     // !!DO!! allow them to select/move the docroot! 
         let el = dch.__sysDiv;
         while (FF.getDCHName(dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
-            let el = dch.__sysDiv;
-            while (true) {
-                el = el.parentNode;
-                if (el._dchMouseOp == "dchComponent") {
-                    dch = el._dchHandler;
-                    break;
-                }
-            }
+            dch = dch.__parent;
         }
+        //     let el = dch.__sysDiv;
+        //     while (true) {
+        //         el = el.parentNode;
+        //         if (el._dchMouseOp == "dchComponent") {
+        //             dch = el._dchHandler;
+        //             break;
+        //         }
+        //     }
+        // }
     }
     return dch;
 }
