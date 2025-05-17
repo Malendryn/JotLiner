@@ -88,7 +88,6 @@ FF.openPopup = function (formContent, dict, callback, preRun=null, postRun=null)
     FF.addTrackedListener(el, "click", onClickNo);
     el = document.getElementById("_btnYes");
     FF.addTrackedListener(el, "click", onClickYes);
-    FG.kmStates.modal = true;
 
     document.addEventListener("mousedown",   onPopMouseDown);
     document.addEventListener("mousemove",   onPopMouseMove);
@@ -105,7 +104,6 @@ FF.openPopup = function (formContent, dict, callback, preRun=null, postRun=null)
             await postRun(form);
         }
         document.body.removeChild(form);
-        FG.kmStates.modal = false;
     }
     async function onClickNo(evt) {
         evt.preventDefault();

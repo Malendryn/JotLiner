@@ -2,9 +2,18 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+* fixed when creating new DCH in an zX/Y !=0 BOX it locates incorrectly
+* created new ContextMenu class that allows submenus of n-depth.  Standalone class.  loads its own .css file as well
+     does not include a menubar system, that is still a seperate construct at present
+* created new MenuBar class that creates a horizontal menu bar in a supplied <div> and uses the new ContextMenu class
+     to create its dropdown menus
+* replaced and deleted the original DCHContextMenu.js file
+* fixed OOBounds edges highlighting even in mode0
+
 2025-05-16 ------------------------------------------------------------------------------------------------------------
 * fixed not autosaving when mode2-panning
 * upgraded so the out-of-bands (red) borders now show/hide in realtime when boxes are moved or panned
+
 2025-05-16 ------------------------------------------------------------------------------------------------------------
 * removed disableAllShadowHosts() as obsolete
 * fixed bug where in mode2 hovering from one BOX to another would leave old ghosts lying around

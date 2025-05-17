@@ -2,28 +2,39 @@
 * checkout https://render.com/docs for hosting a live site for free
 * learn the whole github process
 -----------------------------------------------------------------------------------------------------------------------
+we used to load dch modules as-needed and not before.  we should go back to doing that again
+    in index.js we already fetch all modulepaths, we can just insert them into DCH[dchName] as null and loadAsNeeded
 -----------------------------------------------------------------------------------------------------------------------
-when anything exists outside the scrollregion we want to show that edge's border in a diff pattern or color
-    (but only when mode1 or 2, not 0)
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+track state of opened index pane entries
+        we need this per-client methinks so not something to track in the db
 
-I tried doing this in showGhosts() but there's an anomaly where if you go to mode2 -> mode0 (lift alt/shift before z) 
-it doesn't catch it.  ALSO I'd like that red border to stay visible at all times in 'live action' mode such that while
-DRAGGING zX/Y it will update the red border instantly!
+-----------------------------------------------------------------------------------------------------------------------
+add menusystem, (piggyback off contextMenu)
+    (system now added but not yet actively connected)
+-----------------------------------------------------------------------------------------------------------------------
+on client connect we need to pass the name of the db to connect to
+and we need to track all opened dbs in the server
+AND we need to CLOSE the dbs when a client goes away!!!!!!!
+AND we need a packet to pull existing dblist back to the client to show them in the 'open db' menu
 
-BUT I would also like to NOT show the red border AT ALL when in mode0! (but ALWAYS in mode1/2 for ALL dch's)
+-----------------------------------------------------------------------------------------------------------------------
+we need to start getting localStorage working
+    for last db opened (so we can load this one immediately on startup)
+    for which db was last opened (rather than a record in the db)
+    for which which entries in the index are expanded
 
-so we could puta toggle in showGhosts()  that checks against FG.ghosts{} for a stateflag? 
+-----------------------------------------------------------------------------------------------------------------------
+Should I start considering reducing the 'FF.Class' reliance and start using 'import <obj> from file' ?
+    (thought about this during creation of my ContextMenu class)
 
-like .showOOB that we test if mode=0 and true then clearRED and set false, and vica versa
+    also maybe move some of these classes out of the html/modules/core subdir, its getting pretty crowded in there!
 
-showOOB:  false,    // if false when mode 0, set true and clear OOB's,  if true when mode NOT0, set false and set OOBs 
 
 -----------------------------------------------------------------------------------------------------------------------
 when properties popup for DCH_BOX we want to show 'infinite Pan offset' and let user edit it (in the properties popup!)
------------------------------------------------------------------------------------------------------------------------
-add using cmdCombo+arrowkeys to move the boxes one pixel at a time
-    problem with this is as I have to remain hovering over the object to move, but that's not really a biggie is it?
-        of course if you shift the box away from the mouse you'll have issues...
 -----------------------------------------------------------------------------------------------------------------------
 NICE TO HAVE if when mode1 we could drag corners of a box that we see the shadow of but the corner we want to drag
 is invisible cuz it's outside the frame of the parent BOX
@@ -99,7 +110,11 @@ grew to the left when in reality everything was shoved to the right
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-
+LOWER PRIORITY STUFF -- LOWER PRIORITY STUFF -- LOWER PRIORITY STUFF -- LOWER PRIORITY STUFF -- LOWER PRIORITY STUFF -- 
+-----------------------------------------------------------------------------------------------------------------------
+add using cmdCombo+arrowkeys to move the boxes one pixel at a time
+    problem with this is as I have to remain hovering over the object to move, but that's not really a biggie is it?
+        of course if you shift the box away from the mouse you'll have issues...
 -----------------------------------------------------------------------------------------------------------------------
 TODO: consider requestAnimationFrame()
 

@@ -2,8 +2,12 @@
 import fs from "fs"; //'node:fs/promises'; <-- this works too
 import path from "path";
 
+function logPkt(name) {
+    console.log("pkt=" + name);
+}
+
 WS.__classes.GetDCHList.prototype.process = async function(ws) {
-    // return new Promise(async (resolve, reject) => {
+        logPkt("GetDCHList");
         const dirPath = path.join(BG.basePath, "client", "html", "modules", "DocComponentHandlers");
 
         const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
@@ -16,12 +20,11 @@ WS.__classes.GetDCHList.prototype.process = async function(ws) {
         });
         this.list = list;
         return this;
-    //     resolve(this);  // resolve(this) sends 'this' back! 
-    // });
 }
 
 
 WS.__classes.GetExtra.prototype.process = async function(ws) {
+    logPkt("GetExtra");
     let tmp = await BG.db.query("SELECT value FROM extra WHERE key=?", [this.txt]);
     if (tmp.length == 1) {
         this.txt = tmp[0].value;
@@ -33,29 +36,33 @@ WS.__classes.GetExtra.prototype.process = async function(ws) {
 
 
 WS.__classes.SetExtra.prototype.process = async function(ws) {
+    logPkt("SetExtra");
     let tmp = await BG.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
     return null;
 }
 
 
 WS.__classes.GetDocTree.prototype.process = async function(ws) {
+    logPkt("GetDocTree");
     this.list = await BG.db.query("SELECT * from docTree order by parent,listOrder");
     return this;
 }
 
 
 WS.__classes.GetDoc.prototype.process = async function(ws) { // must use 'function()' to have a 'this'   (not '() =>' )
-        const tmp = await BG.db.query("SELECT content FROM doc WHERE uuid=?", [this.uuid]);
-        if (tmp.length > 0) {
-            this.doc = tmp[0].content;
-        } else {
-            this.doc = null;
-        }
-        return this;
+    logPkt("GetDoc");
+    const tmp = await BG.db.query("SELECT content FROM doc WHERE uuid=?", [this.uuid]);
+    if (tmp.length > 0) {
+        this.doc = tmp[0].content;
+    } else {
+        this.doc = null;
+    }
+    return this;
 }
 
 
 WS.__classes.NewDoc.prototype.process = async function(ws) {    // insert new doc into db,  return with nothing!
+    logPkt("NewDoc");
     try {
         await BG.db.run("BEGIN TRANSACTION");
         let recs = await BG.db.query("SELECT id,uuid,listOrder from docTree where parent=? order by listOrder", [this.dict.parent]);
@@ -91,6 +98,7 @@ WS.__classes.NewDoc.prototype.process = async function(ws) {    // insert new do
 
 
 WS.__classes.SaveDoc.prototype.process = async function(ws) {    // insert new doc into db,  return with a GetDocTree packet
+    logPkt("SaveDoc");
     try {
         await BG.db.run("BEGIN TRANSACTION");
         let list = [this.dict.version, this.dict.doc, this.dict.uuid];
@@ -108,6 +116,7 @@ WS.__classes.SaveDoc.prototype.process = async function(ws) {    // insert new d
 
 
 WS.__classes.RenameDoc.prototype.process = async function(ws) {    // rename a document
+    logPkt("RenameDoc");
     await BG.db.run("BEGIN TRANSACTION");
     await BG.db.run("UPDATE docTree SET name=? WHERE uuid=?", [this.dict.name, this.dict.uuid]);
     await BG.db.run("COMMIT TRANSACTION");
@@ -119,6 +128,7 @@ WS.__classes.RenameDoc.prototype.process = async function(ws) {    // rename a d
 
 
 WS.__classes.DeleteDoc.prototype.process = async function(ws) {    // insert new doc into db,  return with nothing!
+    logPkt("DeleteDoc");
     try {
         await BG.db.run("BEGIN TRANSACTION");
 

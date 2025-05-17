@@ -1,0 +1,45 @@
+#DF_menuBar {
+  display: flex;
+  background: #333;
+  color: white;
+  padding: 4px;
+  font-family: sans-serif;
+}
+
+.DF_menuBarEntry {
+  padding: 4px 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.context-menu, .submenu {
+    position: absolute;
+    background: #444;
+    color: white;
+    border: 1px solid #222;
+    padding: 4px 0;
+    display: none;
+    z-index: 1000;
+    min-width: 150px;
+  }
+  
+  .context-menu.active, .submenu.active {
+    display: block;
+  }
+  
+  .menu-option {
+    padding: 4px 12px;
+    white-space: nowrap;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .menu-option:hover {
+    background: #555;
+  }
+  
+  .menu-option.has-children::after {
+    content: '▶';
+    position: absolute;
+    right: 10px;
+  }

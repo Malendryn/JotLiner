@@ -1,17 +1,17 @@
 
 const indexMenuEntries = [
 //   action,      entryText,             tooltipText
-    ["newDocAtSame",  "New document",            "Insert a new document below the selected one"],
-    ["newDocAsChild", "New child document",      "Insert a new document as a child of the selected one"],
-    ["",              "",                        ""],       // this will appear as a seperator line
-    ["renameDoc",     "Rename document",         "Rename the selected document"],
-    ["",              "",                        ""],       // this will appear as a seperator line
-    ["indent",        "> Make child of",         "Make document a child of the document above it"],
-    ["dedent",        "< Move to parent level",  "Move document up to parent's level"],
-    ["",              "",                        ""],       // this will appear as a seperator line
-    ["export",        "Export Document",         "Export document to a local file"],
-    ["",              "",                        ""],       // this will appear as a seperator line
-    ["delete",        "Delete Document",         "Delete document under cursor (and all its children)"],
+    {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
+    {action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"},
+    {action:"",              label:"",                        tip:""},
+    {action:"renameDoc",     label:"Rename document",         tip:"Rename the selected document"},
+    {action:"",              label:"",                        tip:""},
+    {action:"indent",        label:"> Make child of",         tip:"Make document a child of the document above it"},
+    {action:"dedent",        label:"< Move to parent level",  tip:"Move document up to parent's level"},
+    {action:"",              label:"",                        tip:""},
+    {action:"export",        label:"Export Document",         tip:"Export document to a local file"},
+    {action:"",              label:"",                        tip:""},
+    {action:"delete",        label:"Delete Document",         tip:"Delete document under cursor (and all its children)"},
 ];
     
     
@@ -48,6 +48,7 @@ async function onCtxDelete() {
 
 
 function onIdxContextMenuAction(action) {
+    FG.kmStates.modal = false;
     switch (action) {
         case "newDocAtSame":    {   openDocInfoPopup(false);    break; }
         case "newDocAsChild":   {   openDocInfoPopup(true);     break; }
@@ -96,6 +97,7 @@ function openDocRenamePopup() {
     <input type="text" name="docname">
 </form>`;
     async function _onPopupClose(dict) {
+        FG.kmStates.modal = false;
         if (dict) {
             let pkt = WS.makePacket("RenameDoc")
             pkt.dict = {
@@ -115,6 +117,7 @@ function openDocRenamePopup() {
     let dict = {
         "docname": info.name
     }
+    FG.kmStates.modal = true;
     FF.openPopup(txt, dict, _onPopupClose);
 }
 
@@ -125,6 +128,7 @@ function openDocInfoPopup(asChild) {
     }
 
     async function _onPopupClose(dict) {
+        FG.kmStates.modal = true;
         if (!dict) {        // if close was clicked
             return true;
         }
@@ -160,16 +164,20 @@ function openDocInfoPopup(asChild) {
     }
 
     let form = makeNewDocForm(asChild);
+    FG.kmStates.modal = true;
     FF.openPopup(form, dict, _onPopupClose);
 }
 
+import { ContextMenu } from "/modules/classes/ContextMenu.js";
 
+const _indexContextMenu = new ContextMenu();
 function openIndexContextMenu() {
     let tmp = Object.assign([], indexMenuEntries);
     if (FG.curDoc == null) {
         tmp.splice(1);   // lose all but newDocAtSame
     }
-    FF.openContextMenu(tmp, onIdxContextMenuAction);
+    FG.kmStates.modal = true;
+    _indexContextMenu.open(tmp, onIdxContextMenuAction, FG.kmStates.clientX, FG.kmStates.clientY);
 }
 
 

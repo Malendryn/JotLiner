@@ -240,6 +240,7 @@ function postRun(form) {
 }
 
 function onPopupClose(dict) {
+    FG.kmStates.modal = false;
     if (!dict) {
         const ss = FG.kmStates.dch.__sysDiv.style;
         ss.left   = formOrigVals.left;
@@ -260,6 +261,7 @@ function onPopupClose(dict) {
 }
 function onContextDCHProps() {
     const dict={};//{foo:"bar"};
+    FG.kmStates.modal = true;
     FF.openPopup(anchorForm, dict, onPopupClose, preRun, postRun);
 }
 
@@ -275,6 +277,9 @@ FF.getDchName = function (dch) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+import { ContextMenu } from "/modules/classes/ContextMenu.js";
+
+const _dchContextMenu = new ContextMenu();
 function openDCHContextMenu() {      // based on the dch the mouse is over when rightmouse was pressed...
    let dch = FG.kmStates.dch;   // the actual dch instance
 
@@ -285,26 +290,29 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
         for (const key in DCH) {    // add all the addable dch's to the menuEntries
             const dchClass = DCH[key].dchClass;
             if (dchClass.pluginName !== null) {   
-                entries.push(["insert_" + key, "Insert new " + dchClass.pluginName, dchClass.menuTooltip]);
+                entries.push({ action:"insert_" + key, label:"Insert new " + dchClass.pluginName, tip:dchClass.menuTooltip});
             }
         }
     }
-    entries.push(["", "", ""]);
-    entries.push(["export", "Export Element", "Export node (and all children) under cursor to local file"]);
+    entries.push({action:"", label:"", tip:""});
+    entries.push({action:"export", label:"Export Element", tip:"Export node (and all children) under cursor to local file"});
 
 
     if (dch != FG.curDoc.rootDch) {     // never allow deleting the topmost BOX element from this menu
-        entries.push(["delete",   "Delete node (and all children)", "Delete document element under mouse and all children inside it"]);
-        entries.push(["", "", ""]);     // nor allow changing the styles
-        entries.push(["setProps", "Properties", "Modify the anchors, border, background color, etc"]);
+        entries.push({action:"delete", label:"Delete node (and all children)", tip:"Delete document element under mouse and all children inside it"});
+        entries.push({action:"", label:"", tip:""});     // nor allow changing the styles
+        entries.push({action:"setProps", label:"Properties", tip:"Modify the anchors, border, background color, etc"});
     }
 
     const rect = dch.__sysDiv.getBoundingClientRect();
     const startX = FG.kmStates.clientX - rect.left; // calc mouseXY relative to dch.__sysDiv rect
     const startY = FG.kmStates.clientY - rect.top;
-    async function callback(action) { 
+    
+    async function onContextMenuClose(action) { 
+        FG.kmStates.modal = false;
         if (action.startsWith("insert_")) {
             let dchName = action.substr(7);
+console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
             const style = {L:startX, T:startY, W:100, H:100};
             const nuDch = await FG.DCH_BASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
             dch.__children.push(nuDch);
@@ -339,7 +347,9 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
         }
     }
 
-    FF.openContextMenu(entries, callback);
+console.log(FF.__FILE__(), "TESTFOR REPEAT OPENING OF CONTEXT MENU HERE");
+    FG.kmStates.modal = true;
+    _dchContextMenu.open(entries, onContextMenuClose, FG.kmStates.clientX, FG.kmStates.clientY);
 }
 
 
@@ -533,11 +543,13 @@ function showOOB() {
             dch.__sysDiv.classList.remove("border-R");
             dch.__sysDiv.classList.remove("border-B");
             dch.__sysDiv.classList.remove("border-L");
-    
-            if (cRect.T < pRect.top)    { dch.__sysDiv.classList.add("border-T"); }
-            if (cRect.R > pRect.right)  { dch.__sysDiv.classList.add("border-R"); }
-            if (cRect.B > pRect.bottom) { dch.__sysDiv.classList.add("border-B"); }
-            if (cRect.L < pRect.left)   { dch.__sysDiv.classList.add("border-L"); }
+
+            if (FG.kmStates.mode != 0) {            // only show borders if mode 1 or 2
+                if (cRect.T < pRect.top)    { dch.__sysDiv.classList.add("border-T"); }
+                if (cRect.R > pRect.right)  { dch.__sysDiv.classList.add("border-R"); }
+                if (cRect.B > pRect.bottom) { dch.__sysDiv.classList.add("border-B"); }
+                if (cRect.L < pRect.left)   { dch.__sysDiv.classList.add("border-L"); }
+            }
         }
     }
 }
@@ -1042,6 +1054,9 @@ function onTkmContextMenu(evt) {
 let sizerStartPos = null;         // 'sizerStartPos' = mouse Operation (presently only for click+drag of divHandlers)
 function onTkmMousedown(evt) {
     //AAA FG.kmStates.evt = evt;
+    if (FG.kmStates.modal) {
+        return;
+    }
     if (evt.target.id == "divIndexDocSizer") {  // if clicked on the sizerBar
         if (!FG.kmStates.modal) {               // and ONLY if a modal isn't open!
             let m = {                       // create and init 'global' sizerStartPos object

@@ -8,7 +8,9 @@ import fs from "fs";
 
 class DBHandler {
     db = null;
-
+    lastAccessed;
+    timeoutId = 0;
+    dbName;
     //        async open(dbPath)              // create[if necessary], and open dbPath
     //              close()
     // stmt = async run(sql, params=[])       // returns Statement object, use stmt.lastID to get id of any newly inserted recs
@@ -18,13 +20,28 @@ class DBHandler {
 
 
     open = async (dbName) => {
+        this.dbName = dbName;
         return new Promise((resolve, reject) => {
-            let dbPath = path.join(BG.serverPath, "db", dbName);
+            let dbPath = path.join(BG.serverPath, "db", this.dbName);
             this.db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
                 if (err) {
                     reject(err);
                     return;
                 } else {
+                    this.db.configure('busyTimeout', 5000);  // wait up to 5 seconds before throwing SQLITE_BUSY
+                    this.lastAccessed = Date.now();
+
+                    const timeout = 1 * 60 * 1000; //15 * 60 * 1000;     // 15 minutes
+                    this.timeoutId = setInterval(() => {
+                        console.log("loop... id=");
+                        const now = Date.now();
+                        if (now - this.lastAccessed > timeout) {
+                            console.log('Reopening DB due to inactivity...');
+                            this.close();
+                            this.open(this.dbName);     // reopen same db as was opened to begin with
+                        }
+                    }, 60 * 1000); // check every minute
+                      
                     resolve();
                     return;
                 }
@@ -34,7 +51,10 @@ class DBHandler {
 
 
     close = () => {
-        debugger; if (this.db) {
+        if (this.db) {
+            if (this.timeoutId) {
+                clearInterval(this.timeoutId);
+            }
             this.db.close();
             this.db = null;
         }
@@ -43,6 +63,7 @@ class DBHandler {
 
     run = async (sql, params = []) => {
         return new Promise(async (resolve, reject) => {
+            this.lastAccessed = Date.now();
             let lastId = 0;
             this.db.serialize(async () => {
                 try {
@@ -72,6 +93,7 @@ class DBHandler {
 
     query = async (sql, params = []) => {
         return new Promise((resolve, reject) => {
+            this.lastAccessed = Date.now();
             this.db.serialize(() => {
                 this.db.all(sql, params, (err, rows) => {
                     if (err) {

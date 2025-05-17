@@ -47,10 +47,6 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 --------       moveDivAbsolute(el, locX, locY)      move a div to locX/Y, accounting for LWRTHB anchors too
 --------       sizeDivRelative(el, nesw, dltX,dlty) resize a div based on nesw walls, (n,ne,e,se,...)  acct. anchors too
 
-==== FROM fem_core_ContextMenu.js ====================================================================================
---------       openContextMenu(entries, callback)
-                    Generic context menu handler  (see fem_core_ContextMenu.js for instructions)
-
 ==== FROM fem_core_PopupDialog.js ====================================================================================
 --------       openPopup(form, dict, callback, preRun=null, async postRun=null)
                     Generic popup handler  (see fem_core_PopupDialog.js for instructions)

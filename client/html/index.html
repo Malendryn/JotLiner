@@ -7,14 +7,13 @@
         <link rel="stylesheet" href="sysContextMenu.css">
         <link rel="stylesheet" href="dchToolbarButton.css">
         <link rel="stylesheet" href="divIndexView.css">
-        <!-- <link rel="stylesheet" href="modules/DocComponentHandlers/BOX/DCH_BOX.css"> -->
-
     </head>
 
     <body>
         <div id="divTitleBar">
-            <div id="tbContentWrapper"><!-- this solves placement issues when adding mode1/mode2 overlay divs-->
-                <div id="tbContent">
+            <div id="tBarContentWrapper"><!-- this solves placement issues when adding mode1/mode2 overlay divs-->
+                <div id="tBarMenu">
+                    <div id = "mainMenuBar"><!--where FF.mainMenu goes--></div>
                     <span>&nbsp;Project: JotLiner</span><span><a href="/LICENSE" target="_blank">AGPLv3</a>&nbsp;</span>
                 </div>
             </div>
@@ -25,6 +24,6 @@
             <div id="divIndexDocSizer"></div><!--the resizing dragbar between index and document-->
             <div id="divDocView"></div><!--Where the document gets displayed-->
         </div>
-    </body>
-    <script src="index.js"></script>
+        </body>
+    <script type="module" src="index.js"></script>
 </html>

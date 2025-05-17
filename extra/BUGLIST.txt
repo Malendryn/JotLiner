@@ -1,12 +1,11 @@
 -----------------------------------------------------------------------------------------------------------------------
-it doesnt properly update the red borders when you move something wile in mode2, you have to leave/reenter mode2 to see
-the update
------------------------------------------------------------------------------------------------------------------------
-when creating new DCH in an zX/Y !=0 BOX it locates incorrectly
+when an infinite pan moves outside its BOX container and the red border appears, it appears even in mode0, and we
+don't want that
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the indexView the '>'
-arrow, but does not OPEN the arrow to show the newly inserted document
+-----------------------------------------------------------------------------------------------------------------------
+in index pane, when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the 
+indexView the '>' arrow, but does not OPEN the arrow to show the newly inserted document
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

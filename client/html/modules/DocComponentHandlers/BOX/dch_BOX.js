@@ -15,6 +15,7 @@ class DCH_BOX extends FG.DCH_BASE {
         this.host.style.top    = "0px";
         this.host.style.right  = "0px";
         this.host.style.bottom = "0px";
+        this.update();                    // applies the transform:translate() if needed
     }
 
     async destruct() {

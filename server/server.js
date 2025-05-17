@@ -39,7 +39,17 @@ BF.loadModule = async (modulePath, exitOnFail = true) => {       // load a modul
 };
 
 
-
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled rejection:', reason);
+    // optional: re-init DB or restart app
+});
+  
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught exception:', err);
+    // maybe soft-exit or restart
+});
+  
+  
 
 async function start() {
     await BF.loadModule("./modules/core/bem_core_Globals.js");      // load globals first, cuz everything lives off globals, and connect it to globalThis.SG
@@ -73,6 +83,7 @@ async function start() {
 
     app.get("*", (req, res) => {
         console.log("MISSED: " + req.path);
+        res.status(500).send(req.path + " not found");
     });
 
     WS.httpServer = http.createServer(app);
