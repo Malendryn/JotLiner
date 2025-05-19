@@ -6,7 +6,7 @@ let handle = new DFDialog( {preRun, postRun, onButton})
         create a new dialog object with optional async/await callbacks
         Note that all of these functions are called with await so they are expected to complete their function before returning
 
-    preRun(contentElement)
+    async preRun(contentElement)
             called immediately after the content parameter supplied by open() was attached to the document.body, 
             and the data parameter was populated into the content div.
             Here is where such things as eventListeners and timers can be added to enhance the dialog's operation
@@ -17,7 +17,7 @@ let handle = new DFDialog( {preRun, postRun, onButton})
         RETURNS:   
             nothing
 
-    onButton(btnName, data)
+    async onButton(btnName, data)
             called whenever a button (passed in by the buttons parameter of the open() call) is clicked
 
         btnName 
@@ -29,7 +29,7 @@ let handle = new DFDialog( {preRun, postRun, onButton})
         RETURNS:  
             true if the dialog is to be closed now, or false if it is to stay open
 
-    postRun(btnName, data)
+    async postRun(btnName, data)
             called after onButton returned with true, with the same parameters as onButton as well.
             Here is where anything added during preRun() should be undone, such as eventListeners and timers
 
@@ -43,7 +43,7 @@ let handle = new DFDialog( {preRun, postRun, onButton})
             nothing
 
 Functions within the class:
-open(content, data, onClose, buttons = null)
+open(content, data, buttons = null)
         Open a dialog based on the parameters
 
     content
@@ -55,20 +55,6 @@ open(content, data, onClose, buttons = null)
             An object with multiple {"key": "value"} pairs, where for each "key", its "value" will get populated into the html 
             element with a 'name="key"' attribute.
 
-    onClose(buttonName, data)
-            a callback function called when the dialog is finished closing and postRun (if present) has completed (async/await).
-            Note: this function does not need to be synchronous as the dialog will have been closed and removed by this time
-
-        buttonName
-            the name of the button as it was supplied by the buttons parameter of open()
-
-        data
-            if the button pressed was defined as true, contains the same keys as the data parameter passed in at open(), but with the values altered while the dialog was open
-            or null, if the button pressed was defined as false
-
-        RETURNS:  
-            nothing
-
     buttons 
             a {"key":"value"} object (or null) that will cause buttons to be displayed left-to-right in the same order given.
             if null, then a default of { "Cancel": false,  "OK": true } is supplied
@@ -77,30 +63,25 @@ open(content, data, onClose, buttons = null)
             The text to show on the button
 
         value
-            true  if the onButton or onClose calls are to have data popupated with the dialog's current data
-            false if the onButton or onClose calls are to have data = null
+            true  if the onButton call is have data populated with the dialog's current data
+            false if the onButton calls is to have data = null
 
 close()
         close the dialog from within any one of the callbacks
 
-        Calling this will call postRun('', data) followed by onClose('', data) with the btnName set to '' and the data
-        pulled from the form.
-
+        Calling this will call postRun(contentElement) followed by .remove()'ing the dialog from the screen
 */
 
 class DFDialog {
 // functions callable after new  (stubbed here for clarity, defined in detail below)
-    async open(html, data, onClose, buttons = null) {}
+    async open(html, data, buttons = null) {}
     async close() {}
 
 // default functions if not supplied during new
-    preRun() {}
-    postRun() {}
+    async preRun() {}
+    async postRun() {}
     onButton(label, dict) { debugger; return true; }
 
-// default functions and values if none supplied during open()
-    onClose(label, dict) {} // default onClose if none was supplied during open
-    buttons = { "Cancel": false, "OK": true };  // default buttons if none were supplied
 
     constructor(opts = {}) {
         if (opts.preRun)   { this.preRun   = opts.preRun; }
@@ -111,24 +92,29 @@ class DFDialog {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal values and functions, beyond this point is for the class itself
 
-    root;      // handle to the root <div> of the dialog
-    overflow;  // state of body.overflow before dialog opened
-
-    async open(html, data, onClose, buttons = null) {
+    _root;      // handle to the root <div> of the dialog
+    _overflow;  // state of body.overflow before dialog opened  (restored in .close())
+    _buttons;    // set during open()
+    static _defaultButtons = { "Cancel": false, "OK": true };
+    async open(html, data, buttons = null) {
         _loadCss();
-        this._onClose = onClose;
-        if (buttons) { this._buttons = buttons; }
+        if (buttons) { 
+            this._buttons = buttons; 
+        } else {
+            this._buttons = this.constructor._defaultButtons;
+        }
 
-        this.overflow = document.body.style.overflow;      // Disable page scroll
+        this._overflow = document.body.style.overflow;      // Disable page scroll
         document.body.style.overflow = 'hidden';
 
-        this.root = document.createElement("div");
-        this.root.className = "modal-backdrop";
-        this.root.tabIndex = -1;                           // for focus trapping
-        document.body.appendChild(this.root);
+        this._root = document.createElement("div");
+        this._root.className = "modal-backdrop";
+        this._root.tabIndex = -1;                           // for focus trapping
+        document.body.appendChild(this._root);
 
         let elDlg = document.createElement("div");
         elDlg.className = "modal-dialog";
+        elDlg.style.display = "none";                       // hide the dialog until constructed and populated
 
         let txt = `<table>
             <tr><td><hr  id = "DFDlgDragDiv"   class="modal-dragbar"></td></tr>
@@ -137,43 +123,49 @@ class DFDialog {
         </table>`;
         elDlg.innerHTML = txt;
         
-        this.root.append(elDlg);
+        this._root.append(elDlg);
 
         let elBtnDiv = document.getElementById("DFDlgBtnDiv");
         // for (const btnLabel of Object.keys(buttons)) {  // vscode debugging crashes with 'sigill' when singlestepping over this line...
-        const keys = Object.keys(buttons);
+        const keys = Object.keys(this._buttons);
         // for (const btnLabel of keys) {                  // vscode debugging crashes with 'sigill' here too!
         for (let idx = 0; idx < keys.length; idx++) {      // create buttons  (this does not crash!)
             const btnLabel = keys[idx];
             const btn = document.createElement('button');
             btn.textContent = btnLabel;
-            btn.onclick = () => {
-                let dict;
-                debugger; if (buttons[btnLabel]) {
+            btn.onclick = async function () {
+                let dict = null;
+                if (this._buttons[btnLabel]) {                    // is button a 'true' or 'false' button
                     dict = this.fetchData();
-                } else {
-                    dict = null;
                 }
-                const result = this.onButton?.(btnLabel, dict);
-                if (result !== false) {
-            /*???*/this.close();
+                const result = await this.onButton(btnLabel, dict);
+                if (result == true) {
+                    this.close();
                 }
-            };
+            }.bind(this);
             elBtnDiv.appendChild(btn);
         }
         this.applyData(data);
 
         let tmp = document.getElementById("DFDlgUserContent");
-        this.preRun(tmp)
+        await this.preRun(tmp)
 
         let startX = 0, startY = 0;
         let elDrag = document.getElementById("DFDlgDragDiv");
         elDrag.addEventListener('mousedown', (evt) => {             // add handler for dragbar
+
             const rect = elDlg.getBoundingClientRect();
             startX = evt.clientX - rect.left;
             startY = evt.clientY - rect.top;
 
             const onMouseMove = (evt) => {
+                const bRect = this._root.getBoundingClientRect();
+                if (evt.clientX < (bRect.left + 10)
+                || evt.clientX > (bRect.right - 10) 
+                || evt.clientY < (bRect.top + 10) 
+                || evt.clientY > (bRect.bottom - 10))  {        // prevent 'losing' dialog by dragging it off viewport
+                    return; 
+                }
                 elDlg.style.left = `${evt.clientX - startX}px`;
                 elDlg.style.top = `${evt.clientY - startY}px`;
                 elDlg.style.transform = `none`; // disable center-align
@@ -187,64 +179,63 @@ class DFDialog {
         });
 
 // RSNOTE this code works, but do we really need it? 
-        // this.root.addEventListener('keydown', this.trapFocus);   // add handling of focus trapping
+        // this._root.addEventListener('keydown', this.trapFocus);   // add handling of focus trapping
         // setTimeout(() => {
         //     this.focusable()[0]?.focus()
         // }, 0);
-
+        setTimeout(() => {
+            elDlg.style.display = "";                 // let dialog finish construction, then show at last
+        }, 0);
     }
 
 
     async close() {
-        debugger; const data = this.fetchData();
         if (this.postRun) {
-            await this.postRun('', data);
-        }
-        if (this.onClose) {
-            await this.onClose('', data);
+            await this.postRun(this._root);
         }
 
-// restore all prior-to-open() values
-        this.root.remove();          // remove dialog and all eventListeners we added
-        this.root = undefined;       // clear it from ourselves
-        this.buttons = { "Cancel": false, "OK": true }; // restore the default buttons too
-        document.body.style.overflow = this.overflow;   // restore orig overflow value
+// restore internal values to their prior-to-open() state
+        this._root.remove();          // remove dialog and all eventListeners we added
+        this._root = undefined;       // clear it from ourselves
+        document.body.style.overflow = this._overflow;      // restore orig overflow value
     }
     
     applyData(data) {
-        for (const [key, value] of Object.entries(data)) {
-            const el = this.root.querySelector(`[name="${key}"]`);
-            if (!el) {
-                continue;
-            }
-        
-            const tag = el.tagName; // INPUT,...
-            const type = el.type;   // number, text, checkbox, radio, 
-        
-            if (tag == "INPUT") {
-                if (type == "checkbox") {       // RSTODO untested
-                    el.checked = !!value;
-                } else if (type == "radio") {   // RSTODO untested
-                    const radios = root.querySelectorAll(`input[type="radio"][name="${key}"]`);
-                    for (const r of radios) {
-                        r.checked = r.value == value;
-                    }
-                } else {
-                    el.value = value;
+        if (data) {
+            for (const [key, value] of Object.entries(data)) {
+                const el = this._root.querySelector(`[name="${key}"]`);
+                if (!el) {
+                    continue;
                 }
-            } else if (tag == "SELECT" || tag == "TEXTAREA") {      // RSTODO untested
-                el.value = value;
-            } else if ("value" in el) {                             // RSTODO untested
-                el.value = value;              // For custom elements or others with a .value prop
-            } else if ("textContent" in el) {                       // RSTODO untested
-                el.textContent = value;        // Fallback: just put value into text content
+            
+                const tag = el.tagName; // INPUT,...
+                const type = el.type;   // number, text, checkbox, radio, 
+            
+                if (tag == "INPUT") {
+                    if (type == "checkbox") {       // RSTODO untested
+                        el.checked = !!value;
+                    } else if (type == "radio") {   // RSTODO untested
+                        const radios = root.querySelectorAll(`input[type="radio"][name="${key}"]`);
+                        for (const r of radios) {
+                            r.checked = r.value == value;
+                        }
+                    } else {
+                        el.value = value;
+                    }
+                } else if (tag == "SELECT" || tag == "TEXTAREA") {      // RSTODO untested
+                    el.value = value;
+                } else if ("value" in el) {                             // RSTODO untested
+                    el.value = value;              // For custom elements or others with a .value prop
+                } else if ("textContent" in el) {                       // RSTODO untested
+                    el.textContent = value;        // Fallback: just put value into text content
+                }
             }
         }
     }
 
     fetchData() {
         const data = {};
-        const elements = this.root.querySelectorAll("[name]");
+        const elements = this._root.querySelectorAll("[name]");
     
         for (const el of elements) {
             const name = el.name;
@@ -252,9 +243,9 @@ class DFDialog {
             const type = el.type;
     
             if (tag === "INPUT") {
-                if (type === "checkbox") {
+                if (type === "checkbox") {          // RSTODO untested
                     data[name] = el.checked;
-                } else if (type === "radio") {
+                } else if (type === "radio") {      // RSTODO untested
                     // Only include if it's checked
                     if (el.checked) {
                         data[name] = el.value;
@@ -264,11 +255,11 @@ class DFDialog {
                 } else {
                     data[name] = el.value;
                 }
-            } else if (tag === "SELECT" || tag === "TEXTAREA") {
+            } else if (tag === "SELECT" || tag === "TEXTAREA") {    // RSTODO untested
                 data[name] = el.value;
-            } else if ("value" in el) {
+            } else if ("value" in el) {                             // RSTODO untested
                 data[name] = el.value;
-            } else if ("textContent" in el) {
+            } else if ("textContent" in el) {                       // RSTODO untested
                 data[name] = el.textContent;
             }
         }
@@ -277,7 +268,7 @@ class DFDialog {
     }
     
     focusable = () => {   // select all focusable-by-tabbing elements
-        return this.root.querySelectorAll('button, [tabindex]:not([tabindex="-1"]), input, select, textarea, a[href]');
+        return this._root.querySelectorAll('button, [tabindex]:not([tabindex="-1"]), input, select, textarea, a[href]');
     }
 
 

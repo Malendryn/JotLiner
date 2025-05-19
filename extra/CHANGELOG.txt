@@ -1,6 +1,9 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-19 ------------------------------------------------------------------------------------------------------------
+* changed away from using a wsPacket call to load the most recent document, to using localStorage instead.
+    removed curDocUuid from db 'extra' table, now using localStorage "lastOpenedDoc"
+* changed my mind and finished DFDialog and replaced the old one I wrote entirely now.
 2025-05-18 ------------------------------------------------------------------------------------------------------------
 * fixed when creating new DCH in an zX/Y !=0 BOX it locates incorrectly
 * created new DFContextMenu class that allows submenus of n-depth.  Standalone class.  loads its own .css file as well

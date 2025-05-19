@@ -148,7 +148,7 @@ function onFormInput(evt) {                         // if an inputBox's value ch
     formChanged = true;
     const dch = FG.kmStates.dch;
     let ss = dch.__sysDiv.style;
-    const val = parseInt(evt.target.value);
+    const val = parseInt(evt.target.value) || 0;
     switch(evt.target.id.charAt(10)) {    // dawIBInputL, dawIBInputW, etc...
         case 'L':   { ss.left   = val + "px";  break; }     // counter the zX before setting
         case 'W':   { ss.width  = val + "px";  break; }
@@ -211,7 +211,20 @@ function setFormVals() {
 }
 
 
-function preRun(form) {
+let _dialog;
+function onContextDCHProps() {
+    let dict={};//{foo:"bar"};
+    FG.kmStates.modal = true;
+
+    // if (0) {
+    //     FF.openPopup(anchorForm, dict, onPopupClose, preRun, postRun);                              // original popup
+    // } else {
+        _dialog = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onButton });        // new popup
+        _dialog.open(anchorForm, null, {"Cancel": false, "OK": true });
+    // }
+}
+
+function _preRun(form) {
     formChanged = false;
     const dch = FG.kmStates.dch;
     formOrigVals = {
@@ -226,57 +239,27 @@ function preRun(form) {
     form.addEventListener("click", onFormClick);
     form.addEventListener("input", onFormInput);
 }
-function postRun(form) {
+function _postRun(form) {
     form.removeEventListener("input", onFormInput);
     form.removeEventListener("click", onFormClick);
+    FG.kmStates.modal = false;  // HACK!  popupHandler clears this for us but we MUST have it cleared for onStateChange()!
+    if (formChanged) {
+        FF.autoSave(0);         // save immediately
+    }
+    onStateChange({});          // just to bump an update so ghost clears
 }
-
-function onPopupClose(dict) {
-    FG.kmStates.modal = false;
-    if (!dict) {
+function _onButton(btnName, dict) {
+    if (!dict) {                  // rather than test btnName we just test if dict was passed in
         const ss = FG.kmStates.dch.__sysDiv.style;
-        ss.left   = formOrigVals.left;
+        ss.left   = formOrigVals.left;      // if dict == null, cancel was clicked, so restore original values
         ss.width  = formOrigVals.width;
         ss.right  = formOrigVals.right;
         ss.top    = formOrigVals.top;
         ss.height = formOrigVals.height;
         ss.bottom = formOrigVals.bottom;
-        console.log(FF.__FILE__(), "onPopupClose: .update() should only be called when mode=2 and we're dragging the infinite canvas!");
-//      FG.kmStates.dch.update();       // nothing should've changed at this point BUT it calls autoSave()!  (actually it doesnt autoSave!())
-    } else {
-        if (formChanged) {
-            FF.autoSave(0);
-        }
+        formChanged = false;                // unset the changed state
     }
-    FG.kmStates.modal = false;  // HACK!  popupHandler clears this for us but we MUST have it cleared for onStateChange()!
-    onStateChange({});      // just to bump an update so ghost clears
-}
-
-let _dialog;
-function onContextDCHProps() {
-    let dict={};//{foo:"bar"};
-    FG.kmStates.modal = true;
-
-    if (1) {
-        FF.openPopup(anchorForm, dict, onPopupClose, preRun, postRun);                              // original popup
-    } else {
-        function onClose(dict) {
-            debugger;
-        }
-        _dialog = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onButton });        // new popup
-        dict = { inputB:"1111", cboxB: "" , cboxR: "&#10004;"};
-        _dialog.open(anchorForm, dict, onClose, {"Cancel": false, "OK": true });
-    }
-}
-
-function _preRun(formEl) {
-    debugger;
-}
-function _postRun(formEl) {
-    debugger;
-}
-function _onButton(btnName, dict) {
-    debugger;
+    return true;                // tell dialog to close no matter what button was pressed
 }
 
 
@@ -470,41 +453,6 @@ function setKBModeToolbarText(dch) {
         el.innerHTML = txt;
     }
 }
-// function setKBModeToolbarText(dch) {
-//     if (!dch) {
-//         return;
-//     }
-//     let el = document.getElementById("__tmpKBModeToolbar");
-//     if (el) {
-//         let txt = __skbmtbtxtStyle + `
-// <div style="display:flex;align-items:center;height:100%;"><!-- center vertically-->
-//     Node Type: ${dch.constructor.pluginName}`;//FF.getDchName(dch)}`;
-
-//     function getstylVal(val) {
-//         let qq = parseInt(val);
-//         if (isNaN(qq)) {
-//             return "---";
-//         }
-//         return qq;
-//     }
-//     const box = {
-//         left:     getstylVal(dch.__sysDiv.style.left),
-//         width:    getstylVal(dch.__sysDiv.style.width),
-//         right:    getstylVal(dch.__sysDiv.style.right),
-//         top:      getstylVal(dch.__sysDiv.style.top),
-//         height:   getstylVal(dch.__sysDiv.style.height),
-//         bottom:   getstylVal(dch.__sysDiv.style.bottom),
-//     }
-//     for (const key in box) {
-//         __mkSkbmtbtxtFld(key, box[key], dch.__sysDiv.style[key]); // create the <span>s to display val in the toolbar
-//     }
-
-//     txt += `
-// </div>`;
-
-//         el.innerHTML = txt;
-//     }
-// }
 
 
 FF.getAllDch = function() {
@@ -1020,34 +968,6 @@ function onTkmKeyUp(evt) {
     setKMState(states);
 }
 
-
-// let __isInsideDivDocView = false;
-// let __isProcessingDivDocViewLeave = false;
-// function onTkmDocViewEnter(evt) {
-//     if (__isInsideDivDocView) {
-//         return;
-//     }
-//     __isInsideDivDocView = true;
-//     setKMState({inDocView: true});
-//     console.log(FF.__FILE__(), "onTkmDocViewEnter")
-// }
-// function onTkmDocViewLeave(evt) {
-//     if (__isProcessingDivDocViewLeave) {
-//         return;
-//     }
-//     let el = document.getElementById("divDocView");
-//     if (el.contains(evt.relatedTarget)) {    //check if 'new target el' is still inside divDocView and abort if so
-//         return;
-//     }
-//     __isInsideDivDocView = false;
-//     __isProcessingDivDocViewLeave = true;
-//     console.log(FF.__FILE__(), "onTkmDocViewLeave inDocView=FALSE");
-//     setKMState({inDocView: false});
-//     // console.log("FEFWE2")
-//     // console.log(FF.__FILE__(), "BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! BLUR! ");
-//     clearAllButtons();   // BAD!  caused buttonrelease during drag IF clicked in! nogood!
-//     __isProcessingDivDocViewLeave = false;
-// }
 
 function onTkmContextMenu(evt) {
     if (FG.kmStates.dch == null) {      // if no dch, this should be popping the system default context menu

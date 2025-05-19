@@ -38,8 +38,8 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate basics of FF
     await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");            // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
     await FF.loadModule("./modules/core/fem_core_TKMEvtHandlers.js");      // Toplevel Kbd/Mouse HandlerFuncs like mousedown to move divs, etc...
-    // await FF.loadModule("./modules/classes/DFContextMenu.js");         // upgrade/replacement for fem_core_ContextMenu.js
-    await FF.loadModule("./modules/core/fem_core_PopupDialog.js");         // FF.openPopup(): Generic popup handler
+    // await FF.loadModule("./modules/classes/DFContextMenu.js");             // upgrade/replacement for fem_core_ContextMenu.js
+    // await FF.loadModule("./modules/core/fem_core_PopupDialog.js");         // FF.openPopup(): Generic popup handler
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");
     await FF.loadModule("./modules/core/fem_core_PacketHandlers.js");      // for packets sent from backend that are not expect/wait responses

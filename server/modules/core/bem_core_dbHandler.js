@@ -162,7 +162,6 @@ export async function init() {
 + ") WITHOUT ROWID;";
         await BG.db.run(sql);                                                           // create table
         await BG.db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // set initial value to '0'
-        await BG.db.run("INSERT INTO extra (key,value) values ('curDocUuid', '')");     // set initial value to ''
     }); // ************************************************************************************************************
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     await BG.db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables

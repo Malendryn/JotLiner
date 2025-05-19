@@ -1,13 +1,10 @@
 -----------------------------------------------------------------------------------------------------------------------
 * checkout https://render.com/docs for hosting a live site for free
-* learn the whole github process
+* learn the whole github process  (see my cherrytree links)
 -----------------------------------------------------------------------------------------------------------------------
 we used to load dch modules as-needed and not before.  we should go back to doing that again
     in index.js we already fetch all modulepaths, we can just insert them into DCH[dchName] as null and loadAsNeeded
 -----------------------------------------------------------------------------------------------------------------------
-
-reduce the titlebar pixels to just enough to house the text, like maybe 24
-
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

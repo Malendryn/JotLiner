@@ -85,7 +85,6 @@ WS.__classes.NewDoc.prototype.process = async function(ws) {    // insert new do
         await BG.db.run("INSERT INTO doc (uuid,version,content) values (?,?,?)", list);               // insert the doc
         list = [this.dict.name, this.dict.uuid, order, this.dict.parent];
         await BG.db.run("INSERT INTO docTree (name,uuid,listOrder,parent) values (?,?,?,?)", list);   // insert the index entry
-        await BG.db.run('UPDATE extra SET value=? where key="curDocUuid"', [this.dict.uuid]);         // make this the current doc too
         await BG.db.run("COMMIT TRANSACTION");
     } catch (err) {
         await BG.db.run("ROLLBACK TRANSACTION");

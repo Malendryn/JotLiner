@@ -90,15 +90,13 @@ function makeNewDocForm(asChild) {
 
 
 function openDocRenamePopup() {
-    const txt = `
-<form>
-    <b>Rename document</b><br>
-    <label>Document name</label>
-    <input type="text" name="docname">
-</form>`;
-    async function _onPopupClose(dict) {
-        FG.kmStates.modal = false;
+    async function _onDlgButton(btnLabel, dict) {
         if (dict) {
+            if (dict.docname.length == 0) {                 // validate
+                alert("Document name cannot be empty");
+                return false;
+            }
+    
             let pkt = WS.makePacket("RenameDoc")
             pkt.dict = {
                 name:       dict.docname,   // name of doc
@@ -108,17 +106,26 @@ function openDocRenamePopup() {
             await FF.loadDocTree();         // go fetch and reconstruct index pane
             const uuid = FG.curDoc.uuid;
             await FF.selectAndLoadDoc(uuid, false);  // keep current doc as all we did was rename it
-            return true;
         }
+        FG.kmStates.modal = false;
+        return true;
     }
 
-    const info = FF.getDocInfo(FG.curDoc.uuid);
+    const form = `
+<form>
+    <b>Rename document</b><br>
+    <label>Document name</label>
+    <input type="text" name="docname">
+</form>`;
 
+    const info = FF.getDocInfo(FG.curDoc.uuid);
     let dict = {
         "docname": info.name
     }
+
     FG.kmStates.modal = true;
-    FF.openPopup(txt, dict, _onPopupClose);
+    _dialog = new DFDialog({ onButton: _onDlgButton });        // new popup
+    _dialog.open(form, dict);//{"Cancel": false, "OK": true });
 }
 
 
@@ -127,48 +134,50 @@ function openDocInfoPopup(asChild) {
         "docname": ""
     }
 
-    async function _onPopupClose(dict) {
-        FG.kmStates.modal = true;
-        if (!dict) {        // if close was clicked
-            return true;
-        }
-        if (dict.docname.length == 0) {                 // validate
-            alert("Document name cannot be empty");
-            return false;
-        }
+    async function _onDlgButton(btnLabel, dict) {
+        if (dict) {
+            if (dict.docname.length == 0) {                 // validate
+                alert("Document name cannot be empty");
+                return false;
+            }
 
-        let info;
-        if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
-            info = { uuid:'', parent:'' };
-        } else {
-            info = FG.curDoc && FF.getDocInfo(FG.curDoc.uuid);
-        }
+            let info;
+            if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
+                info = { uuid:'', parent:'' };
+            } else {
+                info = FG.curDoc && FF.getDocInfo(FG.curDoc.uuid);
+            }
 
-        await FF.newDoc();                // initialize system with an empty document and new uuid
+            await FF.newDoc();                // initialize system with an empty document and new uuid
 
-        let exporter = new FG.DocExporter();
-        let pkt = WS.makePacket("NewDoc")
-        pkt.dict = {
-            name:       dict.docname,   // name of doc
-            uuid:       FG.curDoc.uuid, // uuid of doc
-            version:    FG.VERSION,     // version of doc
-            after:      (asChild) ? ''        : info.uuid,      // ifChild, set after to none, else to selected
-            parent:     (asChild) ? info.uuid : info.parent,    // ifChild, set parent to selected, else selecteds parent
-            doc:        await exporter.export(FG.curDoc.rootDch),
+            let exporter = new FG.DocExporter();
+            let pkt = WS.makePacket("NewDoc")
+            pkt.dict = {
+                name:       dict.docname,   // name of doc
+                uuid:       FG.curDoc.uuid, // uuid of doc
+                version:    FG.VERSION,     // version of doc
+                after:      (asChild) ? ''        : info.uuid,      // ifChild, set after to none, else to selected
+                parent:     (asChild) ? info.uuid : info.parent,    // ifChild, set parent to selected, else selecteds parent
+                doc:        await exporter.export(FG.curDoc.rootDch),
+            }
+            pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
+            await FF.loadDocTree();         // go fetch and reconstruct index pane
+            const uuid = FG.curDoc.uuid;
+            await FF.selectAndLoadDoc(uuid, true);    // 'forget' current doc and force-load new one
         }
-        pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
-        await FF.loadDocTree();         // go fetch and reconstruct index pane
-        const uuid = FG.curDoc.uuid;
-        await FF.selectAndLoadDoc(uuid, true);    // 'forget' current doc and force-load new one
+        FG.kmStates.modal = false;
         return true;
     }
 
     let form = makeNewDocForm(asChild);
     FG.kmStates.modal = true;
-    FF.openPopup(form, dict, _onPopupClose);
+    _dialog = new DFDialog({ onButton: _onDlgButton });        // new popup
+    _dialog.open(form, dict);//{"Cancel": false, "OK": true });
 }
+let _dialog;
 
 import { DFContextMenu } from "/modules/classes/DFContextMenu.js";
+import { DFDialog }      from "/modules/classes/DFDialog.js";
 
 const _indexContextMenu = new DFContextMenu();
 function openIndexContextMenu() {
@@ -251,10 +260,7 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
         node.style.backgroundColor = bgColorRaw;             // clear bgColor of all elements in <ul>, including children
     });
 
-    const pkt = WS.makePacket("SetExtra");
-    pkt.key = "curDocUuid";
-    pkt.val = uuid;
-    WS.send(pkt);                   // change servers memory of last doc selected, no response expected
+    localStorage.setItem("lastOpenedDoc", uuid);
 
     if (uuid.length > 0) {
         const info = FF.getDocInfo(uuid);
@@ -277,11 +283,12 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
 export async function initialize() {    // called from index.js
     await FF.loadDocTree();             // load-and-show docTree
 
-    let pkt = WS.makePacket("GetExtra");   
-    pkt.txt = "curDocUuid";
-    pkt = await WS.sendWait(pkt);       // fetch the prior docUuid
+    let docUuid = localStorage.getItem("lastOpenedDoc");
+    if (docUuid == null) {
+        docUuid = "";
+    }
 
-    FF.selectAndLoadDoc(pkt.txt);          // load, hilight, and display doc by uuid
+    FF.selectAndLoadDoc(docUuid);          // load, hilight, and display doc by uuid
 }
 
 
