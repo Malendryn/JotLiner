@@ -1,18 +1,19 @@
-#DF_menuBar {
+#DFMenuBar {
   display: flex;
   background: #333;
   color: white;
-  padding: 4px;
+  height: 100%;
+  /* padding: 4px; */
   font-family: sans-serif;
 }
 
-.DF_menuBarEntry {
-  padding: 4px 8px;
+#DFMenuBar .header {
+  padding: 2px 8px;
   cursor: pointer;
   position: relative;
 }
 
-.context-menu, .submenu {
+.DFContextMenu, .submenu {
     position: absolute;
     background: #444;
     color: white;
@@ -23,22 +24,22 @@
     min-width: 150px;
   }
   
-  .context-menu.active, .submenu.active {
+  .DFContextMenu.active, .submenu.active {
     display: block;
   }
   
-  .menu-option {
+  .DFMenuOption {
     padding: 4px 12px;
     white-space: nowrap;
     cursor: pointer;
     position: relative;
   }
   
-  .menu-option:hover {
+  .DFMenuOption:hover {
     background: #555;
   }
   
-  .menu-option.has-children::after {
+  .DFMenuOption.has-children::after {
     content: '▶';
     position: absolute;
     right: 10px;

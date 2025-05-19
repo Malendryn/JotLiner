@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------------------------------------------
-when an infinite pan moves outside its BOX container and the red border appears, it appears even in mode0, and we
-don't want that
 -----------------------------------------------------------------------------------------------------------------------
+in properties dialog, With CTE and TXA (and probably all others including box too)  when you click 'width' or 'left'
+    the internal child divs within the dch get all wonky
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 in index pane, when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the 

@@ -5,6 +5,9 @@
 we used to load dch modules as-needed and not before.  we should go back to doing that again
     in index.js we already fetch all modulepaths, we can just insert them into DCH[dchName] as null and loadAsNeeded
 -----------------------------------------------------------------------------------------------------------------------
+
+reduce the titlebar pixels to just enough to house the text, like maybe 24
+
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

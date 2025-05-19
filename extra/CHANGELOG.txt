@@ -1,14 +1,18 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-18 ------------------------------------------------------------------------------------------------------------
 * fixed when creating new DCH in an zX/Y !=0 BOX it locates incorrectly
-* created new ContextMenu class that allows submenus of n-depth.  Standalone class.  loads its own .css file as well
+* created new DFContextMenu class that allows submenus of n-depth.  Standalone class.  loads its own .css file as well
      does not include a menubar system, that is still a seperate construct at present
-* created new MenuBar class that creates a horizontal menu bar in a supplied <div> and uses the new ContextMenu class
+* created new MenuBar class that creates a horizontal menu bar in a supplied <div> and uses the new DFContextMenu class
      to create its dropdown menus
 * replaced and deleted the original DCHContextMenu.js file
-* fixed OOBounds edges highlighting even in mode0
+* fixed OOBounds showing red edges, was highlighting even in mode0
+* shrunk the titlebar from 30px to 24px and raised toobar and mainview up to match
+* have the new DFDialog class partially working, but as it's not really that important right now am shelving it til later
+* BUG: with CTE and TXA (and probably all others including box too)  when properties open adn you click 'width' or 'left'
+    the internal child divs within the dch get all wonky
 
 2025-05-16 ------------------------------------------------------------------------------------------------------------
 * fixed not autosaving when mode2-panning

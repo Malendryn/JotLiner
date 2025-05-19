@@ -11,7 +11,7 @@ html,body {
 #divTitleBar {
     position: absolute;
     top: 0px;
-    height: 30px;
+    height: 24px;
     width: 100%;
     background-color: rgb(200, 200, 200);
 
@@ -25,12 +25,13 @@ html,body {
     display: flex;
     justify-content: space-between;
     width: 100%;
+    height: 100%;
 }
 /*********************************************************************************************************************/
 /*********************************************************************************************************************/
 #divToolbar {
     position: absolute;
-    top: 30px;
+    top: 24px;
     height: 30px;
     width: 100%;
     background-color: rgb(173, 207, 230);
@@ -38,7 +39,7 @@ html,body {
 /*/////////////below is the lower view comprising the whole thing, leftside index, sizer bar, and rightside doc view */
 #divMainView {
     position: absolute;
-    top: 60px;
+    top: 54px;
     bottom: 0px;
     width: 100%;
     background-color:blueviolet;

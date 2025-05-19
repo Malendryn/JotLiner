@@ -168,9 +168,9 @@ function openDocInfoPopup(asChild) {
     FF.openPopup(form, dict, _onPopupClose);
 }
 
-import { ContextMenu } from "/modules/classes/ContextMenu.js";
+import { DFContextMenu } from "/modules/classes/DFContextMenu.js";
 
-const _indexContextMenu = new ContextMenu();
+const _indexContextMenu = new DFContextMenu();
 function openIndexContextMenu() {
     let tmp = Object.assign([], indexMenuEntries);
     if (FG.curDoc == null) {

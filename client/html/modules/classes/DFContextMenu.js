@@ -1,5 +1,5 @@
 
-class ContextMenu {
+class DFContextMenu {
     menu = null;
     open(entries, callback, locX = FG.kmStates.clientX, locY = FG.kmStates.clientY) {
         _loadCss();
@@ -30,21 +30,21 @@ class ContextMenu {
         }
     }    
 }
-export { ContextMenu };
+export { DFContextMenu };
 
 
-class MenuBar {
+class DFMenuBar {
     bar = null;
     cm = null;
     open(parent, entries, callback) {
         _loadCss(this.constructor.name);
         this.close();
         this.bar = document.createElement("div");
-        this.bar.id = "DF_menuBar"
+        this.bar.id = "DFMenuBar"
         parent.appendChild(this.bar);
         for (const key in entries) {
             let el = document.createElement("div");
-            el.classList.add("DF_menuBarEntry");
+            el.classList.add("header");
             el.dataset.action = key;
             el.innerHTML = key;
             this.bar.appendChild(el);
@@ -67,10 +67,10 @@ class MenuBar {
 
 
     constructor() {
-        this.cm = new ContextMenu();
+        this.cm = new DFContextMenu();
     }
 }
-export { MenuBar }
+export { DFMenuBar }
 
 
 let _isCssLoaded = false;
@@ -94,13 +94,12 @@ function _loadCss() {
 
 function _buildContextMenu(entries, isSubmenu = false) {
     const menu = document.createElement('div');
-    menu.id = "menus-container";
     menu.position  = "fixed";
-    menu.className = isSubmenu ? 'submenu' : 'context-menu';
+    menu.className = isSubmenu ? 'submenu' : 'DFContextMenu';
 
     for (const entry of entries) {
         const optEl = document.createElement('div');
-        optEl.className      = 'menu-option';
+        optEl.className      = 'DFMenuOption';
         if (entry.label) {
             optEl.textContent    = entry.label;
             optEl.title          = entry.title;

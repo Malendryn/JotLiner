@@ -1,0 +1,50 @@
+.modal-backdrop {
+    position: fixed;
+    inset: 0;                         /* fill viewport */
+    background: rgba(0, 0, 0, 0.4); /* put a ghost over everything */
+    z-index: 9990;
+}
+
+/* Flex container for the modal */
+.modal-dialog {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    min-width: 300px;
+    max-width: 90vw;
+    max-height: 90vh;
+    z-index: 9999;
+    outline: none;
+}
+
+.modal-dragbar {
+    border:none;
+    margin-top:6px;
+    height:8px;
+    background:none;
+    border-top:1px dashed #808080;
+    border-bottom:1px dashed #808080;
+    cursor: move;
+}
+
+.modal-content {
+    padding: 2px;
+    overflow: hidden;   /*auto;*/
+    flex: 1 1 auto;
+}
+
+.modal-buttons {
+    padding: 2px;
+    text-align: right;
+    display: flex;
+    gap: 0.5em;
+    justify-content: flex-end;
+    /* border-top: 1px solid #ddd; */
+}
+

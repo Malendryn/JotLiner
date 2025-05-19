@@ -1,7 +1,11 @@
 /*
--------- openPopup(form, dict, callback, preRun=null, async postRun=null)    Generic popup handler  (see fem_core_PopupDialog.js for instrux)
-            form ---------------------- "<form><input name="myInput">...</form>" 
-            dict=[dictKey: value] -----	sets formfields with <name="dictKey"> form fields to 
+-------- openPopup(html, dict, callback, preRun=null, async postRun=null)    Generic popup handler  (see fem_core_PopupDialog.js for instrux)
+            html ---------------------- a complete html entity, typically a <form> or <div> containing an entire 'page' that will be shown in
+                                        the popup dialog.   Inside this html should be input fields, button fields, etc, with each element 
+                                        that is to be populated having a 'name' attribute (in the manner of a <form> element)
+            "<div/form/etc><input name="MyInput1"><button name="MyBtn1"...</div/form/etc>" 
+
+            dict=[dictKey: value] -----	sets elements in form with <el name="dictKey"> form fields to 
         T/F=callback(dict)              dict=null if [cancel] else fieldvals if [save], return true=done/false keeps dialog open
             preRun is a Non-ASYNC callback that recieves <form> element right after being created, populated and displayed
                 so if user wants to add listeners or other things here is how to do it

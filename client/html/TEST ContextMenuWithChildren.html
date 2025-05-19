@@ -16,7 +16,7 @@
       position: relative;
     }
     
-    .context-menu, .submenu {
+    .DFContextMenu, .submenu {
       position: absolute;
       background: #444;
       color: white;
@@ -27,22 +27,22 @@
       min-width: 150px;
     }
     
-    .context-menu.active, .submenu.active {
+    .DFContextMenu.active, .submenu.active {
       display: block;
     }
     
-    .menu-option {
+    .DFMenuOption {
       padding: 4px 12px;
       white-space: nowrap;
       cursor: pointer;
       position: relative;
     }
     
-    .menu-option:hover {
+    .DFMenuOption:hover {
       background: #555;
     }
     
-    .menu-option.has-children::after {
+    .DFMenuOption.has-children::after {
       content: '▶';
       position: absolute;
       right: 10px;
@@ -87,11 +87,11 @@ const menuData = {
 
 function buildMenu(items, isSubmenu = false) {
   debugger; const menu = document.createElement('div');
-  menu.className = isSubmenu ? 'submenu' : 'context-menu';
+  menu.className = isSubmenu ? 'submenu' : 'DFContextMenu';
 
   items.forEach(item => {
     const option = document.createElement('div');
-    option.className = 'menu-option';
+    option.className = 'DFMenuOption';
     option.textContent = item.label;
 
     if (item.children) {

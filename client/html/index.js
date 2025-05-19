@@ -25,7 +25,7 @@ FF.loadModule = async (modulePath) => {
     });
 };
 
-import { MenuBar } from "/modules/classes/ContextMenu.js";
+import { DFMenuBar } from "/modules/classes/DFContextMenu.js";
 
 // RSTODO go look at the older jotliner code, we had detailed funcalls to handle loading and tracking and unloading modules that we NEED to move over to here!
 window.addEventListener('load', async function() {
@@ -38,7 +38,7 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate basics of FF
     await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");            // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
     await FF.loadModule("./modules/core/fem_core_TKMEvtHandlers.js");      // Toplevel Kbd/Mouse HandlerFuncs like mousedown to move divs, etc...
-    await FF.loadModule("./modules/classes/ContextMenu.js");         // upgrade/replacement for fem_core_ContextMenu.js
+    // await FF.loadModule("./modules/classes/DFContextMenu.js");         // upgrade/replacement for fem_core_ContextMenu.js
     await FF.loadModule("./modules/core/fem_core_PopupDialog.js");         // FF.openPopup(): Generic popup handler
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");
@@ -62,7 +62,7 @@ window.addEventListener('load', async function() {
         }
     }
 
-    _mainMenu    = new MenuBar();
+    _mainMenu    = new DFMenuBar();
     let div = document.getElementById("mainMenuBar");
    _mainMenu.open(div, mainMenu, onMainMenuCallback);
 

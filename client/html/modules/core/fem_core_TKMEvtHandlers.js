@@ -46,7 +46,6 @@ FG.kmStates = {
     keyZ:     false,    // moves us to mode=2
     modal:    false,    // true when any menu, contextmenu, or dialog is open, else false
     dch:      null,     // the dch the target belongs to  (IF, else null)
-    evt:      null,     // any event that happened (does NOT cause a 'change' call tho!)
 };
 FG.kmPrior = null;  // clone of FG.kmStates prior to onStateChange() so we can test if something JUST changed
 
@@ -105,36 +104,29 @@ dawAHL (AHR/AHT/AHB) is arrowhead facing Left, Right, Top, Bottom
 		<svg id="dawInnerArrowB" width="20" height="100" style="position:absolute;top:248px;left:120px;">
 			<line x1="10" y1="10" x2="10" y2="66" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
 		</svg>
-		<div style="position:absolute;top:260px;left:100px;"><input id="dawIBCkBoxB" type="text" class="unAbled" value="X" readonly><label>bottom</label><br></div>
-		<input id="dawIBInputB" type="number"   style="padding:0;position:absolute;top:280px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
-
-
-
+		<div style="position:absolute;top:260px;left:100px;"><input id="dawIBCkBoxB" name="cboxB" type="text" class="unAbled" value="X" readonly><label>bottom</label><br></div>
+		<input id="dawIBInputB" name="inputB" type="number"   style="padding:0;position:absolute;top:280px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 		<svg id="dawIBArrowL" width="100" height="20" style="position:absolute;top:115px;left:5px;">
 			<line x1="10" y1="10" x2="80" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
-		<div style="position:absolute;top:105px;left:33px;"><input id="dawIBCkBoxL" type="text" class="unAbled" value="X" readonly><label>left</label><br></div>
-		<!-- <input id="dawIBCkBoxL" type="checkbox" style="background-color:red;padding:0;position:absolute;top:105px;left:18px;width:60px;height:20px;" value="x"> -->
-		<input id="dawIBInputL" type="number"   style="padding:0;position:absolute;top:125px;left:18px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<div style="position:absolute;top:105px;left:33px;"><input id="dawIBCkBoxL" name="cboxL" type="text" class="unAbled" value="X" readonly><label>left</label><br></div>
+		<input id="dawIBInputL" name="inputL" type="number"   style="padding:0;position:absolute;top:125px;left:18px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 		<svg id="dawIBArrowW" width="200" height="20" style="position:absolute;top:115px;left:105px;">
 			<line x1="10" y1="10" x2="180" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
-		<div style="position:absolute;top:105px;left:180px;"><input id="dawIBCkBoxW" type="text" class="enAbled" value="&#10004;" readonly><label>width</label><br></div>
-		<!-- <input id="dawIBCkBoxW" type="checkbox" style="padding:0;position:absolute;top:105px;left:218px;width:60px;height:20px;" value="x"> -->
-		<input id="dawIBInputW" type="number"   style="padding:0;position:absolute;top:125px;left:174px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<div style="position:absolute;top:105px;left:180px;"><input id="dawIBCkBoxW" name="cboxW" type="text" class="enAbled" value="&#10004;" readonly><label>width</label><br></div>
+		<input id="dawIBInputW" name="inputW" type="number"   style="padding:0;position:absolute;top:125px;left:174px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 		<svg id="dawIBArrowR" width="100" height="20" style="position:absolute;top:115px;left:302px;">
 			<line x1="10" y1="10" x2="80" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
-		<div style="position:absolute;top:105px;left:322px;"><input id="dawIBCkBoxR" type="text" class="enAbled" value="&#10004;" readonly><label>right</label><br></div>
-		<!-- <input id="dawIBCkBoxR" type="checkbox" style="padding:0;position:absolute;top:105px;left:318px;width:60px;height:20px;" value="x"> -->
-		<input id="dawIBInputR" type="number"   style="padding:0;position:absolute;top:125px;left:316px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<div style="position:absolute;top:105px;left:322px;"><input id="dawIBCkBoxR" name="cboxR" type="text" class="enAbled" value="&#10004;" readonly><label>right</label><br></div>
+		<input id="dawIBInputR" name="inputR" type="number"   style="padding:0;position:absolute;top:125px;left:316px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
 
 	</div>
 `;
-
 function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND set value
     let elC = document.getElementById("dawIBCkBox" + code);
     let elI = document.getElementById("dawIBInput" + code);
@@ -259,10 +251,32 @@ function onPopupClose(dict) {
     FG.kmStates.modal = false;  // HACK!  popupHandler clears this for us but we MUST have it cleared for onStateChange()!
     onStateChange({});      // just to bump an update so ghost clears
 }
+
+let _dialog;
 function onContextDCHProps() {
-    const dict={};//{foo:"bar"};
+    let dict={};//{foo:"bar"};
     FG.kmStates.modal = true;
-    FF.openPopup(anchorForm, dict, onPopupClose, preRun, postRun);
+
+    if (1) {
+        FF.openPopup(anchorForm, dict, onPopupClose, preRun, postRun);                              // original popup
+    } else {
+        function onClose(dict) {
+            debugger;
+        }
+        _dialog = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onButton });        // new popup
+        dict = { inputB:"1111", cboxB: "" , cboxR: "&#10004;"};
+        _dialog.open(anchorForm, dict, onClose, {"Cancel": false, "OK": true });
+    }
+}
+
+function _preRun(formEl) {
+    debugger;
+}
+function _postRun(formEl) {
+    debugger;
+}
+function _onButton(btnName, dict) {
+    debugger;
 }
 
 
@@ -277,9 +291,10 @@ FF.getDchName = function (dch) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-import { ContextMenu } from "/modules/classes/ContextMenu.js";
+import { DFContextMenu } from "/modules/classes/DFContextMenu.js";
+import { DFDialog }      from "/modules/classes/DFDialog.js";
 
-const _dchContextMenu = new ContextMenu();
+const _dchContextMenu = new DFContextMenu();
 function openDCHContextMenu() {      // based on the dch the mouse is over when rightmouse was pressed...
    let dch = FG.kmStates.dch;   // the actual dch instance
 
@@ -529,15 +544,15 @@ function getChildrenBoundingRect(dch) {
     return rect;
 }
 function showOOB() {
-    console.log(FF.__FILE__(), "showOOB");
+    // console.log(FF.__FILE__(), "showOOB");
     FG.ghosts.showOOB = true;
     const dchList = FF.getAllDch();
     for (const dch of dchList) {
         if (FF.getDchName(dch) == "BOX") {  // only do this to BOXes
             let pRect = dch.__sysDiv.getBoundingClientRect();
             let cRect = getChildrenBoundingRect(dch);
-            console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "parent=", JSON.stringify(pRect));
-            console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "childs=", JSON.stringify(cRect));
+            // console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "parent=", JSON.stringify(pRect));
+            // console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "childs=", JSON.stringify(cRect));
 
             dch.__sysDiv.classList.remove("border-T");
             dch.__sysDiv.classList.remove("border-R");
@@ -975,7 +990,6 @@ function setKMState(states) {
 
 
 function onTkmKeyDown(evt) {
-    //AAA FG.kmStates.evt = evt;
     const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
@@ -994,7 +1008,6 @@ function onTkmKeyDown(evt) {
 }
 
 function onTkmKeyUp(evt) {
-    //AAA FG.kmStates.evt = evt;
     const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
@@ -1053,7 +1066,6 @@ function onTkmContextMenu(evt) {
 
 let sizerStartPos = null;         // 'sizerStartPos' = mouse Operation (presently only for click+drag of divHandlers)
 function onTkmMousedown(evt) {
-    //AAA FG.kmStates.evt = evt;
     if (FG.kmStates.modal) {
         return;
     }
@@ -1119,7 +1131,6 @@ function onTkmMouseMove(evt) {
     if (!FG.kmStates.inDocView) {
         return;
     }
-    //AAA FG.kmStates.evt = evt;
 
     // if NOT dragging the sizerbar
     setKMState({"clientX": evt.clientX, "clientY": evt.clientY});
@@ -1127,7 +1138,6 @@ function onTkmMouseMove(evt) {
 
 
 function onTkmMouseUp(evt) {
-    //AAA FG.kmStates.evt = evt;      // record, but don't flag as a change
     if (sizerStartPos) {
         const el = document.getElementById("divIndexDocSizer");
         el.style.cursor = "";
