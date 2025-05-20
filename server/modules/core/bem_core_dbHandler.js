@@ -36,7 +36,7 @@ class DBHandler {
                         console.log("loop... id=");
                         const now = Date.now();
                         if (now - this.lastAccessed > timeout) {
-                            console.log('Reopening DB due to inactivity...');
+                            console.log("Reopening DB '" + this.dbName + "' due to inactivity...");
                             this.close();
                             this.open(this.dbName);     // reopen same db as was opened to begin with
                         }
@@ -149,22 +149,22 @@ class DBHandler {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-export async function init() {
-    BG.db = await new DBHandler();
-    await BG.db.open("backend.db");
+BF.openDB = async function(dbName) {
+    const db = await new DBHandler();
+    await db.open(dbName + ".db");
     let sql;
 
-    await BG.db.updateDB(0, 1, async() => {  // update 0=>1, create extra table ONLY and add extra:dbVersion=0
+    await db.updateDB(0, 1, async() => {  // update 0=>1, create extra table ONLY and add extra:dbVersion=0
         sql =
 "CREATE TABLE extra"
 + "( key        TEXT NOT NULL PRIMARY KEY"
 + ", value      TEXT NOT NULL"
 + ") WITHOUT ROWID;";
-        await BG.db.run(sql);                                                           // create table
-        await BG.db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // set initial value to '0'
+        await db.run(sql);                                                           // create table
+        await db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // set initial value to '0'
     }); // ************************************************************************************************************
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    await BG.db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables
+    await db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables
         sql = 
 "CREATE TABLE docTree"
 + "( id         INTEGER NOT NULL PRIMARY KEY"  // id of entry in index table (used by parent)
@@ -173,19 +173,18 @@ export async function init() {
 + ", listOrder  INTEGER NOT NULL"  // ('order'=reserved word in sqlite3) 'display order' of recs in this table (when at same parent level)
 + ", parent     TEXT    NOT NULL"  // uuid of parent rec this is a child of, or '' if toplevel
 + ");"; // don't add 'WITHOUT ROWID' just to be more compatible/inline-with other SQL language derivatives
-        await BG.db.run(sql);
+        await db.run(sql);
     }); // ************************************************************************************************************
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    await BG.db.updateDB(2, 3, async() => {  // update 2=>3, create index and doc tables
+    await db.updateDB(2, 3, async() => {  // update 2=>3, create index and doc tables
         sql = 
 "CREATE TABLE doc"
 + "( uuid        TEXT    NOT NULL UNIQUE"  //UUID of doc
 + ", version     TEXT    NOT NULL"         //"n.n" major.minor version of doc (for auto-upgrade when loaded)
 + ", content     TEXT    NOT NULL"         // textified 'exported' doc body
 + ");";
-        await BG.db.run(sql);
+        await db.run(sql);
     }); // ************************************************************************************************************
-
-
+    return db;
 }   
 

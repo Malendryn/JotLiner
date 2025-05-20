@@ -47,8 +47,7 @@ class PacketBASE {
 WS.registerPacketClass(class Fault extends PacketBASE { // if error thrown, it's sent back as a Fault
     msg;        // <-- "msg" indicating what the fault was
 });
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetExtra extends PacketBASE { // get any element from extra table
     txt;        // --> "key" on the way in
                 // <-- "value" on the way back
@@ -57,23 +56,20 @@ WS.registerPacketClass(class SetExtra extends PacketBASE { // get any element fr
     key;        // --> key to set/change
     val;        // --> "value" to set/change to
 });
-
-
-WS.registerPacketClass(class Changed extends PacketBASE {    // Something changed
-    table;      // what table changed
-    uuid;       // what record's uuid changed (or '' if it's not relevant)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.registerPacketClass(class Changed extends PacketBASE {    // Something changed  (serverSend only)
+    dict;   // dict containing {what:"something"} and any other data
 });
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // see index.js
 WS.registerPacketClass(class GetDCHList extends PacketBASE { // get list of all available DocComponentHandlers
     list;       // <--  ["DOC","BOX"] etc... 
 });
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetDocTree extends PacketBASE { // get docTree table contents
     list;       // <-- [{id,name,docId,listOrder,parent}[,{}...]] etc... 
 });
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
     uuid;       // -->  uuid of doc to get 
                 // <-- uuid of doc returned
@@ -96,3 +92,21 @@ WS.registerPacketClass(class RenameDoc extends PacketBASE {  // Delete a documen
 WS.registerPacketClass(class DeleteDoc extends PacketBASE {  // Delete a document from the system
     uuid;       // -->  uuid of doc to get 
 });
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.registerPacketClass(class CreateDB extends PacketBASE {  // Delete a document from the system
+    text;       // --> string name of db to create
+                // <-- error string if bad name or null if succeeded
+});
+WS.registerPacketClass(class SelectDB extends PacketBASE {  // Delete a document from the system
+    text;       // --> string name of db to select
+                // <-- error string if missing or broke,  null if successful
+});
+WS.registerPacketClass(class DeleteDB extends PacketBASE {  // Delete /CURRENT/ DB from backend
+    text;       // --> nothing, empty, null
+                // <-- error string if db not empty, null if successful
+});
+WS.registerPacketClass(class GetDBList extends PacketBASE {  // Delete /CURRENT/ DB from backend
+    list;       // --> nothing, empty, null
+                // <-- array[] of database names (without .db extension)]
+});
+

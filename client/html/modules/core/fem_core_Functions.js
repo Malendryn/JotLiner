@@ -35,9 +35,18 @@ id     =       addTrackedListener(el, action, callback, opts=undefined)
 pkt    = makePacket(name)               create and return a new packet
 pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 
-==== FROM fem_core__sysDivIndexViewHandler.js =============================================================================
--------- async loadDoc(uuid,force)            fetch doc from backend, update display
--------- async selectAndLoadDoc(uuid,force)   update selection in indexView, load selected doc in dchView
+==== FROM fem_core_TitlebarHandler.js
+-------- async updateDBSelector()   fetch list of available dbs from server, populate dbDropdown in Titlebar 
+                                    (also deletes localStorage keys if they disappeared)
+
+-------- async selectDB()           workhorse;  tells Server which db to attach to, gets the docTree for that db, 
+                                    selects the last selected doc from tree, displays doc for editing
+
+
+==== FROM fem_core__IndexViewHandler.js =============================================================================
+-------- async loadDocTree()                  get docTree from server, display it in index pane,  DOES NOT select any entries!
+-------- async loadDoc(uuid,force)            fetch doc from backend, update display, update localStorage
+-------- async selectAndLoadDoc(uuid,force)   update selection in indexView, load selected doc in dchView, update localStorage
 
 ==== FROM fem_core_TKMEvtHandlers.js ==================================================================================
 []     =       getAllDch()              get list of all dch's in FF.curDoc.rootDch. (in same order as exporter puts them)
@@ -81,7 +90,7 @@ FF.makeUUID = () => {
 
 
 FF.makeHash = async (txt) => {
-	debugger; return Array.from(
+	return Array.from(
 		new Uint8Array(
 			await crypto.subtle.digest('SHA-1', new TextEncoder().encode(txt))
 		),
@@ -100,6 +109,7 @@ FF.clearDoc = async() => {
         }
         await FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
         FG.curDoc = null;
+        localStorage.removeItem("curDBDoc:" + FG.curDBName);
     }
 }
 
@@ -281,7 +291,7 @@ FF.addTrackedListener = function(el, action, callback, opts=undefined) {
 }
 
 
-FF.removeTrackedListenerenerById = function(id) {
+FF.removeTrackedListenerById = function(id) {
     debugger; for (let idx = 0; idx < FG.__registeredEventListeners.length; idx++) {
         let tmp = FG.__registeredEventListeners[idx];        // {id, el, action, callback, opts}
         if (tmp.id == id) {

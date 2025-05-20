@@ -1,6 +1,5 @@
 // globalThis.WS = {} must be defined already.  (see index.js or server.js)
 
-BG.nextWSockID = 0;
 export async function init() {                      // load, init, and establish wss before returning
     return new Promise(async (resolve, reject) => {
         const module = await import("ws");
@@ -9,14 +8,23 @@ export async function init() {                      // load, init, and establish
         wss.on('connection', (ws) => {      
             console.log('Client connected');
 
-            ws._id = ++BG.nextWSockId;  // boots as 0 so increment before attaching
-            const client = { ws:ws };
-            BG.clients.push(client);
+            ws._id = ++BG.nextWSockId;  // starts as 0 so increment before attaching
+            const client = {
+                ws:     ws,
+                dbName: null,   // client's currently selected db, or null if none
+                db:     null,   // handle to open db, or null if dbName is null
+            };
+            BG.clients.set(ws, client);
 
-            ws.on('message', (data) => {
+            ws.on('close', () => {                  // remove connection from array
+                console.log('Client disconnected');
+                const client = BG.clients.get(ws);
+                BF.releaseDB(client);
+                BG.clients.delete(ws);
+            });
+
+            ws.on('message', (data) => {                // incoming data (packet)
                 data = data.toString('utf-8');          // apparently 'data' is now ALWAYS a Buffer so we must ALWAYS convert it
-        //      const decoder = new TextDecoder("utf-8");
-        //      data = decoder.decode(data);
 
 // start EXAMPLE Broadcast the data to all connected clients !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // wss.clients.forEach((client) => {
@@ -27,17 +35,6 @@ export async function init() {                      // load, init, and establish
 // end EXAMPLE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
                 process(ws, data);      // no await here to prevent bottlenecking
-            });
-
-            ws.on('close', () => {                  // remove connection from array
-                console.log('Client disconnected');
-                for (let idx = 0; idx < BG.clients.length; idx++) {
-                    const client = BG.clients[idx];
-                    if (client.ws == ws) {          // found, remove it!
-                        BG.clients.splice(idx, 1);
-                        break;
-                    }
-                }
             });
 
             // ws.send('Welcome to the WebSocket server!');
@@ -58,8 +55,10 @@ WS.send = (ws, pkt) => {
 
 
 async function process(ws, data) {
+    const client = BG.clients.get(ws);
+
     const pkt = WS.parsePacket(data);
-    const response = await pkt.process(ws);  
+    const response = await pkt.process(client);  
     if (response) {
         response.__id = pkt.__id;       // put original id into response packet
         response.__r = 1;               // and add '__r' so client knows without doubt this is a response packet
@@ -68,12 +67,10 @@ async function process(ws, data) {
 }
 
 
-BF.onChanged = (ws, table, uuid) => {
+BF.onChanged = (ws, dict) => {
     const pkt = new WS.__classes.Changed();
-    pkt.table = table;
-    pkt.uuid = uuid;
-    for (let idx = 0; idx < BG.clients.length; idx++) {
-        let client = BG.clients[idx];
+    pkt.dict = dict;
+    for (const client of BG.clients.values()) {
         if (ws != client.ws) {      // don't send this packet to 'self' as we are the ones who made the change!
             WS.send(client.ws, pkt);
         }

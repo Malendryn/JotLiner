@@ -1,3 +1,5 @@
+import { DFContextMenu } from "/modules/classes/DFContextMenu.js";
+import { DFDialog }      from "/modules/classes/DFDialog.js";
 
 const indexMenuEntries = [
 //   action,      entryText,             tooltipText
@@ -104,8 +106,7 @@ function openDocRenamePopup() {
             }
             pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
             await FF.loadDocTree();         // go fetch and reconstruct index pane
-            const uuid = FG.curDoc.uuid;
-            await FF.selectAndLoadDoc(uuid, false);  // keep current doc as all we did was rename it
+            debugger; await FF.selectAndLoadDoc(FG.curDoc.uuid, false);  // keep current doc as all we did was rename it
         }
         FG.kmStates.modal = false;
         return true;
@@ -125,7 +126,7 @@ function openDocRenamePopup() {
 
     FG.kmStates.modal = true;
     _dialog = new DFDialog({ onButton: _onDlgButton });        // new popup
-    _dialog.open(form, dict);//{"Cancel": false, "OK": true });
+    _dialog.open(form, dict);
 }
 
 
@@ -162,8 +163,7 @@ function openDocInfoPopup(asChild) {
             }
             pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
             await FF.loadDocTree();         // go fetch and reconstruct index pane
-            const uuid = FG.curDoc.uuid;
-            await FF.selectAndLoadDoc(uuid, true);    // 'forget' current doc and force-load new one
+            debugger; await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
         }
         FG.kmStates.modal = false;
         return true;
@@ -172,12 +172,9 @@ function openDocInfoPopup(asChild) {
     let form = makeNewDocForm(asChild);
     FG.kmStates.modal = true;
     _dialog = new DFDialog({ onButton: _onDlgButton });        // new popup
-    _dialog.open(form, dict);//{"Cancel": false, "OK": true });
+    _dialog.open(form, dict);
 }
 let _dialog;
-
-import { DFContextMenu } from "/modules/classes/DFContextMenu.js";
-import { DFDialog }      from "/modules/classes/DFDialog.js";
 
 const _indexContextMenu = new DFContextMenu();
 function openIndexContextMenu() {
@@ -260,8 +257,8 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
         node.style.backgroundColor = bgColorRaw;             // clear bgColor of all elements in <ul>, including children
     });
 
-    localStorage.setItem("lastOpenedDoc", uuid);
 
+    
     if (uuid.length > 0) {
         const info = FF.getDocInfo(uuid);
         if (info) {
@@ -274,21 +271,8 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
             }
         }
     } else {
-        FF.clearDoc();
+        await FF.clearDoc();
     }
-    // console.log(FF.__FILE__(), "FF.selectAndLoadDoc, FG.curDoc=", FG.curDoc);
-}
-
-
-export async function initialize() {    // called from index.js
-    await FF.loadDocTree();             // load-and-show docTree
-
-    let docUuid = localStorage.getItem("lastOpenedDoc");
-    if (docUuid == null) {
-        docUuid = "";
-    }
-
-    FF.selectAndLoadDoc(docUuid);          // load, hilight, and display doc by uuid
 }
 
 
@@ -331,7 +315,7 @@ async function onContextMenu(evt) {     // desel any sel,  sel current one under
     evt.preventDefault();
     if (!FG.kmStates.modal) {
         const uuid = getDocTreeLIUuid(evt);
-        await FF.selectAndLoadDoc(uuid);
+        debugger; await FF.selectAndLoadDoc(uuid);
         FG.kmStates.clientX = evt.clientX;  // update kmStates mousepos HERE cuz it now ONLY updates when over dch window
         FG.kmStates.clientY = evt.clientY;
         openIndexContextMenu();
@@ -432,16 +416,17 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 
     FG.docTree = nuTree;
 
-    if (FG.curDoc) {                                    // if we had a doc currently selected
-        if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
-            FF.clearDoc();                              // nuke it!
-        }
-    }
+    console.log(FF.__FILE__(), "RSTODO RSQUERY is this safe? -- commented out FF.clearDoc if FG.curDoc.uuid no good");
+    // if (FG.curDoc) {                                    // if we had a doc currently selected
+    //     if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
+    //         await FF.clearDoc();                        // nuke it!
+    //     }
+    // }
     showDocTree();
 }
 
 
-FF.loadDoc = async function(uuid, force=false) {   // returns T/F if doc loaded. (sets curDoc.uuid and .rootDch if True)
+FF.loadDoc = async function(uuid, force=false) {                    // returns T/F if doc loaded. (sets curDoc.uuid and .rootDch if True)
     if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded (RSTODO may need to change when we intro 'bump')
         // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=true");
         return true;
@@ -471,6 +456,9 @@ FF.loadDoc = async function(uuid, force=false) {   // returns T/F if doc loaded.
         rootDch: await imp.attach(pkt.doc, null),  // now build-and-attach doc to the system as new root doc!
         dirty:   false,
     };
+
+    localStorage.setItem("curDBDoc:" + FG.curDBName, uuid); // set uuid as currently selected/loaded doc
+
     // console.log(FF.__FILE__(), "FF.loadDoc curDoc=", FG.curDoc);
     return true;
 }

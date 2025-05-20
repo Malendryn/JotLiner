@@ -1,75 +1,101 @@
 /*
+class DFDialog( {preRun, postRun, onButton, onClose})
+    Create a simple but powerful Dialog object with optional async/await callbacks
 
-A simple but powerful Dialog class
+Basic usage:
+    const handle = new DFDialog({
+        preRun:   <callback>,
+        onButton: <callback>,
+        postRun:  <callback>,
+        onClose:  <callback>
+    });
+    handle.open(content, data, buttonDict);
 
-let handle = new DFDialog( {preRun, postRun, onButton})
-        create a new dialog object with optional async/await callbacks
-        Note that all of these functions are called with await so they are expected to complete their function before returning
+DFDialog construction parameters:
+    ** Note that all of these parameters are optional **
 
     async preRun(contentElement)
-            called immediately after the content parameter supplied by open() was attached to the document.body, 
-            and the data parameter was populated into the content div.
-            Here is where such things as eventListeners and timers can be added to enhance the dialog's operation
+            Called immediately after open() has attached 'content' to 'document.body', and `data` has been populated into the 
+            corresponding elements. This is an ideal place to perform setup tasks such as adding event listeners, setting 
+            timers, or initializing UI elements before the dialog becomes visible and is made interactive.
 
-        contentElement  
-            a handle to the element created from content with the data already supplied into it.
+        contentElement
+            A handle to the <div> wrapping the 'content' supplied by the open() call with 'data' (also supplied by open()) already
+            populated into the content
 
-        RETURNS:   
-            nothing
+        RETURNS:
+            Nothing
 
-    async onButton(btnName, data)
-            called whenever a button (passed in by the buttons parameter of the open() call) is clicked
+    async onButton(btnLabel, data)
+            Called whenever a dialog button is clicked  (emulates a return of true if not supplied)
 
-        btnName 
-            the name of the button as it was assigned in the buttons parameter
+        btnLabel 
+            The label displayed as text on the button
 
-        data    
-            either the updated data modified in the form if the button was set to true,  or null if false
+        data
+            value is based on button type,  (see open(...btnDict) below)
+            If type is true, data is a {"key":"value"} dict of all elements in the form with a 'name=' attribute
+            if type is false, this will be null
 
         RETURNS:  
             true if the dialog is to be closed now, or false if it is to stay open
 
-    async postRun(btnName, data)
-            called after onButton returned with true, with the same parameters as onButton as well.
+    async postRun(contentElement)
+            called after onButton, when onButton returns true
             Here is where anything added during preRun() should be undone, such as eventListeners and timers
 
-        btnName
-            see onButton() above
-
-        data     
-            see onButton() above
+        contentElement
+            same as preRun() above
 
         RETURNS:  
             nothing
 
-Functions within the class:
-open(content, data, buttons = null)
-        Open a dialog based on the parameters
+    onClose(btnLabel, data)  (Note that this call is not async)
+            called after postRun, as a useful but optional 'final stage' call to handle dialog's changes after 
+            dialog is completely closed and removed
 
-    content
+        btnLabel
+            same as onButton above
+
+        data
+            same as onButton above
+
+        RETURNS:
+            nothing
+
+
+Functions within the class:
+    open(content, data, buttonDict = null)
+            Open a dialog based on the parameters passed
+
+        content
             A complete html container element, typically a <form>...</form> or <div>...</div> etc.  that will be shown in the popup dialog. 
             Inside this html should be input fields, button fields, etc, with each element that will have any form of editable data
-            having a name="SomeName" attribute that will be populated automatically before opening from the supplied 'params' parameter.
+            having a name="..." attribute that will be populated automatically via the data parameter, and by the preRun callback, before 
+            displaying the dialog.
 
-    data
-            An object with multiple {"key": "value"} pairs, where for each "key", its "value" will get populated into the html 
-            element with a 'name="key"' attribute.
+        data
+            An object with multiple {"key": "value"} pairs, where for each "key", its "value" will get populated into the content's html
+            element having a 'name="key"' attribute
 
-    buttons 
-            a {"key":"value"} object (or null) that will cause buttons to be displayed left-to-right in the same order given.
-            if null, then a default of { "Cancel": false,  "OK": true } is supplied
+        buttonDict 
+            a {"key":true/false} object (or null) that will cause buttons to be displayed underneath the content, from left to right, in 
+            the same order given
+            If null, then a default of { "Cancel": false,  "OK": true } is supplied
 
-        key
-            The text to show on the button
+            key
+                The text to show as the label on the button
 
-        value
-            true  if the onButton call is have data populated with the dialog's current data
-            false if the onButton calls is to have data = null
+            value
+                true  if calls to onButton and onClose have the data parameter populated with the dialog's current data
+                false if calls to onButton and onClose have the data parameter set to null.  (This is generally useful to mark
+                a button as a 'cancel' type button)
 
-close()
-        close the dialog from within any one of the callbacks
-
-        Calling this will call postRun(contentElement) followed by .remove()'ing the dialog from the screen
+    close()
+            Callable from within any callback or outside the dialog entirely through the class handle, to begin the dialog closing 
+            process and start the callback sequence of .postRun(formElement) and .onClose(btnLabel, data), however when
+            .onClose is called, btnLabel is an empty string to signify it was not closed by a button press, and data is always populated
+            with the dialog's values.
 */
 
 class DFDialog {
@@ -78,15 +104,16 @@ class DFDialog {
     async close() {}
 
 // default functions if not supplied during new
-    async preRun() {}
+    async preRun()  {}
     async postRun() {}
-    onButton(label, dict) { debugger; return true; }
-
+    async onButton(label, dict) { debugger; return true; }
+          onClose() {}
 
     constructor(opts = {}) {
-        if (opts.preRun)   { this.preRun   = opts.preRun; }
-        if (opts.postRun)  { this.postRun  = opts.postRun; }
+        if (opts.preRun)   { this.preRun   = opts.preRun;   }
+        if (opts.postRun)  { this.postRun  = opts.postRun;  }
         if (opts.onButton) { this.onButton = opts.onButton; }
+        if (opts.onClose)  { this.onClose  = opts.onClose;  }
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,7 +180,6 @@ class DFDialog {
         let startX = 0, startY = 0;
         let elDrag = document.getElementById("DFDlgDragDiv");
         elDrag.addEventListener('mousedown', (evt) => {             // add handler for dragbar
-
             const rect = elDlg.getBoundingClientRect();
             startX = evt.clientX - rect.left;
             startY = evt.clientY - rect.top;
@@ -178,26 +204,31 @@ class DFDialog {
             document.addEventListener('mouseup', onMouseUp);
         });
 
-// RSNOTE this code works, but do we really need it? 
-        // this._root.addEventListener('keydown', this.trapFocus);   // add handling of focus trapping
-        // setTimeout(() => {
-        //     this.focusable()[0]?.focus()
-        // }, 0);
+        this._root.addEventListener('keydown', this.trapFocus);   // add handling of focus trapping
+        setTimeout(() => {
+            this.focusable()[0]?.focus()
+        }, 0);
         setTimeout(() => {
             elDlg.style.display = "";                 // let dialog finish construction, then show at last
         }, 0);
     }
 
 
+    _isClosing = false;
     async close() {
-        if (this.postRun) {
-            await this.postRun(this._root);
+        if (this._isClosing) {  // prevent loop if user calls this.close() from within .postRun() or .onClose() 
+            return;
         }
+        this._isClosing = true;
+        let data = this.fetchData();
+        await this.postRun(this._root);
 
 // restore internal values to their prior-to-open() state
-        this._root.remove();          // remove dialog and all eventListeners we added
-        this._root = undefined;       // clear it from ourselves
-        document.body.style.overflow = this._overflow;      // restore orig overflow value
+        this._root.remove();                            // remove dialog and all eventListeners we added
+        this._root = undefined;                         // clear it from ourselves
+        document.body.style.overflow = this._overflow;  // restore orig overflow value
+        this.onClose("", data);
+        this._isClosing = false; 
     }
     
     applyData(data) {

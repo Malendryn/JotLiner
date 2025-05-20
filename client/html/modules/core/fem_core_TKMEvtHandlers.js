@@ -128,6 +128,7 @@ dawAHL (AHR/AHT/AHB) is arrowhead facing Left, Right, Top, Bottom
 	</div>
 `;
 function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND set value
+    console.log("CVE=", code, val, enable);
     let elC = document.getElementById("dawIBCkBox" + code);
     let elI = document.getElementById("dawIBInput" + code);
     if (enable) {
@@ -169,18 +170,27 @@ function onFormClick(evt) {
     if (evt.target.id.startsWith("dawIBCkBox")) {       // if a checkbox was clicked...
         formChanged = true;
         const dch = FG.kmStates.dch;
-        const pRect = dch.__parent.host.getBoundingClientRect();    // get the scroll-sized div, not the DCH div
+        // const pRect = dch.__parent.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
+        const pRect = dch.__parent.__sysDiv.getBoundingClientRect();
         const rect = dch.__sysDiv.getBoundingClientRect();
 
         const id = evt.target.id;
         const box = { 
-            L: (rect.left - pRect.left) + "px", 
-            W: rect.width + "px", 
-            R: (pRect.width - (rect.left - pRect.left) + rect.width) + "px",
-            T: (rect.top - pRect.top) + "px", 
+            L: (rect.left - pRect.left)  + "px", 
+            W: rect.width  + "px", 
+            R: (pRect.right - rect.right) + "px",
+            T: (rect.top - pRect.top)    + "px", 
             H: rect.height + "px", 
-            B: (pRect.height - (rect.top - pRect.top) + rect.height) + "px",
+            B: (pRect.bottom - rect.bottom) + "px",
         };
+        // const box = { 
+        //     L: (rect.left - pRect.left) + "px", 
+        //     W: rect.width + "px", 
+        //     R: (pRect.width - (rect.left - pRect.left) + rect.width) + "px",
+        //     T: (rect.top - pRect.top) + "px", 
+        //     H: rect.height + "px", 
+        //     B: (pRect.height - (rect.top - pRect.top) + rect.height) + "px",
+        // };
         let code;
         let ss = dch.__sysDiv.style;
         switch(id.charAt(10)) {    // dawIBCkBoxL, dawIBCkBoxW, etc...
@@ -216,15 +226,11 @@ function onContextDCHProps() {
     let dict={};//{foo:"bar"};
     FG.kmStates.modal = true;
 
-    // if (0) {
-    //     FF.openPopup(anchorForm, dict, onPopupClose, preRun, postRun);                              // original popup
-    // } else {
-        _dialog = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onButton });        // new popup
-        _dialog.open(anchorForm, null, {"Cancel": false, "OK": true });
-    // }
+    _dialog = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onButton });        // new popup
+    _dialog.open(anchorForm, null, {"Cancel": false, "OK": true });
 }
 
-function _preRun(form) {
+async function _preRun(form) {
     formChanged = false;
     const dch = FG.kmStates.dch;
     formOrigVals = {
@@ -239,16 +245,7 @@ function _preRun(form) {
     form.addEventListener("click", onFormClick);
     form.addEventListener("input", onFormInput);
 }
-function _postRun(form) {
-    form.removeEventListener("input", onFormInput);
-    form.removeEventListener("click", onFormClick);
-    FG.kmStates.modal = false;  // HACK!  popupHandler clears this for us but we MUST have it cleared for onStateChange()!
-    if (formChanged) {
-        FF.autoSave(0);         // save immediately
-    }
-    onStateChange({});          // just to bump an update so ghost clears
-}
-function _onButton(btnName, dict) {
+async function _onButton(btnLabel, dict) {
     if (!dict) {                  // rather than test btnName we just test if dict was passed in
         const ss = FG.kmStates.dch.__sysDiv.style;
         ss.left   = formOrigVals.left;      // if dict == null, cancel was clicked, so restore original values
@@ -260,6 +257,15 @@ function _onButton(btnName, dict) {
         formChanged = false;                // unset the changed state
     }
     return true;                // tell dialog to close no matter what button was pressed
+}
+async function _postRun(form) {
+    form.removeEventListener("input", onFormInput);
+    form.removeEventListener("click", onFormClick);
+    FG.kmStates.modal = false;  // HACK!  popupHandler clears this for us but we MUST have it cleared for onStateChange()!
+    if (formChanged) {
+        FF.autoSave(0);         // save immediately
+    }
+    onStateChange({});          // just to bump an update so ghost clears
 }
 
 
@@ -789,7 +795,7 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
             el.style.width = "100%";
             el.style.height = "100%";
             el.style.backgroundColor = "white";
-            let tBar = document.getElementById("divTitleBar");
+            let tBar = document.getElementById("divTitlebar");
             tBar.appendChild(el);
         }
         el = document.getElementById("__tmpKBModeToolbar");
@@ -948,10 +954,6 @@ function onTkmKeyDown(evt) {
     if (evt.key == 'z' || evt.key == 'Z') {
         states.keyZ = true;
     }
-    // if (states.keyShift && states.keyAlt) {
-    //     debugger;
-    // }
-
     setKMState(states);
 }
 

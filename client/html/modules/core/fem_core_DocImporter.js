@@ -89,9 +89,6 @@ export class DocImporter {   // create and return a DCH from a stream
 
         await this._importNext(parent); // if a parent was passed, add this as child
         return this.rootDch;
-        // if (parent == null) {           // if toplevel doc (no longer needed as info already taken from FG.docTree)
-        //     debugger; FG.docUuid = this.docUuid;
-        // }
     }
 
 

@@ -1,9 +1,31 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-20 ------------------------------------------------------------------------------------------------------------
+* added an onClose() callback to DCHDialog and moved all callbacks to constructor() so that open() only has data as
+    parameters now
+* fixed bug where in properties dialog, With CTE and TXA (and probably all others including box too)  when you click 
+    'width' or 'left' the internal child divs within the dch get all wonky
+* added serverside awareness of multiple databases over multiple connections so each connection can be talking to
+    different databases, but still with only a single handle to any single database open at a time.
+* renamed fem_core_divIndexViewHandler.js to fem_core_IndexViewHandler.js
+* finished the dropdown to select current db and the entire process chain to load it, the index list, and the last
+    opened document of that db
+
 2025-05-19 ------------------------------------------------------------------------------------------------------------
 * changed away from using a wsPacket call to load the most recent document, to using localStorage instead.
     removed curDocUuid from db 'extra' table, now using localStorage "lastOpenedDoc"
 * changed my mind and finished DFDialog and replaced the old one I wrote entirely now.
+
 2025-05-18 ------------------------------------------------------------------------------------------------------------
 * fixed when creating new DCH in an zX/Y !=0 BOX it locates incorrectly
 * created new DFContextMenu class that allows submenus of n-depth.  Standalone class.  loads its own .css file as well
@@ -322,7 +344,7 @@ with that.
 * found easy way to find handler's toplevel div, by dropping a 'dchHandlerDiv' property on it then climbing the
   clicked-on element's parent chain to find it
 * moved all the toplevel kbd/mouse handler stuff to fem_core_TKMHandlers.js
-* reworked index.html so it now has a divTitleBar, divToolBar, divIndexView(for index) and divDocView(for docWrapper)
+* reworked index.html so it now has a divTitlebar, divToolBar, divIndexView(for index) and divDocView(for docWrapper)
 
 2025-04-17 ------------------------------------------------------------------------------------------------------------
 the click+drag logic is looking pretty good!  it handles all cases of L,R,W,H boxsizings

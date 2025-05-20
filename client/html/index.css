@@ -8,7 +8,7 @@ html,body {
     background-color: lightgrey;
 }
 /*********************************************************************************************************************/
-#divTitleBar {
+#divTitlebar {
     position: absolute;
     top: 0px;
     height: 24px;
@@ -16,16 +16,30 @@ html,body {
     background-color: rgb(200, 200, 200);
 
 }
-#divTitleBar #tBarContentWrapper {
+#divTitlebar #tBarContentWrapper {
     position: absolute;
     width: 100%;
     height: 100%;
 }
-#divTitleBar #tBarContentWrapper #tBarMenu {
+#divTitlebar #tBarContentWrapper #tBarMenu {
     display: flex;
-    justify-content: space-between;
+
+    align-items: center;
+    /* justify-content: space-between; */
+
     width: 100%;
     height: 100%;
+}
+#tbm2 {
+    padding-left: 20px;
+    margin-right: auto;
+}
+#tbm3 {
+    margin-left: auto;
+    margin-right: auto;
+}
+#tbm4 {
+    margin-left: auto;
 }
 /*********************************************************************************************************************/
 /*********************************************************************************************************************/

@@ -6,26 +6,11 @@ function logPkt(name) {
     console.log("pkt=" + name);
 }
 
-WS.__classes.GetDCHList.prototype.process = async function(ws) {
-        logPkt("GetDCHList");
-        const dirPath = path.join(BG.basePath, "client", "html", "modules", "DocComponentHandlers");
 
-        const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
-      
-        const list = [];
-        files.forEach(file => {
-            if (file.isDirectory()) {
-                list.push(file.name);
-            }
-        });
-        this.list = list;
-        return this;
-}
-
-
-WS.__classes.GetExtra.prototype.process = async function(ws) {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.__classes.GetExtra.prototype.process = async function(client) {
     logPkt("GetExtra");
-    let tmp = await BG.db.query("SELECT value FROM extra WHERE key=?", [this.txt]);
+    debugger; let tmp = await client.db.query("SELECT value FROM extra WHERE key=?", [this.txt]);
     if (tmp.length == 1) {
         this.txt = tmp[0].value;
     } else {
@@ -33,25 +18,43 @@ WS.__classes.GetExtra.prototype.process = async function(ws) {
     }
     return this;
 }
-
-
-WS.__classes.SetExtra.prototype.process = async function(ws) {
+WS.__classes.SetExtra.prototype.process = async function(client) {
     logPkt("SetExtra");
-    let tmp = await BG.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
+    debugger; let tmp = await client.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
     return null;
 }
 
 
-WS.__classes.GetDocTree.prototype.process = async function(ws) {
-    logPkt("GetDocTree");
-    this.list = await BG.db.query("SELECT * from docTree order by parent,listOrder");
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.__classes.GetDCHList.prototype.process = async function(client) {
+    logPkt("GetDCHList");
+    const dirPath = path.join(BG.basePath, "client", "html", "modules", "DocComponentHandlers");
+    const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
+  
+    const list = [];
+    for (const file of files) {
+        if (file.isDirectory()) {
+            list.push(file.name);
+        }
+    }
+    this.list = list;
     return this;
 }
 
 
-WS.__classes.GetDoc.prototype.process = async function(ws) { // must use 'function()' to have a 'this'   (not '() =>' )
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.__classes.GetDocTree.prototype.process = async function(client) {
+    logPkt("GetDocTree");
+    this.list = await client.db.query("SELECT * from docTree order by parent,listOrder");
+    return this;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.__classes.GetDoc.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
     logPkt("GetDoc");
-    const tmp = await BG.db.query("SELECT content FROM doc WHERE uuid=?", [this.uuid]);
+    const tmp = await client.db.query("SELECT content FROM doc WHERE uuid=?", [this.uuid]);
     if (tmp.length > 0) {
         this.doc = tmp[0].content;
     } else {
@@ -59,13 +62,11 @@ WS.__classes.GetDoc.prototype.process = async function(ws) { // must use 'functi
     }
     return this;
 }
-
-
-WS.__classes.NewDoc.prototype.process = async function(ws) {    // insert new doc into db,  return with nothing!
+WS.__classes.NewDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
     logPkt("NewDoc");
     try {
-        await BG.db.run("BEGIN TRANSACTION");
-        let recs = await BG.db.query("SELECT id,uuid,listOrder from docTree where parent=? order by listOrder", [this.dict.parent]);
+        await client.db.run("BEGIN TRANSACTION");
+        let recs = await client.db.query("SELECT id,uuid,listOrder from docTree where parent=? order by listOrder", [this.dict.parent]);
         let idx, order = 0;
         for (idx = 0; idx < recs.length; idx++) {   // find listOrder # of 'after' rec (else get highest listOrder# in use at this parentLevel)
             const rec = recs[idx];
@@ -78,78 +79,150 @@ WS.__classes.NewDoc.prototype.process = async function(ws) {    // insert new do
         idx++;           //move PAST current rec! (harmless if ran off end)
 
         for (; idx < recs.length; idx++) {  // increment listOrder of all recs after the point we want to insert
-            await BG.db.run("UPDATE docTree SET listOrder = listOrder + 1 where id=?", [recs[idx].id]);   // increment existing rec's listorder's
+            await client.db.run("UPDATE docTree SET listOrder = listOrder + 1 where id=?", [recs[idx].id]);   // increment existing rec's listorder's
         }
 
         let list = [this.dict.uuid, this.dict.version, this.dict.doc];
-        await BG.db.run("INSERT INTO doc (uuid,version,content) values (?,?,?)", list);               // insert the doc
+        await client.db.run("INSERT INTO doc (uuid,version,content) values (?,?,?)", list);               // insert the doc
         list = [this.dict.name, this.dict.uuid, order, this.dict.parent];
-        await BG.db.run("INSERT INTO docTree (name,uuid,listOrder,parent) values (?,?,?,?)", list);   // insert the index entry
-        await BG.db.run("COMMIT TRANSACTION");
+        await client.db.run("INSERT INTO docTree (name,uuid,listOrder,parent) values (?,?,?,?)", list);   // insert the index entry
+        await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
-        await BG.db.run("ROLLBACK TRANSACTION");
+        await client.db.run("ROLLBACK TRANSACTION");
         return new WS.__classes["Fault"](err.message);
     }
-    BF.onChanged(ws, "docTree", null);
+    BF.onChanged(client.ws, {what:"docTree"});
     this.dict = {}; // empty packetdata for faster returnPkt
     return this;    // send self back cus client called using .sendWait()
 };
-
-
-WS.__classes.SaveDoc.prototype.process = async function(ws) {    // insert new doc into db,  return with a GetDocTree packet
+WS.__classes.SaveDoc.prototype.process = async function(client) {    // insert new doc into db,  return with a GetDocTree packet
     logPkt("SaveDoc");
     try {
-        await BG.db.run("BEGIN TRANSACTION");
+        await client.db.run("BEGIN TRANSACTION");
         let list = [this.dict.version, this.dict.doc, this.dict.uuid];
-        await BG.db.run("UPDATE doc SET version=?,content=? WHERE uuid=?", [list]);               // insert the doc
-        await BG.db.run("COMMIT TRANSACTION");
+        await client.db.run("UPDATE doc SET version=?,content=? WHERE uuid=?", [list]);               // insert the doc
+        await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
-        await BG.db.run("ROLLBACK TRANSACTION");
+        await client.db.run("ROLLBACK TRANSACTION");
         return new WS.__classes["Fault"](err.message);
     }
-    BF.onChanged(ws, "doc", this.dict.uuid);
+    BF.onChanged(client.ws, {what:"doc", uuid:this.dict.uuid});
     this.dict = {}; // empty packetdata for faster returnPkt
     return this;    // send self back cus client called using .sendExpect()
 };
-
-
-
-WS.__classes.RenameDoc.prototype.process = async function(ws) {    // rename a document
+WS.__classes.RenameDoc.prototype.process = async function(client) {    // rename a document
     logPkt("RenameDoc");
-    await BG.db.run("BEGIN TRANSACTION");
-    await BG.db.run("UPDATE docTree SET name=? WHERE uuid=?", [this.dict.name, this.dict.uuid]);
-    await BG.db.run("COMMIT TRANSACTION");
-    BF.onChanged(ws, "docTree", null);      // tell the world that the docTree changed!
+    await client.db.run("BEGIN TRANSACTION");
+    await client.db.run("UPDATE docTree SET name=? WHERE uuid=?", [this.dict.name, this.dict.uuid]);
+    await client.db.run("COMMIT TRANSACTION");
+    BF.onChanged(client.ws, {what: "docTree"});      // tell the world that the docTree changed!
     this.uuid = "";
     this.name = "";     // clear data so we don't waste bandwidth on the return
     return this;                            // send self back cuz client used .sendWait()
 }
-
-
-WS.__classes.DeleteDoc.prototype.process = async function(ws) {    // insert new doc into db,  return with nothing!
+WS.__classes.DeleteDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
     logPkt("DeleteDoc");
-    try {
-        await BG.db.run("BEGIN TRANSACTION");
+    debugger; try {
+        await client.db.run("BEGIN TRANSACTION");
 
         async function deleteRec(uuid) {
-            let recs = await BG.db.query("SELECT uuid from docTree where parent=?", [uuid]);
+            let recs = await client.db.query("SELECT uuid from docTree where parent=?", [uuid]);
             for (let idx = 0; idx < recs.length; idx++) {
                 await deleteRec(recs[idx].uuid);
             }
-            recs = await BG.db.query("SELECT listOrder,parent from docTree where uuid=?", [uuid]);
+            recs = await client.db.query("SELECT listOrder,parent from docTree where uuid=?", [uuid]);
             let rec = recs[0];
-            await BG.db.run("DELETE FROM doc WHERE uuid=?", [uuid]);
-            await BG.db.run("DELETE FROM docTree WHERE uuid=?", [uuid]);
-            await BG.db.run("UPDATE docTree SET listOrder = listOrder - 1 WHERE parent = ? and listOrder > ?", [rec.parent, rec.listOrder]);
+            await client.db.run("DELETE FROM doc WHERE uuid=?", [uuid]);
+            await client.db.run("DELETE FROM docTree WHERE uuid=?", [uuid]);
+            await client.db.run("UPDATE docTree SET listOrder = listOrder - 1 WHERE parent = ? and listOrder > ?", [rec.parent, rec.listOrder]);
         }
         await deleteRec(this.uuid);
 
-        await BG.db.run("COMMIT TRANSACTION");
+        await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
-        await BG.db.run("ROLLBACK TRANSACTION");
+        await client.db.run("ROLLBACK TRANSACTION");
         return new WS.__classes["Fault"](err.message);
     }
-    BF.onChanged(ws, "docTree", null);      // tell the world that the docTree changed!
+    BF.onChanged(client.ws, {what:"docTree"});      // tell the world that the docTree changed!
     this.uuid = ""; // empty packetdata for faster returnPkt
     return this;    // send self back cus client called using .sendWait()
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.__classes.CreateDB.prototype.process = async function(client) {    // create new db, return null=good, text=errormsg
+    logPkt("CreateDB");
+    const err = BF.checkFilename(this.text);    // test filename for validity
+    if (err) {                            // return it if bad
+        this.text = err;
+        return this;
+    }
+
+    debugger; await BF.releaseDB(client);              // close any currently open db on this client
+    debugger; await BF.attachDB(this.text, client);
+
+    BF.onChanged(client.ws, {what:"dbList"});      // tell the world that the dbList changed!
+
+    this.text = null;
+
+    return this;
+};
+WS.__classes.SelectDB.prototype.process = async function(client) {    // make other db current, return null=good, text=errormsg
+    logPkt("SelectDB");
+    const err = BF.checkFilename(this.text);    // test filename for validity
+    if (err) {                            // return it if bad
+        this.text = err;
+        return this;
+    }
+
+// RSTODO add check for DB Exists here! 
+
+    await BF.releaseDB(client);             // close any currently open db on this client
+    await BF.attachDB(this.text, client);   // increment clientCount if already open, else open/create db
+
+    this.text = null;
+    return this;
+};
+WS.__classes.DeleteDB.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
+    logPkt("DeleteDB");
+    const err = BF.checkFilename(this.text);    // test filename for validity
+    if (err) {                            // return it if bad
+        this.text = err;
+        return this;
+    }
+
+// validate db is empty here, THEN...
+
+    debugger; if (BF.openedDBs[client.dbName].clients > 1) {
+        this.text = "Cannot delete DB while other clients are using it";
+        return this;
+    }
+    await BF.releaseDB(client);      // close the db off the client so we can delete it
+
+    client.db = null;
+    
+debugger; try {
+        await client.db.run("BEGIN TRANSACTION");
+//...
+        await client.db.run("COMMIT TRANSACTION");
+    } catch (err) {
+        await client.db.run("ROLLBACK TRANSACTION");
+        return new WS.__classes["Fault"](err.message);
+    }
+
+    BF.onChanged(client.ws, {what:"dbList"});      // tell the world that the dbList changed!
+
+    this.text = null;
+    return this;
+};
+WS.__classes.GetDBList.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
+    logPkt("GetDBList");
+    
+    const dirPath = path.join(BG.basePath, "server", "db");
+    const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
+    this.list = [];
+    for (const file of files) {
+        this.list.push(file.name.substr(0, file.name.length - 3));  // chop off the last 3 chars '.db'
+    }    
+    return this;
 };

@@ -1,3 +1,8 @@
+change 
+change localStorage.getItem("lastOpenedDoc")  to key = "curDBDoc:<dbname>", val="<docuuid>"
+        one entry per db
+add localStorage -- key="curDBName", val="<dbname>"
+
 -----------------------------------------------------------------------------------------------------------------------
 * checkout https://render.com/docs for hosting a live site for free
 * learn the whole github process  (see my cherrytree links)
@@ -5,15 +10,17 @@
 we used to load dch modules as-needed and not before.  we should go back to doing that again
     in index.js we already fetch all modulepaths, we can just insert them into DCH[dchName] as null and loadAsNeeded
 -----------------------------------------------------------------------------------------------------------------------
+1 make docTree dragdrop work properly!  (reordering of doctree documents)
+    move docs (dragdrop, in/out depth too)
 -----------------------------------------------------------------------------------------------------------------------
+once we get the DBSelector dropdown working, we also have to get 'push' notifications sent to the client should anyone
+add or remove an existing db
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 track state of opened index pane entries
         we need this per-client methinks so not something to track in the db
 
 -----------------------------------------------------------------------------------------------------------------------
-add menusystem, (piggyback off contextMenu)
-    (system now added but not yet actively connected)
 -----------------------------------------------------------------------------------------------------------------------
 on client connect we need to pass the name of the db to connect to
 and we need to track all opened dbs in the server
@@ -22,17 +29,11 @@ AND we need a packet to pull existing dblist back to the client to show them in 
 
 -----------------------------------------------------------------------------------------------------------------------
 we need to start getting localStorage working
-    for last db opened (so we can load this one immediately on startup)
+  ✔ for last db opened (so we can load this one immediately on startup)
     for which db was last opened (rather than a record in the db)
-    for which which entries in the index are expanded
+    for which entries in the index are expanded
 
 -----------------------------------------------------------------------------------------------------------------------
-Should I start considering reducing the 'FF.Class' reliance and start using 'import <obj> from file' ?
-    (thought about this during creation of my ContextMenu class)
-
-    also maybe move some of these classes out of the html/modules/core subdir, its getting pretty crowded in there!
-
-
 -----------------------------------------------------------------------------------------------------------------------
 when properties popup for DCH_BOX we want to show 'infinite Pan offset' and let user edit it (in the properties popup!)
 -----------------------------------------------------------------------------------------------------------------------
@@ -42,14 +43,8 @@ is invisible cuz it's outside the frame of the parent BOX
 -----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
 
-* Put better names for dch's to display at the top of the screen (rather than just DCH or TXA etc...)
-
 * add a 'choose db' option and allow them to have multiple db's they can switch easily between  (do this soon to help 
     ME switch quickly to the examples.db etc... and back again!)
-
-
-1 make docTree dragdrop work properly!  (reordering of doctree documents)
-    move docs (dragdrop, in/out depth too)
 
 * front/back depth of dch's within document
 * cut/copy/paste dch's (or delete/copy/move wherein copy/move .cursor('x') the mouseIcon til you click to drop)
@@ -63,50 +58,25 @@ PRE-GITHUB Todos
     DWG (drawing program)
     CODE codeblock (monospaced, linenumbered)
     MDN Markdown (Github compatible)
-
-
-__tmpKBModeTitlebar
-__tmpKBModeToolbar
 -----------------------------------------------------------------------------------------------------------------------
 don't forget that when we add the Colorpikr to license it appropriately!
 -----------------------------------------------------------------------------------------------------------------------
-when storing docs and indexlist, we need to save the scrollbar and opened-indexes as well
-    * the doc scrollbars are systemwide
-    * the opened indexes are per-browser
-
 -----------------------------------------------------------------------------------------------------------------------
 TODO
 * I kinda like the little icon cherrytree puts in front of the index entries, but maybe instead we just make a little box
     that you can set the color of?  or maybe color the entire entry?
 
-* improve contextmenu to allow submenus  (we might use the <ul> system for this, but I like the 'detached' menus like 
-    vsCode has that open when you hover)
-    (NOTE THAT THIS SYSTEM would work for the menu dropdown system too!)
-
-* create menubar (file/edit/help)
-    make that allow submenus  (piggyback off contextMenu system)
-
 * ?UNDO?  (possibly not needed as CTE for example already does this)
 
-* we should consider timestamping the ‘send-expect’ed packet in the queue (we do, actually) and maybe once a sec check for ‘dead’ packets (we don't yet)
-    maybe even adding a ‘timeoutLength’ option too
-    and also a way to cancel-expect so at least on the client side we can say ‘try again’ sooner so we don't end up with two responses
+* we should consider timestamping the ‘send-expect’ed packet in the queue (we do, actually) and maybe once a sec check 
+    for ‘dead’ packets (we don't do, yet)  maybe even adding a ‘timeoutLength’ option too
+    and also a way to cancel-expect so at least on the client side we can say ‘try again’ sooner so we don't end up 
+    with two responses
 
-* store dragbar location in userLocalStore
+* store dragbar location in userLocalStore (loaded question, store zX/Y in localStorage or in the doc???)
 * store which indexEntrys are expanded in userLocalStore
 -----------------------------------------------------------------------------------------------------------------------
-DETAIL: scrollbars: so, in order to support scrollbars, we can't ever go left/top=negative
-
-we now have a special <div> inside the __sysDiv which we can simply reposition based on the zLeft/zTop (or zX zY)
-     and we can now use <div>.style.transform = “translateX(-33px)” on this div to move everything at once!
-
-we also want the scrollbars to move with us in such a way the screen doesn't move, making it appear that the screen
-grew to the left when in reality everything was shoved to the right
-
-    for this we need to add zX and zY to the BOX import/export (and also scrollX scrollY)
-
 -----------------------------------------------------------------------------------------------------------------------
-
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
@@ -116,7 +86,7 @@ add using cmdCombo+arrowkeys to move the boxes one pixel at a time
     problem with this is as I have to remain hovering over the object to move, but that's not really a biggie is it?
         of course if you shift the box away from the mouse you'll have issues...
 -----------------------------------------------------------------------------------------------------------------------
-TODO: consider requestAnimationFrame()
+TODO: consider requestAnimationFrame()  (We haven't needed it ... yet!)
 
 when dragging DCH_BOX children, the mouse activity is entirely delta-from-prior-movement based, and this can get
 glitchy.  The proper way to do it is to track the box's position seperately (for example trap boxData at moment of
