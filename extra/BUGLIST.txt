@@ -20,8 +20,8 @@ indexView the '>' arrow, but does not OPEN the arrow to show the newly inserted 
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-BUG: (?unfixable?) when prog starts, if I ctrl+alt and rightclick in the INDEX frame, I get the 'new document' context menu
-but if I close the menu, then re-press ctrl+alt and rightclick, no menu appears.  this is odd.
+BUG: (?unfixable?) when prog starts, if I alt+shft and rightclick in the INDEX frame, I get the 'new document' context menu
+but if I close the menu, then re-press alt+shft and rightclick, no menu appears.  this is odd.
 
 (but this won't fix the problem if we click outside)
 ###### Maybe throw up some kind of a START/SPLASH SCREEN which forces them to click on it to engage focus ######

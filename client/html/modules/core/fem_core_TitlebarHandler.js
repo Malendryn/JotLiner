@@ -7,13 +7,6 @@ const mainMenu = {
     File: [
         { label: "Open new instance",      action: "newInstance", tip: "Open another copy of this program in a new window" },
         { label: "Create new database",    action: "newDB",       tip: "Create a new database" },
-        { label: "Open existing database", action: "openDB",      tip: "Open an existing database" },
-        { label: "Open recent database",   action: "",            tip: "Open one of the recently opened databases in the submenu", children: [
-            { label: "Import database",        action: "importDB",    tip: "Import an exported database under a new name" },
-            { label: "Open recent database",   action: "",            tip: "Open one of the recently opened databases in the submenu", children: [
-                { label: "Export database",        action: "exportDB",    tip: "Export current database to a file" },
-            ] },
-        ] },
         { label: "Import database",        action: "importDB",    tip: "Import an exported database under a new name" },
         { label: "Export database",        action: "exportDB",    tip: "Export current database to a file" },
     ],
@@ -76,12 +69,13 @@ FF.updateDBSelector = async function() {
         }
         sel.appendChild(opt);
     }
-    sel.dispatchEvent(new Event("change"));   // fire a 'change' event to call onDBSelectorChanged()
+    sel.dispatchEvent(new Event("change"));   // fire a 'change' event --> onDBSelectorChanged() --> FF.selectDB()
 }
 
 
 FF.selectDB = async function() {
-    FG.curDBName = localStorage.getItem("curDBName") || "";
+    FG.curDBName = localStorage.getItem("curDBName") || ""; // this is the name of db switching TO, not FROM
+    await FF.clearDoc(); 
     if (FG.curDBName) {
         let pkt = WS.makePacket("SelectDB");            // tell server, waitfor failMsg or null=good
         pkt.text = FG.curDBName;
@@ -101,7 +95,11 @@ FF.selectDB = async function() {
 
 
 function onDBSelectorChanged(evt) {
-    localStorage.setItem("curDBName", evt.target.value);
+    let dbName = evt.target.value;
+    if (dbName == "No DB Selected") {
+        dbName = "";
+    }
+    localStorage.setItem("curDBName", dbName);
     FF.selectDB();
 }
 
@@ -129,7 +127,7 @@ function onNewInstance() {
 
 
 function onNewDB() {
-    async function onButton(btnLabel, dict) {
+    async function _onButton(btnLabel, dict) {
         let pkt = WS.makePacket("CreateDB");
         pkt.text = dict.dbName;
         pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
@@ -137,6 +135,7 @@ function onNewDB() {
             alert("Database name error: " + pkt.text);
             return false;
         }
+        FF.updateDBSelector();
         return true;
     }
     const form = `<form>
@@ -146,7 +145,7 @@ function onNewDB() {
 </form>`;
 
     FG.kmStates.modal = true;
-    dlg = new DFDialog({ onButton: onButton });
+    dlg = new DFDialog({ onButton: _onButton });
     dlg.open(form);
 }
 

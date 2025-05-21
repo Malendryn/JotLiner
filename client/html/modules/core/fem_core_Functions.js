@@ -109,7 +109,6 @@ FF.clearDoc = async() => {
         }
         await FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
         FG.curDoc = null;
-        localStorage.removeItem("curDBDoc:" + FG.curDBName);
     }
 }
 
@@ -249,7 +248,7 @@ const autoSaveCallback = async function() {
             version:    FG.VERSION,
             doc:        str,
         }
-        pkt = WS.sendExpect(pkt);	// send to backend, /maybe/ get a response-or-Fault
+        pkt = WS.sendExpect(pkt);	// send to backend, /maybe/ get a response-or-Fault, don't care!
     	FG.curDoc.dirty = false;
     }
 }
@@ -292,7 +291,7 @@ FF.addTrackedListener = function(el, action, callback, opts=undefined) {
 
 
 FF.removeTrackedListenerById = function(id) {
-    debugger; for (let idx = 0; idx < FG.__registeredEventListeners.length; idx++) {
+    for (let idx = 0; idx < FG.__registeredEventListeners.length; idx++) {
         let tmp = FG.__registeredEventListeners[idx];        // {id, el, action, callback, opts}
         if (tmp.id == id) {
             tmp.el.removeEventListener(tmp.action, tmp.callback);   // unlisten

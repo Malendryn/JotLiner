@@ -67,6 +67,13 @@ async function process(ws, data) {
 }
 
 
+BF.fault = function(msg) {
+    const pkt = new WS.__classes.Fault();
+    pkt.msg = msg;
+    return pkt;
+}
+
+
 BF.onChanged = (ws, dict) => {
     const pkt = new WS.__classes.Changed();
     pkt.dict = dict;

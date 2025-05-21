@@ -106,7 +106,7 @@ class DFDialog {
 // default functions if not supplied during new
     async preRun()  {}
     async postRun() {}
-    async onButton(label, dict) { debugger; return true; }
+    async onButton(label, dict) { return true; }
           onClose() {}
 
     constructor(opts = {}) {

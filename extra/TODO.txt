@@ -1,50 +1,34 @@
-change 
-change localStorage.getItem("lastOpenedDoc")  to key = "curDBDoc:<dbname>", val="<docuuid>"
-        one entry per db
-add localStorage -- key="curDBName", val="<dbname>"
-
 -----------------------------------------------------------------------------------------------------------------------
 * checkout https://render.com/docs for hosting a live site for free
 * learn the whole github process  (see my cherrytree links)
 -----------------------------------------------------------------------------------------------------------------------
+when no doc selected in left pane, right pane should be ghosted or show a msg or somethign about 'please create or 
+    select a document
+-----------------------------------------------------------------------------------------------------------------------
+
 we used to load dch modules as-needed and not before.  we should go back to doing that again
     in index.js we already fetch all modulepaths, we can just insert them into DCH[dchName] as null and loadAsNeeded
 -----------------------------------------------------------------------------------------------------------------------
 1 make docTree dragdrop work properly!  (reordering of doctree documents)
     move docs (dragdrop, in/out depth too)
 -----------------------------------------------------------------------------------------------------------------------
-once we get the DBSelector dropdown working, we also have to get 'push' notifications sent to the client should anyone
-add or remove an existing db
------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------
 track state of opened index pane entries
         we need this per-client methinks so not something to track in the db
-
+-----------------------------------------------------------------------------------------------------------------------
+we can now create and select db's, but we can't delete them yet
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-on client connect we need to pass the name of the db to connect to
-and we need to track all opened dbs in the server
-AND we need to CLOSE the dbs when a client goes away!!!!!!!
-AND we need a packet to pull existing dblist back to the client to show them in the 'open db' menu
-
------------------------------------------------------------------------------------------------------------------------
-we need to start getting localStorage working
-  ✔ for last db opened (so we can load this one immediately on startup)
-    for which db was last opened (rather than a record in the db)
-    for which entries in the index are expanded
-
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
-when properties popup for DCH_BOX we want to show 'infinite Pan offset' and let user edit it (in the properties popup!)
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+in properties popup for DCH_BOX we want to show 'infinite Pan offset' and let user edit it (in the properties popup!)
 -----------------------------------------------------------------------------------------------------------------------
 NICE TO HAVE if when mode1 we could drag corners of a box that we see the shadow of but the corner we want to drag
 is invisible cuz it's outside the frame of the parent BOX
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 PRE-GITHUB Todos
-
-* add a 'choose db' option and allow them to have multiple db's they can switch easily between  (do this soon to help 
-    ME switch quickly to the examples.db etc... and back again!)
 
 * front/back depth of dch's within document
 * cut/copy/paste dch's (or delete/copy/move wherein copy/move .cursor('x') the mouseIcon til you click to drop)

@@ -42,7 +42,7 @@ async function onCtxDelete() {
         if (yes) {
             let pkt = WS.makePacket("DeleteDoc")
             pkt.uuid = FG.curDoc.uuid;
-            pkt = await WS.sendWait(pkt)    // delete doc, wait for confirmation
+            pkt = await WS.sendWait(pkt)    // delete doc, wait for confirmation-or-fault,  don't care
             await FF.loadDocTree();         // go fetch and reconstruct index pane  (clears doc internally!)
         }
     }
@@ -104,9 +104,9 @@ function openDocRenamePopup() {
                 name:       dict.docname,   // name of doc
                 uuid:       FG.curDoc.uuid, // uuid of doc
             }
-            pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
+            pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
             await FF.loadDocTree();         // go fetch and reconstruct index pane
-            debugger; await FF.selectAndLoadDoc(FG.curDoc.uuid, false);  // keep current doc as all we did was rename it
+            await FF.selectAndLoadDoc(FG.curDoc.uuid, false);  // keep current doc as all we did was rename it
         }
         FG.kmStates.modal = false;
         return true;
@@ -161,9 +161,9 @@ function openDocInfoPopup(asChild) {
                 parent:     (asChild) ? info.uuid : info.parent,    // ifChild, set parent to selected, else selecteds parent
                 doc:        await exporter.export(FG.curDoc.rootDch),
             }
-            pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
+            pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
             await FF.loadDocTree();         // go fetch and reconstruct index pane
-            debugger; await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
+            await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
         }
         FG.kmStates.modal = false;
         return true;
@@ -306,6 +306,7 @@ function onClickULItem(evt) {
 async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
     evt.preventDefault();
     if (!FG.kmStates.modal) {
+        localStorage.removeItem("curDBDoc:" + FG.curDBName);
         await FF.selectAndLoadDoc('');
     }
 }
@@ -315,7 +316,7 @@ async function onContextMenu(evt) {     // desel any sel,  sel current one under
     evt.preventDefault();
     if (!FG.kmStates.modal) {
         const uuid = getDocTreeLIUuid(evt);
-        debugger; await FF.selectAndLoadDoc(uuid);
+        await FF.selectAndLoadDoc(uuid);
         FG.kmStates.clientX = evt.clientX;  // update kmStates mousepos HERE cuz it now ONLY updates when over dch window
         FG.kmStates.clientY = evt.clientY;
         openIndexContextMenu();
@@ -387,10 +388,15 @@ function onDragEnd(evt) {   // this is firing twice, donno why, but at least tes
 FF.loadDocTree = async function() {         // sets off the following chain of WS db calls...
     let pkt = WS.makePacket("GetDocTree")
     pkt = await WS.sendWait(pkt);           // SELECT * from docTree order by parent,listOrder
-
+    let list;
+    if (pkt.constructor.name == "Fault") {  // no db open, no doctree available
+        list = [];
+    } else {
+        list = pkt.list;
+    }
     const parents = {'': []};               // start with an empty toplevel (for when absolutely no recs exist yet)
-    for (let idx = 0; idx < pkt.list.length; idx++) {   // break list down into {}-by-parents
-        const entry = pkt.list[idx];
+    for (let idx = 0; idx < list.length; idx++) {   // break list down into {}-by-parents
+        const entry = list[idx];
         if (!parents.hasOwnProperty(entry.parent)) {
             parents[entry.parent] = [];
         }
@@ -416,12 +422,12 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 
     FG.docTree = nuTree;
 
-    console.log(FF.__FILE__(), "RSTODO RSQUERY is this safe? -- commented out FF.clearDoc if FG.curDoc.uuid no good");
-    // if (FG.curDoc) {                                    // if we had a doc currently selected
-    //     if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
-    //         await FF.clearDoc();                        // nuke it!
-    //     }
-    // }
+    if (FG.curDoc) {                                    // if we had a doc currently selected
+        if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
+            await FF.clearDoc();                        // nuke it!
+            debugger; localStorage.removeItem("curDBDoc:" + FG.curDBName);  // delete our memory of it too
+        }
+    }
     showDocTree();
 }
 
@@ -432,19 +438,23 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
         return true;
     }
 
-    let tmp = FF.getDocInfo(uuid);      // if uuid !in index, abort!  (should NEVER happen!!!)
+    let tmp = FF.getDocInfo(uuid);      // if uuid !in index, abort!  (should NEVER happen?)
     if (tmp == null) {
-        // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=false");
         return false;
     }
+
+    await FF.clearDoc();                          // remove any current doc
 
     let pkt = WS.makePacket("GetDoc");
     pkt.uuid = uuid;
     pkt = await WS.sendWait(pkt);
+    let doc = null;
+    if (pkt.constructor.name != "Fault") {  // no db open, no doctree available
+        doc = pkt.doc;
+    }
 
-    await FF.clearDoc();                          // remove any current doc
 
-    if (pkt.doc == null) {                  // could not load doc, therefore can't set as curDoc
+    if (doc == null) {                  // could not load doc, therefore can't set as curDoc
         console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=false");
         return false;
     }
@@ -453,7 +463,7 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
 
     FG.curDoc = { 
         uuid:    uuid, 
-        rootDch: await imp.attach(pkt.doc, null),  // now build-and-attach doc to the system as new root doc!
+        rootDch: await imp.attach(doc, null),  // now build-and-attach doc to the system as new root doc!
         dirty:   false,
     };
 

@@ -605,6 +605,13 @@ function showGhosts(dch) {
 }
 
 function doDchOpMode1(orig) { // only called when FG.kmStates == 1
+    if (!FG.kmStates.inDocView) {
+        return;
+    }
+    if (!FG.curDoc) {
+        return;
+    }
+    
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 

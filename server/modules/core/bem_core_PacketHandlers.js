@@ -10,16 +10,18 @@ function logPkt(name) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.__classes.GetExtra.prototype.process = async function(client) {
     logPkt("GetExtra");
-    debugger; let tmp = await client.db.query("SELECT value FROM extra WHERE key=?", [this.txt]);
+    this.txt = null;
+    debugger; 
+    if (!client.db) { return BF.fault("Database not selected"); }
+    let tmp = await client.db.query("SELECT value FROM extra WHERE key=?", [this.txt]);
     if (tmp.length == 1) {
         this.txt = tmp[0].value;
-    } else {
-        this.txt = null;
     }
     return this;
 }
 WS.__classes.SetExtra.prototype.process = async function(client) {
     logPkt("SetExtra");
+    if (!client.db) { return BF.fault("Database not selected"); }
     debugger; let tmp = await client.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
     return null;
 }
@@ -46,6 +48,8 @@ WS.__classes.GetDCHList.prototype.process = async function(client) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.__classes.GetDocTree.prototype.process = async function(client) {
     logPkt("GetDocTree");
+    if (!client.db) { return BF.fault("Database not selected"); }
+    this.list = [];
     this.list = await client.db.query("SELECT * from docTree order by parent,listOrder");
     return this;
 }
@@ -54,16 +58,17 @@ WS.__classes.GetDocTree.prototype.process = async function(client) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.__classes.GetDoc.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
     logPkt("GetDoc");
+    if (!client.db) { return BF.fault("Database not selected"); }
+    this.doc = null;
     const tmp = await client.db.query("SELECT content FROM doc WHERE uuid=?", [this.uuid]);
     if (tmp.length > 0) {
         this.doc = tmp[0].content;
-    } else {
-        this.doc = null;
     }
     return this;
 }
 WS.__classes.NewDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
     logPkt("NewDoc");
+    if (!client.db) { return BF.fault("Database not selected"); }
     try {
         await client.db.run("BEGIN TRANSACTION");
         let recs = await client.db.query("SELECT id,uuid,listOrder from docTree where parent=? order by listOrder", [this.dict.parent]);
@@ -97,6 +102,7 @@ WS.__classes.NewDoc.prototype.process = async function(client) {    // insert ne
 };
 WS.__classes.SaveDoc.prototype.process = async function(client) {    // insert new doc into db,  return with a GetDocTree packet
     logPkt("SaveDoc");
+    if (!client.db) { return BF.fault("Database not selected"); }
     try {
         await client.db.run("BEGIN TRANSACTION");
         let list = [this.dict.version, this.dict.doc, this.dict.uuid];
@@ -112,6 +118,7 @@ WS.__classes.SaveDoc.prototype.process = async function(client) {    // insert n
 };
 WS.__classes.RenameDoc.prototype.process = async function(client) {    // rename a document
     logPkt("RenameDoc");
+    if (!client.db) { return BF.fault("Database not selected"); }
     await client.db.run("BEGIN TRANSACTION");
     await client.db.run("UPDATE docTree SET name=? WHERE uuid=?", [this.dict.name, this.dict.uuid]);
     await client.db.run("COMMIT TRANSACTION");
@@ -122,6 +129,7 @@ WS.__classes.RenameDoc.prototype.process = async function(client) {    // rename
 }
 WS.__classes.DeleteDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
     logPkt("DeleteDoc");
+    if (!client.db) { return BF.fault("Database not selected"); }
     debugger; try {
         await client.db.run("BEGIN TRANSACTION");
 
@@ -152,14 +160,14 @@ WS.__classes.DeleteDoc.prototype.process = async function(client) {    // insert
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.__classes.CreateDB.prototype.process = async function(client) {    // create new db, return null=good, text=errormsg
     logPkt("CreateDB");
-    const err = BF.checkFilename(this.text);    // test filename for validity
+    const err = BF.checkDBName(this.text);    // test filename for validity
     if (err) {                            // return it if bad
         this.text = err;
         return this;
     }
 
-    debugger; await BF.releaseDB(client);              // close any currently open db on this client
-    debugger; await BF.attachDB(this.text, client);
+    await BF.releaseDB(client);              // close any currently open db on this client
+    await BF.attachDB(this.text, client);
 
     BF.onChanged(client.ws, {what:"dbList"});      // tell the world that the dbList changed!
 
@@ -169,13 +177,17 @@ WS.__classes.CreateDB.prototype.process = async function(client) {    // create 
 };
 WS.__classes.SelectDB.prototype.process = async function(client) {    // make other db current, return null=good, text=errormsg
     logPkt("SelectDB");
-    const err = BF.checkFilename(this.text);    // test filename for validity
-    if (err) {                            // return it if bad
+    const err = BF.checkDBName(this.text);    // test filename for validity
+    if (err) {                                // return msg if bad
         this.text = err;
         return this;
     }
 
-// RSTODO add check for DB Exists here! 
+    let list = await BF.getDBList();                // check that db file actually exists
+    if (!list.includes(this.text)) {
+        this.text = "Database '" + this.text + "' does not exist";
+        return this;
+    }
 
     await BF.releaseDB(client);             // close any currently open db on this client
     await BF.attachDB(this.text, client);   // increment clientCount if already open, else open/create db
@@ -185,7 +197,8 @@ WS.__classes.SelectDB.prototype.process = async function(client) {    // make ot
 };
 WS.__classes.DeleteDB.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
     logPkt("DeleteDB");
-    const err = BF.checkFilename(this.text);    // test filename for validity
+    if (!client.db) { return BF.fault("Database not selected"); }
+    const err = BF.checkDBName(this.text);    // test filename for validity
     if (err) {                            // return it if bad
         this.text = err;
         return this;
@@ -214,15 +227,9 @@ debugger; try {
 
     this.text = null;
     return this;
-};
+}
 WS.__classes.GetDBList.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
     logPkt("GetDBList");
-    
-    const dirPath = path.join(BG.basePath, "server", "db");
-    const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
-    this.list = [];
-    for (const file of files) {
-        this.list.push(file.name.substr(0, file.name.length - 3));  // chop off the last 3 chars '.db'
-    }    
+    this.list = await BF.getDBList();
     return this;
 };

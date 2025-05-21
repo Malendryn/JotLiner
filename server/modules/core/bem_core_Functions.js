@@ -10,11 +10,17 @@
 // --------       shutdown()               called before server exits entirely.  closes database and does other cleanup
 // -------- async makeUUID()               make and return a UUID
 // -------- async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
-// "txt"  =       checkFilename(name)      check for invalid characters and lengths; return string if bad, null if good
-// -------- async closeDB(dbName)          decrement usercount, close&remove from BG.openedDBs accordingly
+// "txt"  =       checkDBName(name)        check for invalid characters and lengths; return string if bad, null if good
+// [list] = async getDBList()              return list of databases 
+// -------- async attachDB(dbName, client) open db if not already,  inc usercount, 
+// -------- async releaseDB(client)        decrement usercount, close&remove from BG.openedDBs accordingly
 
 // ==== FROM bem_core_WSockHandler.js ====================================================================================
 // --------       onChanged(table,uuid)    whenever any action changes a table, this function must get called
+
+
+import path from 'path';
+import fs from "fs";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,40 +54,62 @@ export async function init() {
 }
 
 
-BF.checkFilename = function(filename) {
-    if (filename.length === 0) {    // Basic checks
-        return "Filename cannot be empty";
+BF.checkDBName = function(dbName) {
+    if (dbName.length === 0) {    // Basic checks
+        return "Database name cannot be empty";
+    }
+
+    if (dbName.indexOf(".") != -1) {    // just makes other parsing easier if we don't have to worry about periods in the names
+        return "Database name cannot contain periods";
     }
 
     const badChars = /[<>:"/\\|?*\x00-\x1F]/g;    // Generally invalid chars for Windows, linux, mac
-    if (badChars.test(filename)) {
-        return "Filename contains invalid characters";
+    if (badChars.test(dbName)) {
+        return "Database name contains invalid characters";
     }
 
-    if (/^\s|\s$/.test(filename)) {
-        return "Filename cannot begin or end with whitespace"
+    if (/^\s|\s$/.test(dbName)) {
+        return "Database name cannot begin or end with whitespace"
 
     }
-    // Disallowed Windows reserved filenames (case-insensitive)
+    // Disallowed Windows reserved dbNames (case-insensitive)
     const reservedNames = [
         "CON", "PRN", "AUX", "NUL",
         "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
         "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
     ];
 
-    const baseName = filename.split('.')[0].toUpperCase();
+    const baseName = dbName.split('.')[0].toUpperCase();
     if (reservedNames.includes(baseName)) {
-        return "Filename cannot contain Windows-reserved words";
+        return "Database name cannot contain Windows-reserved words";
     }
 
-    if (/[. ]$/.test(filename)) {   // on Windows, can't end with space or dot
-        return "Filename cannot end with a space or period";
+    if (/[. ]$/.test(dbName)) {   // on Windows, can't end with space or dot
+        return "Database name cannot end with a space or period";
     }
 
-    if (filename.length > 255) {    // Limit length: conservative max (NTFS supports 255 bytes, but safer to stay below)
-        return "Filename cannot exceed 255 characters in length";
+    if (dbName.length > 48) {    // Limit length: don't need/want rediculously long database names
+        return "Database name cannot exceed 48 characters in length";
     }
     return null;
+}
+
+
+BF.getDBList = async function() {
+    const dirPath = path.join(BG.basePath, "server", "db");
+    const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
+    const list = [];
+    for (const file of files) {
+        let parts = file.name.split(".");
+        if (parts.length != 2) {        // skip names like 'dbname.db-jour.db'
+            continue;
+        }
+        if (parts[1].toLowerCase() != "db") {        // skip names that don't end in .db
+            continue;
+        }
+        list.push(parts[0]);
+    }
+    return list;
 }
 
 
