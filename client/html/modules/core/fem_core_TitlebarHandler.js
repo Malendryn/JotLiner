@@ -87,6 +87,7 @@ console.log(FF.__FILE__(), "FF.selectDB() used to await FF.clearDoc(),  do we st
             localStorage.removeItem("curDBName");       // something went wrong,  'forget' current DB and popup the msg
             FG.curDBName = "";
             alert(pkt.text);
+            FF.updateDBSelector();      // to clean out the missing db(s)
         }
     }
 

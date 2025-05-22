@@ -156,17 +156,18 @@ BF.openDB = async function(dbName) {
     await db.updateDB(0, 1, async() => {  // update 0=>1, create extra table ONLY and add extra:dbVersion=0
         sql =
 "CREATE TABLE extra"
-+ "( key        TEXT NOT NULL PRIMARY KEY"
++ "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
++ ", key        TEXT NOT NULL UNIQUE"
 + ", value      TEXT NOT NULL"
-+ ") WITHOUT ROWID;";
++ ")";
         await db.run(sql);                                                           // create table
-        await db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // set initial value to '0'
+        await db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // incremented for each .updateDB()
     }); // ************************************************************************************************************
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     await db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables
         sql = 
 "CREATE TABLE docTree"
-+ "( id         INTEGER NOT NULL PRIMARY KEY"  // id of entry in index table (used by parent)
++ "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"  // id of entry in index table (used by parent)
 + ", name       TEXT    NOT NULL"  // name of entry in index table
 + ", uuid       TEXT    NOT NULL"  // uuid of entry in doc table
 + ", listOrder  INTEGER NOT NULL"  // ('order'=reserved word in sqlite3) 'display order' of recs in this table (when at same parent level)
@@ -178,7 +179,8 @@ BF.openDB = async function(dbName) {
     await db.updateDB(2, 3, async() => {  // update 2=>3, create index and doc tables
         sql = 
 "CREATE TABLE doc"
-+ "( uuid        TEXT    NOT NULL UNIQUE"  //UUID of doc
++ "( id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
++ ", uuid        TEXT    NOT NULL UNIQUE"  //UUID of doc
 + ", version     TEXT    NOT NULL"         //"n.n" major.minor version of doc (for auto-upgrade when loaded)
 + ", content     TEXT    NOT NULL"         // textified 'exported' doc body
 + ");";
