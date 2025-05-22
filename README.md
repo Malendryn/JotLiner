@@ -17,24 +17,25 @@ Real-Time Sync: Syncs notes and content across all open instances.
 
 ## Getting Started
 prereq: must have node.js installed
-cd to server subdir and type 
-    "npm install"
-then
-    "npm run"
+cd to JotLiner/server and type 
+- "npm install"
+<br>\- then -
+- "npm start"
 
+<br>
 
-la la la install node etc etc
+Once that's done,  
+- open any web browser and go to http://localhost:3000
+- select 'Getting Started' from the Database dropdown
+- click on the 'Welcome!' message in the left pane.
+
 
 ### Usage
-la la la
-
-- Examples of usage
-- Screenshots
-- Command-line options
+Read through the on-screen instructions for a simple tutorial about the basic features.
 
 ## Contributing
 
-We're not quite ready for outside contributions just yet, but stay tuned — documentation and guidelines are on the way!
+We're not quite ready for outside contributions just yet, but stay tuned — documentation and guidelines are on the way!  However suggestions and commentary are welcome!
 
 ## Credits
 

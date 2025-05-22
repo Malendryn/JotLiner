@@ -33,7 +33,6 @@ class DBHandler {
 
                     const timeout = 15 * 60 * 1000;     // 15 minutes
                     this.timeoutId = setInterval(() => {
-                        console.log("loop... id=");
                         const now = Date.now();
                         if (now - this.lastAccessed > timeout) {
                             console.log("Reopening DB '" + this.dbName + "' due to inactivity...");

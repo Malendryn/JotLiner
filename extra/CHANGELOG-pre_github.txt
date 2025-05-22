@@ -16,6 +16,7 @@
 * discovered and fixed a problem with btoa()/atob() storage of certain .innerHTML data
 * made a few more mods to .gitignore to untrack of .vscode and code-code.workspace
 * preparing to add to github!
+
 2025-05-21 ------------------------------------------------------------------------------------------------------------
 * fixed: when a new db is created, it wasn't automatically being switched-to
 * added a 'select item from left pane' blurb when no doc is selected (while divDocView is useless)
