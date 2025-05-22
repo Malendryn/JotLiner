@@ -1,16 +1,17 @@
-// globalThis.WS = {} is defined already.  (see index.js or server.js)
+// globalThis.WS = {} is defined in index.js or server.js
 
-WS.__classes = {};    // these HAVE to go on FG cuz they get lost when we exit loadModule EVEN THO they're only ever used in THIS module
-WS.__nextNewPacketID = 1;   // likewise with this var
+// WS is defined in server.js AND index.js
+WS.classes = {};            // list of all PacketBASE-extending classes below, added via WS.registerPacketClass()
+WS.__nextNewPacketID = 1;   // unique id for every packet created
 
 
 WS.registerPacketClass = function(clazz) {
-    WS.__classes[clazz.name] = clazz;
+    WS.classes[clazz.name] = clazz;
 }
 
 
 WS.makePacket = function(name)  {
-    const pkt = new WS.__classes[name]();   // DO NOT set __id in 'new' cuz .parsePacket will overwrite it
+    const pkt = new WS.classes[name]();   // DO NOT set __id in 'new' cuz .parsePacket will overwrite it
     pkt.__id = WS.__nextNewPacketID++;      // set and increment it here, instead
     return pkt;
 }
@@ -21,26 +22,29 @@ WS.parsePacket = function(stream) {         // decode "className|{dict}" into ac
     const name = stream.substring(0, idx);
     const tmp = stream.substring(idx + 1);
     const dict = JSON.parse(tmp);
-    const pkt = new WS.__classes[name]();   // create new packet WITHOUT incrementing __id
+    const pkt = new WS.classes[name]();   // create new packet WITHOUT incrementing __id
     Object.assign(pkt, dict);               // copy all stream's dictEls onto packet
     return pkt;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////// class definitions go below this line (also see example right below PacketBASE) /////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class PacketBASE {
-    __id;       // uniquely generated number used for packets expecting a response
-//  __r = 1;    // auto-added when a packet is sent back as a return packet (see bem_core_WSockHandler.js)
+    __id;       // unique self-generated number used for all packets sent and usable for comparing on response
+//  __r = 1;    // (1 meaning true), auto-added ONLY when sent back to sender as return packet (see bem_core_WSockHandler.js)
 
     process() {}    // override via SubClass.prototype.process() in SEPERATE client/server handler files!
-                    //    (see bem_core_PacketHandlers.js)
-                    // returns pkt to return to client OR new Error() OR null if nothing going back
+                    //    (see bem_core_PacketHandlers.js and fem_core_PacketHandlers.js)
+                    // server: processes incoming packet
+                    //     returns pkt to return to client OR new Fault() if error OR null if nothing going back
+                    // client: processes incoming packet
+                    //     returns nothing
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////Packets/////////////////////////////////////////////////////////
+/////////////////////////////////////// Packet class definitions go below this line ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // see bem_core_PacketHandlers.js for the CLASS.prototype.process(){} backend overrides for these classes
 

@@ -95,19 +95,32 @@ html,body {
 #divIndexDocSizer:hover {
     cursor:col-resize;
 }
+
+
 #divDocView {
     position: absolute;
-    /* background-color: magenta; */
     left:206px;     /* see divIndexDocSizer width:px */
     right: 0px;
     top: 0px;
     bottom: 0px;
-    background-color: lightpink;
+    background-color: lightgrey;
     overflow: hidden;   /* hide content that extends outside the box */
     white-space: nowrap;    /* prevent word wrap (here for specific DOCType RSTEST purposes only) */
 }
+#divDocView.disabled {
+    display: flex;
+    pointer-events: none;   
+    /* opacity:0.5; */
+    background-color: rgb(188, 198, 209);
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 2em;
+    color: rgb(105, 105, 105);
+}
 
-.shadowBox.disable {
+
+.shadowBox.disabled {
     pointer-events: none;   
     opacity:0.5;
 }

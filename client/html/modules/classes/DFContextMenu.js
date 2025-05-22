@@ -1,14 +1,24 @@
 
 class DFContextMenu {
     menu = null;
-    open(entries, callback, locX = FG.kmStates.clientX, locY = FG.kmStates.clientY) {
+    open(entries, callback, locX, locY) {
         _loadCss();
         this.close();
         this.menu = _buildContextMenu(entries, false);
+
         this.menu.style.left = locX + "px";
         this.menu.style.top = locY + "px";
         this.menu.classList.add("active");
         document.body.appendChild(this.menu);
+
+        const pRect = document.body.getBoundingClientRect();
+        const rect = this.menu.getBoundingClientRect();
+        if (rect.left + rect.width > pRect.width) {
+            this.menu.style.left = Math.max(pRect.width - rect.width, 0) + "px";
+        }
+        if (rect.top + rect.height > pRect.height) {
+            this.menu.style.top = Math.max(pRect.height - rect.height, 0) + "px";
+        }
     
         this.menu.addEventListener("click", (evt) => {
             if (evt.target.dataset.action) {  // if not a submenu-opener entry
@@ -34,8 +44,8 @@ export { DFContextMenu };
 
 
 class DFMenuBar {
-    bar = null;
-    cm = null;
+    bar = null;     // the <div> that shows the menuEntries left to right inside the parent
+    cm = null;      // contextMenu that opens beneath a menuEntry
     open(parent, entries, callback) {
         _loadCss(this.constructor.name);
         this.close();

@@ -8,9 +8,21 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+* fixed exporter/importer issue where exporter wasn't flagging uuencoded data properly so importer didn't decode it
+* fixed a 're-broken' issue with localStorage not saving/clearing last loaded doc when switching db
+* modded DFDialog to only support <form> now, and that all buttons get a filled dict (no more null) with a special
+    param of "isSubmit":T/F to declare what kind of button was pressed.  This now allows the enter key to end dialogs
+*fixed contextMenus not being constrained to the browser window.  they now shift as needed to stay inside
+2025-05-21 ------------------------------------------------------------------------------------------------------------
+* fixed: when a new db is created, it wasn't automatically being switched-to
+* added a 'select item from left pane' blurb when no doc is selected (while divDocView is useless)
+* performed various cleanups and relocations of files in preparation for github
+* did a lot of documenting in the "Getting Started.db" which is now saved into git (now instead of example.db)
+
 2025-05-21 ------------------------------------------------------------------------------------------------------------
 * fixed problem with localStorage not saving/clearing last loaded doc per-db in certain cases
+* removed the CK5 dch as that was just a backburner thought, and I don't want to burden the core system with potential
+    licensing conflicts that may arise from plugins like that.
 
 2025-05-20 ------------------------------------------------------------------------------------------------------------
 * added an onClose() callback to DCHDialog and moved all callbacks to constructor() so that open() only has data as

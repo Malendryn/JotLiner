@@ -68,14 +68,14 @@ async function process(ws, data) {
 
 
 BF.fault = function(msg) {
-    const pkt = new WS.__classes.Fault();
+    const pkt = new WS.classes.Fault();
     pkt.msg = msg;
     return pkt;
 }
 
 
 BF.onChanged = (ws, dict) => {
-    const pkt = new WS.__classes.Changed();
+    const pkt = new WS.classes.Changed();
     pkt.dict = dict;
     for (const client of BG.clients.values()) {
         if (ws != client.ws) {      // don't send this packet to 'self' as we are the ones who made the change!

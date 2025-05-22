@@ -86,22 +86,22 @@ function makeNewDocForm(asChild) {
 <form>
     <b>Insert new ${childTxt}document</b><br>
     <label>Document name</label>
-    <input type="text" name="docname">
+    <input type="text" name="docName">
 </form>`;
 }
 
 
 function openDocRenamePopup() {
     async function _onDlgButton(btnLabel, dict) {
-        if (dict) {
-            if (dict.docname.length == 0) {                 // validate
+        if (dict.isSubmit) {
+            if (dict.docName.length == 0) {                 // validate
                 alert("Document name cannot be empty");
                 return false;
             }
     
             let pkt = WS.makePacket("RenameDoc")
             pkt.dict = {
-                name:       dict.docname,   // name of doc
+                name:       dict.docName,   // name of doc
                 uuid:       FG.curDoc.uuid, // uuid of doc
             }
             pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
@@ -116,12 +116,12 @@ function openDocRenamePopup() {
 <form>
     <b>Rename document</b><br>
     <label>Document name</label>
-    <input type="text" name="docname">
+    <input type="text" name="docName">
 </form>`;
 
     const info = FF.getDocInfo(FG.curDoc.uuid);
     let dict = {
-        "docname": info.name
+        "docName": info.name
     }
 
     FG.kmStates.modal = true;
@@ -132,12 +132,12 @@ function openDocRenamePopup() {
 
 function openDocInfoPopup(asChild) {
     let dict = {
-        "docname": ""
+        "docName": ""
     }
 
     async function _onDlgButton(btnLabel, dict) {
-        if (dict) {
-            if (dict.docname.length == 0) {                 // validate
+        if (dict.isSubmit) {
+            if (dict.docName.length == 0) {                 // validate
                 alert("Document name cannot be empty");
                 return false;
             }
@@ -154,7 +154,7 @@ function openDocInfoPopup(asChild) {
             let exporter = new FG.DocExporter();
             let pkt = WS.makePacket("NewDoc")
             pkt.dict = {
-                name:       dict.docname,   // name of doc
+                name:       dict.docName,   // name of doc
                 uuid:       FG.curDoc.uuid, // uuid of doc
                 version:    FG.VERSION,     // version of doc
                 after:      (asChild) ? ''        : info.uuid,      // ifChild, set after to none, else to selected
@@ -425,7 +425,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     if (FG.curDoc) {                                    // if we had a doc currently selected
         if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
             await FF.clearDoc();                        // nuke it!
-            debugger; localStorage.removeItem("curDBDoc:" + FG.curDBName);  // delete our memory of it too
+            localStorage.removeItem("curDBDoc:" + FG.curDBName);  // delete our memory of it too
         }
     }
     showDocTree();
@@ -443,7 +443,11 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
         return false;
     }
 
-    await FF.clearDoc();                          // remove any current doc
+    await FF.clearDoc();                                // remove any current doc
+
+    const el = document.getElementById("divDocView");   // un-'disable' the background
+    el.classList.remove("disabled");
+    el.innerHTML = "";
 
     let pkt = WS.makePacket("GetDoc");
     pkt.uuid = uuid;
@@ -470,6 +474,7 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
     localStorage.setItem("curDBDoc:" + FG.curDBName, uuid); // set uuid as currently selected/loaded doc
 
     // console.log(FF.__FILE__(), "FF.loadDoc curDoc=", FG.curDoc);
+
     return true;
 }
 

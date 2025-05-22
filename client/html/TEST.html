@@ -1,103 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Rectangle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #itemSelect {
+            margin-bottom: 20px;
+        }
+
+        #rectangle {
+            width: 400px;
+            height: 300px;
+            border: 2px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #888;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+
+        .empty-rectangle p {
+            font-size: 16px;
+        }
+
+        .filled-rectangle {
+            background-color: #d3ffd3; /* Light green to indicate it's now populated */
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-	<!-- <div style="position:absolute;width:800px;height:600px;background-color:lightblue;border:1px solid black;overflow:auto;">
-		<div style="position:absolute;left:-100px;top:-100px;width:200px;height:200px;background-color:yellow;border:1px solid black;"></div>
-		<div style="position:absolute;left:700px;top:100px;width:200px;height:500px;background-color:rgb(43, 255, 0);border:1px solid black;"></div>
-		<table style="position:absolute;left:300px;top:200px;background-color:rgb(43, 255, 0);border:1px solid black;"></tablestyle>>
-			<tr>
-				<td>0,0</td>
-				<td>0,1</td>
-			</tr>
-			<tr>
-				<td>1,0</td>
-				<td>1,1</td>
-			</tr>
-		</table>
-	</div> -->
 
+    <div>
+        <label for="itemSelect">Select an item:</label>
+        <select id="itemSelect">
+            <option value="">--Please select--</option>
+            <option value="item1">Item 1</option>
+            <option value="item2">Item 2</option>
+            <option value="item3">Item 3</option>
+        </select>
+    </div>
 
-	<style>
-		#divindexView ul {
-		  list-style: none;
-		  padding-left: 1em;
-		}
-	
-		#divindexView .arrow {
-		  cursor: pointer;
-		  display: inline-block;
-		  width: 1em;
-		  margin-left: -1em;
-		  user-select: none;
-		}
-	
-		#divindexView .arrow::before {
-		  content: "►";
-		  transition: transform 0.2s ease;
-		}
-	
-		#divindexView li.expanded > .arrow::before {
-		  content: "▼";
-		}
-	
-		#divindexView ul ul {
-		  display: none;
-		}
-	
-		#divindexView li.expanded > ul {
-		  display: block;
-		}
-	
-		#divindexView li {
-		  position: relative;
-		}
-	  </style>
-	
-	<ul>
-	  <li>
-		<span class="arrow"></span> Parent 1
-		<ul>
-		  <li>Child 1</li>
-		  <li>
-			<span class="arrow"></span> Parent 2
-			<ul>
-			  <li>Child 2</li>
-			</ul>
-		  </li>
-		</ul>
-	  </li>
-	  <li>Item A</li>
-	</ul>
+    <div id="rectangle" class="empty-rectangle">
+        <p>Please select an item to populate this area.</p>
+    </div>
 
-	<ul id="divIndexViewUL">
-		<li id="21" draggable="true">DEMO firstglance</li>
-		<li id="35" draggable="true">DEMO live edit</li>
-		<li id="25" draggable="true">DEMO moving plugins</li>
-		<li id="2" draggable="true">DEMO anchors</li>
-		<li id="31" draggable="true"><span class="arrow"></span>uuuuuuuu</li>
-		<li id="32" draggable="true" style="background-color: rgb(40, 200, 184);">
-		<span class="arrow"></span>eeeeeeee</li>
-		<li id="33" draggable="true">1244412</li>
-		<li id="34" draggable="true">test</li>
-		<li id="16" draggable="true">456456</li>
-		<li id="36" draggable="true">7777777</li>
-		<li id="27" draggable="true">bbbbb</li>
-		<li id="26" draggable="true">aaaaa</li>
-	</ul>
-	<script>
-	  document.querySelectorAll('li').forEach(li => {
-		const childUL = li.querySelector('ul');
-		if (childUL) {
-		  const arrow = li.querySelector('.arrow');
-		  arrow.addEventListener('click', e => {
-			e.stopPropagation(); // prevent bubbling up
-			li.classList.toggle('expanded');
-		  });
-		}
-	  });
-	</script>
-	
+    <script>
+        document.getElementById('itemSelect').addEventListener('change', function() {
+            var rectangle = document.getElementById('rectangle');
+            var selectedItem = this.value;
+
+            if (selectedItem) {
+                // If an item is selected, populate the rectangle and update styles
+                rectangle.classList.remove('empty-rectangle');
+                rectangle.classList.add('filled-rectangle');
+                rectangle.innerHTML = '<h2>' + selectedItem + ' selected!</h2>';
+            } else {
+                // If no item is selected, reset the rectangle to its empty state
+                rectangle.classList.remove('filled-rectangle');
+                rectangle.classList.add('empty-rectangle');
+                rectangle.innerHTML = '<p>Please select an item to populate this area.</p>';
+            }
+        });
+    </script>
+
 </body>
 </html>

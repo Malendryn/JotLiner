@@ -1,14 +1,16 @@
-Standard nodeServer and html client side pairing
+This package consists of a standard nodeServer and html client side pairing
 
-to get fresh git pull up and running
-    for server:
-        cd to server subdir
-        npm install
-        npm start
-    for client:
-        open a browser and go to "http://localhost:3000"
-        cd to client subdir
-        xdg-open html/index.html
+Prerequesites:   Node (Node.js) must be installed first.
+
+fetch the package from github and place it in a local directory somewhere.
+
+Then, to start the server side:
+    cd to <installpath>/project.jotliner/server
+    npm install  #(first time only!)
+    npm start
+
+Once the server is up and running:
+    open a browser and go to "http://localhost:3000"
 
 
 

@@ -32,6 +32,7 @@ server/.vscode/
 # dont push .db files either (except for example.db)
 server/db/*.db
 !server/db/example.db
+!server/db/Getting\ Started.db
 
 # extra stuff
 extra/*~

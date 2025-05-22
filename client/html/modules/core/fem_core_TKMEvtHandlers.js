@@ -51,19 +51,19 @@ FG.kmPrior = null;  // clone of FG.kmStates prior to onStateChange() so we can t
 
 // had to use <div> instead of <form> else the style="..." stuff didn't work at-all!
 const anchorForm = `
-	<style>
-		.enAbled {
-			font-family:monospace;
-			width:8px;
-			background-color:lightgreen;
-		}
-		.unAbled {
-			font-family:monospace;
-			width:8px;
-			background-color:red;
-		}
-	</style>
-	<div id="popDlgDCHAnchor" style="position:relative;width:396px;height:326px;background-color:lightblue;">
+	<form id="popDlgDCHAnchor" style="position:relative;width:396px;height:326px;background-color:lightblue;">
+        <style><!-- hack to inject styles while <form> remains as topmost element -->
+            .enAbled {
+                font-family:monospace;
+                width:8px;
+                background-color:lightgreen;
+            }
+            .unAbled {
+                font-family:monospace;
+                width:8px;
+                background-color:red;
+            }
+        </style>
 		<div style="position:absolute;top:84px;left:98px;width:200px;height:160px;border:1px solid black;background-color: lightgrey;"></div>
 
 		<svg>
@@ -124,8 +124,7 @@ dawAHL (AHR/AHT/AHB) is arrowhead facing Left, Right, Top, Bottom
 		</svg>
 		<div style="position:absolute;top:105px;left:322px;"><input id="dawIBCkBoxR" name="cboxR" type="text" class="enAbled" value="&#10004;" readonly><label>right</label><br></div>
 		<input id="dawIBInputR" name="inputR" type="number"   style="padding:0;position:absolute;top:125px;left:316px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
-
-	</div>
+	</form>
 `;
 function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND set value
     console.log("CVE=", code, val, enable);
@@ -227,7 +226,7 @@ function onContextDCHProps() {
     FG.kmStates.modal = true;
 
     _dialog = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onButton });        // new popup
-    _dialog.open(anchorForm, null, {"Cancel": false, "OK": true });
+    _dialog.open(anchorForm, null); // _preRun handles populating form
 }
 
 async function _preRun(form) {
@@ -246,7 +245,7 @@ async function _preRun(form) {
     form.addEventListener("input", onFormInput);
 }
 async function _onButton(btnLabel, dict) {
-    if (!dict) {                  // rather than test btnName we just test if dict was passed in
+    if (dict.isSubmit) {
         const ss = FG.kmStates.dch.__sysDiv.style;
         ss.left   = formOrigVals.left;      // if dict == null, cancel was clicked, so restore original values
         ss.width  = formOrigVals.width;
@@ -611,7 +610,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     if (!FG.curDoc) {
         return;
     }
-    
+
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
@@ -764,9 +763,9 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
 //     for (let idx = 0; idx < found.length; idx++) {
 //         const el = found[idx];
 //         if (yesno) {
-//             el.classList.add("disable");
+//             el.classList.add("disabled");
 //         } else {
-//             el.classList.remove("disable");
+//             el.classList.remove("disabled");
 //         }
 //     }
 // }

@@ -119,7 +119,7 @@ __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv
 </style>
 `;
             dch.__host.classList.add("shadowBox");            // see index.css
-            // dch.__host.classList.add("disable");           // dont add this here, example only!
+            // dch.__host.classList.add("disabled");          // dont add this here, example only!
             dch.host = document.createElement("div")          // this is now where all child elements get appended to
             dch.host.style.width = "100%";
             dch.host.style.height = "100%";                   // make sure host always fills parent completely

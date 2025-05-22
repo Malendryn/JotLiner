@@ -75,7 +75,10 @@ FF.updateDBSelector = async function() {
 
 FF.selectDB = async function() {
     FG.curDBName = localStorage.getItem("curDBName") || ""; // this is the name of db switching TO, not FROM
-    await FF.clearDoc(); 
+
+console.log(FF.__FILE__(), "FF.selectDB() used to await FF.clearDoc(),  do we still need to?");
+//    await FF.clearDoc(); 
+
     if (FG.curDBName) {
         let pkt = WS.makePacket("SelectDB");            // tell server, waitfor failMsg or null=good
         pkt.text = FG.curDBName;
@@ -86,6 +89,8 @@ FF.selectDB = async function() {
             alert(pkt.text);
         }
     }
+
+    await FF.clearDoc();    // clear current doc from memory (fixes issue with FF.selectAndLoadDoc erasing localStorage."curDBDoc:<dbName>")
 
     await FF.loadDocTree();                             // load-and-show docTree for that db
 
@@ -128,15 +133,20 @@ function onNewInstance() {
 
 function onNewDB() {
     async function _onButton(btnLabel, dict) {
-        let pkt = WS.makePacket("CreateDB");
-        pkt.text = dict.dbName;
-        pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation
-        if (pkt.text) {
-            alert("Database name error: " + pkt.text);
-            return false;
-        }
-        FF.updateDBSelector();
-        return true;
+        if (dict.isSubmit) {
+            let pkt = WS.makePacket("CreateDB");
+            pkt.text = dict.dbName;
+            pkt = await WS.sendWait(pkt)                    // create new db, wait for confirmation
+            if (pkt.text) {
+                alert("Database name error: " + pkt.text);
+                return false;
+            }
+
+            localStorage.setItem("curDBName", dict.dbName) || "";   // set the new dbname
+            await FF.updateDBSelector();                            // re-fetch the dblist and select new db
+            return true;
+        } 
+        return false;
     }
     const form = `<form>
     <b>Create New Database</b><br><br>
@@ -144,7 +154,7 @@ function onNewDB() {
     <input type="text" name="dbName" maxlength="32"><br><br>
 </form>`;
 
-    FG.kmStates.modal = true;
+    // FG.kmStates.modal = true;
     dlg = new DFDialog({ onButton: _onButton });
     dlg.open(form);
 }

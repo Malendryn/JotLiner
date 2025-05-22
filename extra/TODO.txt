@@ -1,26 +1,45 @@
 -----------------------------------------------------------------------------------------------------------------------
-* checkout https://render.com/docs for hosting a live site for free
-* learn the whole github process  (see my cherrytree links)
+Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
-when no doc selected in left pane, right pane should be ghosted or show a msg or somethign about 'please create or 
-    select a document
+in DFDialog, change open("form"...) to also support open({form:"form", style:"style"})
 -----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+minor quirk in that when rightpane is useless (no doc selected) alt+shift shouldn't do ANYthing at all.  (right now
+it's taking over the titlebar/toolbar)
+-----------------------------------------------------------------------------------------------------------------------
+the position of the seperator dragbar between index and doc views needs to be recorded in localStorage on a per-database level
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+change 'properties' to 'Layout, anchors and depth'
+    add zX/zY properties to the box DCH
+    add depth inc/dec/back/front buttons somewhere (with numerics such as depth="5 of 10" ...
+    )
+add a new 'properties' menuOption that's dch-specific
+    for most divs allow 
+        backgroundcolor (including alpha)  -- (default to 'transparent' for things like textArea so that setting this in dch properties works)
+        borderType (1px red dashed)
+        font, 
+for fonts we should include our own ONLY so as to maintain compatibility across browsers/os's/installs
 
+-----------------------------------------------------------------------------------------------------------------------
 we used to load dch modules as-needed and not before.  we should go back to doing that again
     in index.js we already fetch all modulepaths, we can just insert them into DCH[dchName] as null and loadAsNeeded
 -----------------------------------------------------------------------------------------------------------------------
-1 make docTree dragdrop work properly!  (reordering of doctree documents)
+make docTree dragdrop work properly!  (reordering of doctree documents)
     move docs (dragdrop, in/out depth too)
 -----------------------------------------------------------------------------------------------------------------------
-track state of opened index pane entries
+track state of expanded index pane entries
         we need this per-client methinks so not something to track in the db
 -----------------------------------------------------------------------------------------------------------------------
 we can now create and select db's, but we can't delete them yet
 -----------------------------------------------------------------------------------------------------------------------
+allow changing of dch 'depth' / overlap
 -----------------------------------------------------------------------------------------------------------------------
+click+drag 'accelerators' in the properties window that fast-move coords kindalike blender does
 -----------------------------------------------------------------------------------------------------------------------
+in properties add a 'fill parent' button that sets TBLR to '0px' and WH to '' (transform: already accts for zX/Y)
 -----------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------
+in properties add a 'zero x/y' button to the infinity offset
 -----------------------------------------------------------------------------------------------------------------------
 in properties popup for DCH_BOX we want to show 'infinite Pan offset' and let user edit it (in the properties popup!)
 -----------------------------------------------------------------------------------------------------------------------

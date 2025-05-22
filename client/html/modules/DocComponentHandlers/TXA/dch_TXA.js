@@ -2,7 +2,7 @@
 class DCH_TXA extends FG.DCH_BASE {
     el;                 // becomes childof this.host and is a "textarea"  (see construct())
 
-    static pluginName    = "Basic &lt;textarea&gt; node";
+    static pluginName    = "<textarea> node";
     static menuTooltip = "A basic <textarea> node for simple and quick text entry";
 
     async construct() {

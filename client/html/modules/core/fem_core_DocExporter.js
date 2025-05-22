@@ -66,9 +66,17 @@ export class DocExporter {
             }
             return false;
         }
+        let vlen = val.length;
         if (testB64(val)) {
-            val = btoa(val);
+            val = new TextEncoder().encode(val);
+            let bin = '';
+            for (let byte of val) {
+                bin += String.fromCharCode(byte);
+            }
+            val = btoa(bin);
+
+            vlen = 0 - val.length;          // when uuencoded, store vlen as negative
         }
-        return key + "=" + val.length + ";" + val;
+        return key + "=" + vlen + ";" + val;
     }
 };

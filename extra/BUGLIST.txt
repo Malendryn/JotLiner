@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------------------------------------------------
-when client fails connection to server, it does not actually reconnect (though it does say 'reconnecting...')
+ran into a b64 en/decode issue when copypasting from ChatGPT into a CTE, see CherryTree for solution
 -----------------------------------------------------------------------------------------------------------------------
+when client fails connection to server, it does not actually reconnect (though it does say 'reconnecting...')
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 in index pane, when we 'add child document' to an element that doesnt have any, it inserts it properly and gives the 

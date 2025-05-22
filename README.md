@@ -13,14 +13,14 @@ For a detailed breakdown of features, see the [FEATURES.md](FEATURES.md) file.
 ## Plugin System
 Jotliner features a flexible plugin system that allows you to create custom editors, tools, and features as nodes within an infinite canvas—-but with a unique twist: canvases can be nested within or beside each other, creating a multi-level structure without limits. Each plugin is installed separately and provides unique abilities, such as text editors, drawing tools, spreadsheets, Markdown, or anything else a creator can imagine!
 
-
-Real-Time Sync: Syncs notes and content across all open browsers.
+Real-Time Sync: Syncs notes and content across all open instances.
 
 ## Getting Started
 prereq: must have node.js installed
 cd to server subdir and type 
     "npm install"
-
+then
+    "npm run"
 
 
 la la la install node etc etc

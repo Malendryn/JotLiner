@@ -24,16 +24,16 @@ class StringReader {
         return tmp.trim();              // get rid of surrounding whitespace and return it
     }
 
-    readEl() {        // read "WRD=LEN;DATA", decode base64 if LEN=negative, return [varName, data]
-        let tmp = this.readToSem();
-        tmp = tmp.split('=');               // split varName from varLen
-        if (tmp.length != 2) {              // EOFile (or some kinda other illegal junk!)
+    readEl() {                      // read "WRD=LEN;DATA", decode base64 if LEN=negative, return [dchName, data]
+        let tmp = this.readToSem();     // read ("WRD=LEN" and lose the ';')
+        tmp = tmp.split('=');           // split ["WRD", "LEN"]
+        if (tmp.length != 2) {          // EOFile (or some kinda other illegal junk!)
             return null;
         }
-        const varName = tmp[0].trim();
-        let len = parseInt(tmp[1]);
-        let isBase64 = (len < 0);     // rstodo MOVE THIS to the 'attachComponent' below
-        len = Math.abs(len);
+        const dchName = tmp[0].trim();  // trim offwhitespace around WRD
+        let len = parseInt(tmp[1]);     // integerize "LEN" and test if negative then data=base64 encoded
+        let isBase64 = (len < 0);
+        len = Math.abs(len);            // finally, positivize len
 
         if (this.idx > this.str.length) {    // test for end of data  (fires when len == 0)        
             throw new Error("Data stream too short");
@@ -41,14 +41,22 @@ class StringReader {
 
         const end = Math.min(this.idx + len, this.str.length);
         let data = this.str.substring(this.idx, end);
-        // this.idx = end;                      // this works but potentially wastes a lot of memory by leaving many copies around
-        this.str = this.str.substring(end);     // so instead we'll shrink the string each time we pull an el
-        this.idx = 0;
+        // if (1) {
+            this.idx = end;                      // works but leaves memory in use while StringReader exists...
+        // } else {
+        //     this.str = this.str.substring(end);  // ...alternate, shrink string each time
+        //     this.idx = 0;
+        // }
 
-        if (isBase64) {              // rstodo MOVE THIS to the 'attachComponent' below
+        if (isBase64) {
             data = atob(data);
+            const bytes = new Uint8Array(data.length);
+            for (let idx = 0; idx < data.length; idx++) {
+                bytes[idx] = data.charCodeAt(idx);
+            }
+            data = new TextDecoder().decode(bytes);
         }
-        return [ varName, data ];
+        return [ dchName, data ];
     }
 
     constructor(str) {

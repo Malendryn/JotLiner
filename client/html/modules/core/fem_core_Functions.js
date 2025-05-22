@@ -110,6 +110,9 @@ FF.clearDoc = async() => {
         await FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
         FG.curDoc = null;
     }
+    const el = document.getElementById("divDocView");
+    el.classList.add("disabled");
+    el.innerHTML = "Select an entry from the left pane";
 }
 
 

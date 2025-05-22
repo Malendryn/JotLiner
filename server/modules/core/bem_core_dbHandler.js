@@ -31,7 +31,7 @@ class DBHandler {
                     this.db.configure('busyTimeout', 5000);  // wait up to 5 seconds before throwing SQLITE_BUSY
                     this.lastAccessed = Date.now();
 
-                    const timeout = 1 * 60 * 1000; //15 * 60 * 1000;     // 15 minutes
+                    const timeout = 15 * 60 * 1000;     // 15 minutes
                     this.timeoutId = setInterval(() => {
                         console.log("loop... id=");
                         const now = Date.now();
