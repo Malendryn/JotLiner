@@ -12,7 +12,9 @@
 * fixed a 're-broken' issue with localStorage not saving/clearing last loaded doc when switching db
 * modded DFDialog to only support <form> now, and that all buttons get a filled dict (no more null) with a special
     param of "isSubmit":T/F to declare what kind of button was pressed.  This now allows the enter key to end dialogs
-*fixed contextMenus not being constrained to the browser window.  they now shift as needed to stay inside
+* fixed contextMenus not being constrained to the browser window.  they now shift as needed to stay inside
+* discovered and fixed a problem with btoa()/atob() storage of certain .innerHTML data
+* made a few more mods to .gitignore to untrack of .vscode and code-code.workspace
 2025-05-21 ------------------------------------------------------------------------------------------------------------
 * fixed: when a new db is created, it wasn't automatically being switched-to
 * added a 'select item from left pane' blurb when no doc is selected (while divDocView is useless)

@@ -1,3 +1,6 @@
+// client-side example launch.json for vscode
+// place this in the client/.vscode subdir
+
 {
   "version": "0.2.0",
   "configurations": [
