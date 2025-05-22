@@ -7,7 +7,8 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05-22 ------------------------------------------------------------------------------------------------------------
-* cleaned up and reworded a few of the readme's
+* cleaned up and reworded a few more readme's and texts (primarily for github public reading)
+* re-introduced autoincrement id fields to the extra and doc tables to prevent future 'shooting myself in the foot'
 
 2025-05-22 ------------------------------------------------------------------------------------------------------------
 * renamed original CHANGELOG.txt to CHANGELOG-pre_github.txt and started this new file to replace it

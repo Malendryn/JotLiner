@@ -105,6 +105,7 @@
   <dia:layer name="Background" visible="true" connectable="false"/>
   <dia:layer name="Background" visible="true" connectable="false"/>
   <dia:layer name="Background" visible="true" connectable="false"/>
+  <dia:layer name="Background" visible="true" connectable="false"/>
   <dia:layer name="Background" visible="true" connectable="true" active="true">
     <dia:object type="Database - Table" version="0" id="O0">
       <dia:attribute name="obj_pos">
@@ -531,16 +532,16 @@
     </dia:object>
     <dia:object type="Flowchart - Box" version="0" id="O4">
       <dia:attribute name="obj_pos">
-        <dia:point val="7.18467,0.586667"/>
+        <dia:point val="6.96467,0.786667"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="7.13467,0.536667;15.8147,3.85333"/>
+        <dia:rectangle val="6.91467,0.736667;44.4,4.05333"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="7.18467,0.586667"/>
+        <dia:point val="6.96467,0.786667"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
-        <dia:real val="8.5800000000000001"/>
+        <dia:real val="37.385330000000003"/>
       </dia:attribute>
       <dia:attribute name="elem_height">
         <dia:real val="3.2166666437361111"/>
@@ -554,7 +555,8 @@
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#dbVersion:   0#</dia:string>
+            <dia:string>#dbVersion:   0 -- to be incremented by 1 each time a change is made to the db table structure
+#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font family="monospace" style="0" name="Courier"/>
@@ -563,7 +565,7 @@
             <dia:real val="0.70555554791203701"/>
           </dia:attribute>
           <dia:attribute name="pos">
-            <dia:point val="7.63467,2.36722"/>
+            <dia:point val="7.41467,2.21444"/>
           </dia:attribute>
           <dia:attribute name="color">
             <dia:color val="#000000ff"/>

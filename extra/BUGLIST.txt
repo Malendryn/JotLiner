@@ -1,5 +1,4 @@
 -----------------------------------------------------------------------------------------------------------------------
-ran into a b64 en/decode issue when copypasting from ChatGPT into a CTE, see CherryTree for solution
 -----------------------------------------------------------------------------------------------------------------------
 when client fails connection to server, it does not actually reconnect (though it does say 'reconnecting...')
 -----------------------------------------------------------------------------------------------------------------------
