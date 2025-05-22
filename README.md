@@ -33,6 +33,13 @@ Once that's done,
 ### Usage
 Read through the on-screen instructions for a simple tutorial about the basic features.
 
+### See Also
+Extra files of note are kept in the 'extra' directory. Here are some of interest:
+- [README-INSTALL+RUNNING](extra/README-INSTALL+RUNNING.txt) — setting up and running the system for the first time
+- [CHANGELOG](extra/CHANGELOG.txt) — See the notable changes for each commit
+- [BUGLIST](extra/BUGLIST.txt) — Notable bugs found that need fixing (soon to be moved to the bugtracker)
+- [TODO](extra/TODO.txt) — See what's planned for in upcoming changes
+
 ## Contributing
 
 We're not quite ready for outside contributions just yet, but stay tuned — documentation and guidelines are on the way!  However suggestions and commentary are welcome!
