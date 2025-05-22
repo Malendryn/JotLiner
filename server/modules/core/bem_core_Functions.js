@@ -13,7 +13,7 @@
 // "txt"  =       checkDBName(name)        check for invalid characters and lengths; return string if bad, null if good
 // [list] = async getDBList()              return list of databases 
 // -------- async attachDB(dbName, client) open db if not already,  inc usercount, 
-// -------- async releaseDB(client)        decrement usercount, close&remove from BG.openedDBs accordingly
+// -------- async detachDB(client)         decrement usercount, close&remove from BG.openedDBs accordingly
 
 // ==== FROM bem_core_WSockHandler.js ====================================================================================
 // --------       onChanged(table,uuid)    whenever any action changes a table, this function must get called
@@ -131,7 +131,7 @@ BF.attachDB = async function(dbName, client) {
 }
 
 
-BF.releaseDB = async function(client) {
+BF.detachDB = async function(client) {
     if (client) {
         if (client.dbName) {                                // test for null HERE so numerous caller's don't have to
             const dbEntry = BG.openedDBs[client.dbName];    // decrement usercount if already open

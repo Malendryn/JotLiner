@@ -19,7 +19,7 @@ export async function init() {                      // load, init, and establish
             ws.on('close', () => {                  // remove connection from array
                 console.log('Client disconnected');
                 const client = BG.clients.get(ws);
-                BF.releaseDB(client);
+                BF.detachDB(client);
                 BG.clients.delete(ws);
             });
 

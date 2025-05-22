@@ -173,7 +173,7 @@ WS.classes.CreateDB.prototype.process = async function(client) {    // create ne
     }
 
 
-    await BF.releaseDB(client);              // close any currently open db on this client
+    await BF.detachDB(client);              // detach any currently open db on this client
     await BF.attachDB(this.text, client);
 
     BF.onChanged(client.ws, {what:"dbList"});      // tell the world that the dbList changed!
@@ -196,7 +196,7 @@ WS.classes.SelectDB.prototype.process = async function(client) {    // make othe
         return this;
     }
 
-    await BF.releaseDB(client);             // close any currently open db on this client
+    await BF.detachDB(client);             // close any currently open db on this client
     await BF.attachDB(this.text, client);   // increment clientCount if already open, else open/create db
 
     this.text = null;
@@ -217,7 +217,7 @@ WS.classes.DeleteDB.prototype.process = async function(client) {    // delete /C
         this.text = "Cannot delete DB while other clients are using it";
         return this;
     }
-    await BF.releaseDB(client);      // close the db off the client so we can delete it
+    await BF.detachDB(client);      // close the db off the client so we can delete it
 
     client.db = null;
     
