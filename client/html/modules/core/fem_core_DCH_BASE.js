@@ -12,9 +12,10 @@ FG._idCounter = 0;
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // these next values are static so we can access them at the class level for building menus and accessing files, etc
-static srcUrl      = "";   // SYSTEM supplied; (do not change!) relative url to module's subdir (so can access own icons, etc...)
 static pluginName  = "Unnamed Plugin";  // PLUGIN supplied; the plugin's name as shown in menus and command modes
 static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName is hovered over in menus (skipped if null)
+
+       srcUrl      = "";   // SYSTEM supplied; (do not change!) relative url to module's subdir (so can access own icons, etc...)
 
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
     hasToolbar = false;     // true = create this.toolbar' @ construction
@@ -65,14 +66,14 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // system-only properties, they should never be modified by the child class in any way
 
-__parent = null;     // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
-__sysDiv = null;     // handle to a toplevel <div absolute>  housing the entire dch element tree (autocreated during create())
-__host   = null;     // all NON-DCH_BOX's get this
-__shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv.__host.__shadow.host);
+    __parent = null;     // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
+    __sysDiv = null;     // handle to a toplevel <div absolute>  housing the entire dch element tree (autocreated during create())
+    __host   = null;     // all NON-DCH_BOX's get this
+    __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv.__host.__shadow.host);
 
     static async create(dchName, parent=null, style=null) {
         const dch = new DCH[dchName].dchClass();            // create handler, do nothing else!
-        dch.srcUrl = DCH[dchName].srcUrl;                   // set the path to its available content
+        dch.srcUrl = DCH[dchName].srcUrl;                  // set the path to its available content ('ghosts over' static srcUrl)
         dch.__parent = parent;
         dch.__sysDiv = document.createElement("div");       // create div
         dch.__sysDiv.id = (FG._idCounter++).toString();

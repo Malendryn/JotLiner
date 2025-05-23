@@ -1,11 +1,10 @@
 
-# client stuff
-# client/.vscode/
-# !client/.vscode/launch.json   -- see extra/example-vscode-launch.json-client
+# TEMPORARY un-pushes while I flesh them out
 
-# server stuff
-# server/.vscode/
-# !server/.vscode/launch.json   -- see extra/example-vscode-launch.json-server
+# this one is for locals to experiment with and should NEVER be pushed.
+client/html/modules/DocComponentHandlers/XAMPL
+# this one is for me to create the XAMPL docs for and THEN to become a real plugin!
+client/html/modules/DocComponentHandlers/JLPAINT
 
 # dont push .db files either (except for Getting Started.db)
 server/db/*.db

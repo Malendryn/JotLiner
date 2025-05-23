@@ -37,7 +37,12 @@ WS.classes.GetDCHList.prototype.process = async function(client) {
     const list = [];
     for (const file of files) {
         if (file.isDirectory()) {
-            list.push(file.name);
+            const name = file.name;
+            if (name.length >= 3) {
+                if (/^(?!_)[A-Z0-9_]+$/.test(name)) {  // allowOnly all-uppercase, nums+letters+'_' only, doesnt start with '_'
+                    list.push(name);
+                }
+            }
         }
     }
     this.list = list;

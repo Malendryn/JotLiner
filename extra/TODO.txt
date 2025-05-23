@@ -1,6 +1,18 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
+creating a simple painter plugin as an example,  howto/what to change/what to do.
+I don't have an 'auto .css' loader so I have to add that.  
+    rules:  its name must mach the plugin so for ./TPAINT/dch_TPAINT.js we have dch_TPAINT.css
+        this needs to be tracked so that it is removed from <head> when doc is cleared OR the last dch_<module> of this
+        type is deleted from the module
+
+
+RSTODO plugin tooltips are broke!  (shows 'undefined')
+
+RSTODO make DCH_BASE.loadCSS increase the count (within the <style> block itself) and decrease it on removal, until it reaches
+zero and we remove it from the DOM altogether!
+
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

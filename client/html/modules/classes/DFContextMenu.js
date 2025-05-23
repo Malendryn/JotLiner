@@ -112,7 +112,7 @@ function _buildContextMenu(entries, isSubmenu = false) {
         optEl.className      = 'DFMenuOption';
         if (entry.label) {
             optEl.textContent    = entry.label;
-            optEl.title          = entry.title;
+            optEl.title          = entry.tip;
             optEl.dataset.action = entry.action;
             } else {
             optEl.innerHTML = "<hr>";

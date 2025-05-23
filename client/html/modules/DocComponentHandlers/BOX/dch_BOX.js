@@ -3,7 +3,7 @@ class DCH_BOX extends FG.DCH_BASE {
     __children = [];      // changing to [] to allow children
 
     static pluginName    = "Infinite Box";
-    static menuTooltip = "A rectangle that other editor can be put inside of";
+    static menuTooltip = "A rectangle that other plugins can exist inside of";
 
     zX = 0;            // how far ALL children are shifted to give the appearance of infinite canvas
     zY = 0;
