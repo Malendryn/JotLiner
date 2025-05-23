@@ -120,11 +120,13 @@ FF.showLS = function() {
 }
 function onMainMenuCallback(action) {
     switch (action) {
-        case "newInstance": {   onNewInstance(); break;  }
-        case "newDB":       {   onNewDB();       break;  }
-        case "openDB":      {   onOpenDB();      break;  }
-        case "importDB":    {   onImportDB();    break;  }
-        case "exportDB":    {   onExportDB();    break;  }
+        case "newInstance": { onNewInstance(); break; }
+        case "newDB":       { onNewDB();       break; }
+        case "openDB":      { onOpenDB();      break; }
+        case "importDB":    { onImportDB();    break; }
+        case "exportDB":    { onExportDB();    break; }
+        case "about":       { onAbout();       break; }
+        case "license":     { onLicense();     break; }
     }
 }
 let dlg;
@@ -157,7 +159,6 @@ function onNewDB() {
     <input type="text" name="dbName" maxlength="32"><br><br>
 </form>`;
 
-    // FG.kmStates.modal = true;
     dlg = new DFDialog({ onButton: _onButton });
     dlg.open(form);
 }
@@ -174,4 +175,35 @@ function onImportDB() {
 function onExportDB() {
 }
 
+
+function onAbout() {
+    const form = `<form>
+<h2>Project: JotLiner</h2>version ${FG.VERSION}
+    <p></p><br>
+<p>To report bugs or ask questions please visit <a href="https://github.com/Malendryn/JotLiner">Project: Jotliner</a></p>
+</form>`;
+
+    let dlgHandle = new DFDialog();
+    dlgHandle.open(form, null, { "OK":true });
+}
+
+
+async function onLicense() {
+    const filePath = FG.baseURL + "/LICENSE";
+    const response = await fetch(filePath);
+    if (!response.ok) {
+        const form = '<form><p>Could not load LICENSE file.  Please click here to '
+            + '<a href="https://www.gnu.org/licenses/agpl-3.0.html"'
+            + 'target="_blank" rel="noopener noreferrer">View AGPLv3 License</a></p>'
+            + '</form>';
+            let dlgHandle = new DFDialog();
+            dlgHandle.open(form, null, { "OK":true });
+        return;
+    }
+    const txt = await response.text();
+
+    const win = window.open("", "_blank");
+    win.document.write("<pre>" + txt + "</pre>")
+    win.document.title="LICENSE";
+}
 

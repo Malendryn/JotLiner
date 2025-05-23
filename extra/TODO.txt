@@ -1,11 +1,7 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
-put version info into menu/help
-and maybe a link to report bugs or suggest features
 -----------------------------------------------------------------------------------------------------------------------
-
-in DFDialog, change open("form"...) to also support open({form:"form", style:"style"})
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 minor quirk in that when rightpane is useless (no doc selected) alt+shift shouldn't do ANYthing at all.  (right now
@@ -26,7 +22,7 @@ add a new 'properties' menuOption that's dch-specific
 for fonts we should include our own ONLY so as to maintain compatibility across browsers/os's/installs
 
 -----------------------------------------------------------------------------------------------------------------------
-we used to load dch modules as-needed and not before.  we should go back to doing that again
+we used to load dch modules as-needed and not before.  we should go back to doing that again (to keep memory use down)
     in index.js we already fetch all modulepaths, we can just insert them into DCH[dchName] as null and loadAsNeeded
 -----------------------------------------------------------------------------------------------------------------------
 make docTree dragdrop work properly!  (reordering of doctree documents)
