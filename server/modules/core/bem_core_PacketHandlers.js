@@ -88,9 +88,9 @@ WS.classes.NewDoc.prototype.process = async function(client) {    // insert new 
         }
 
         let list = [this.dict.uuid, this.dict.version, this.dict.doc];
-        await client.db.run("INSERT INTO doc (uuid,version,content) values (?,?,?)", list);               // insert the doc
+        this.docId = await client.db.run("INSERT INTO doc (uuid,version,content) values (?,?,?)", list);               // insert the doc
         list = [this.dict.name, this.dict.uuid, order, this.dict.parent];
-        await client.db.run("INSERT INTO docTree (name,uuid,listOrder,parent) values (?,?,?,?)", list);   // insert the index entry
+        this.docTreeId = await client.db.run("INSERT INTO docTree (name,uuid,listOrder,parent) values (?,?,?,?)", list);   // insert the index entry
         await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
         await client.db.run("ROLLBACK TRANSACTION");
@@ -98,7 +98,7 @@ WS.classes.NewDoc.prototype.process = async function(client) {    // insert new 
     }
     BF.onChanged(client.ws, {what:"docTree"});
     this.dict = {}; // empty packetdata for faster returnPkt
-    return this;    // send self back cus client called using .sendWait()
+    return this;    // send self back cus client called using .sendWait() (and we added docId and docTreeId to the class on return)
 };
 WS.classes.SaveDoc.prototype.process = async function(client) {    // insert new doc into db,  return with a GetDocTree packet
     logPkt("SaveDoc");

@@ -40,15 +40,16 @@ FF.updateDBSelector = async function() {
 
     for (let idx = localStorage.length - 1; idx >= 0; idx--) {  // delete any stale localStorage refs for deleted db's
         const key = localStorage.key(idx);
-        if (key.startsWith("curDBDoc:")) {
+        if (key.startsWith("curJLDI:")) {
+        // if (key.startsWith("curDBDoc:")) {
             const wrd = key.split(":")[1];      // split out and capture the dbName from the key
-            if (!pkt.list.includes(wrd))  {     // this database is no longer available
-                localStorage.removeItem(key);
+            if (!pkt.list.includes(wrd))  {     // this database is no longer available...
+                localStorage.removeItem(key);   // ...so remove the localStorage memory of it
             }
         }
     }
 
-    if (pkt.list.includes(FG.curDBName) == false) {     // clear 'current db' if not exists
+    if (pkt.list.includes(FG.curDBName) == false) {  // clear 'current db' if not exists
         FG.curDBName = "";
         localStorage.removeItem("curDBName");        // remove name from localstorage
     }
@@ -95,7 +96,8 @@ console.log(FF.__FILE__(), "FF.selectDB() used to await FF.clearDoc(),  do we st
 
     await FF.loadDocTree();                             // load-and-show docTree for that db
 
-    const uuid = localStorage.getItem("curDBDoc:" + FG.curDBName) || "";
+    const uuid = FF.getJLDI("curDoc") || "";
+    // const uuid = localStorage.getItem("curDBDoc:" + FG.curDBName) || "";
     await FF.selectAndLoadDoc(uuid);
 }
 

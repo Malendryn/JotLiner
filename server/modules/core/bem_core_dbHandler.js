@@ -60,35 +60,67 @@ class DBHandler {
     }
 
 
-    run = async (sql, params = []) => {
-        return new Promise(async (resolve, reject) => {
-            this.lastAccessed = Date.now();
-            let lastId = 0;
-            this.db.serialize(async () => {
-                try {
-                    const stmt = await this.db.prepare(sql);
-                    // const row = stmt.get(1);
-                    // console.log(row)
+    // run = async (sql, params = []) => {
+    //     return new Promise(async (resolve, reject) => {
+    //         this.lastAccessed = Date.now();
+    //         let lastId = 0;
+    //         this.db.serialize(async () => {
+    //             let stmt;
+    //             try {
+    //                 stmt = await this.db.prepare(sql);
+    //                 // const row = stmt.get(1);
+    //                 // console.log(row)
 
-                    await stmt.run(...params, function (err) {    // warning! some statements simply crash and exit, unable to try/catch!
+    //                 await stmt.run(...params, function (err) {    // warning! some statements simply crash and exit, unable to try/catch!
+    //                     if (err) {
+    //                         reject(err.message);
+    //                         return;
+    //                     }
+    //                     lastId = this.lastID;
+    //                 });
+    //                 await stmt.finalize();
+    //             }
+    //             catch (err) {
+    //                 console.log(err.message);
+    //                 reject(err.message);
+    //                 return;
+    //             }
+    //         })
+    //         resolve(lastId)
+    //     });
+    // }
+
+    run = async (sql, params = []) => {
+        this.lastAccessed = Date.now();
+    
+        return new Promise((resolve, reject) => {
+            this.db.serialize(() => {
+                const stmt = this.db.prepare(sql, (err) => {
+                    if (err) {
+                        reject(err.message);
+                        return;
+                    }
+    
+                    stmt.run(...params, function (err) {
                         if (err) {
                             reject(err.message);
                             return;
                         }
-                        lastId = this.lastID;
+    
+                        const lastId = this.lastID;
+    
+                        stmt.finalize((err) => {
+                            if (err) {
+                                reject(err.message);
+                                return;
+                            }
+                            resolve(lastId);
+                        });
                     });
-                    await stmt.finalize();
-                }
-                catch (err) {
-                    console.log(err.message);
-                    reject(err.message);
-                    return;
-                }
-            })
-            resolve(lastId)
+                });
+            });
         });
     }
-
 
     query = async (sql, params = []) => {
         return new Promise((resolve, reject) => {

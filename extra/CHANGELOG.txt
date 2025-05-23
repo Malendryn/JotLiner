@@ -5,7 +5,13 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-23 ------------------------------------------------------------------------------------------------------------
+* renamed TKMEventHandlers to DocViewHandler -- just makes more sense now that it's evolved
+* new child docs will now properly expand the doc they are a child of
+* remembering expanded state of index entries is now stored and recalled when starting program or changing dbs
+* fixed bug wherein deleting a doc with children stopped warning it would delete them too
+* fixed bug in server where inserting new recs wasn't properly returning the new recId
+
 2025-05-22 ------------------------------------------------------------------------------------------------------------
 * cleaned up and reworded a few more readme's and texts (primarily for github public reading)
 * re-introduced autoincrement id fields to the extra and doc tables to prevent future 'shooting myself in the foot'

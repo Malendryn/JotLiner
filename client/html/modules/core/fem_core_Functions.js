@@ -14,6 +14,12 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 
 -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
 -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
+
+obj    =       getJLDI(key)             // get value of key in localStorage."curJLDI" + FF.curDBName  (JotLiner Doc Info)
+--------       setJLDI(key, val)        // store val in localStorage under "curJLDI:" + FG.curDBName using JSON.stringify()
+                                        // except if val is 'undefined' then it removes key from localStorage entirely
+--------       setIdxpanded(num, yesno) // set/remove entryId of docTreeRec to recall expanded/collapsed indexTree state
+
 {...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
@@ -48,7 +54,7 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 -------- async loadDoc(uuid,force)            fetch doc from backend, update display, update localStorage
 -------- async selectAndLoadDoc(uuid,force)   update selection in indexView, load selected doc in dchView, update localStorage
 
-==== FROM fem_core_TKMEvtHandlers.js ==================================================================================
+==== FROM fem_core_DocViewHandler.js ==================================================================================
 []     =       getAllDch()              get list of all dch's in FF.curDoc.rootDch. (in same order as exporter puts them)
 --------       getDchName(dch)          return name of dch as the subdirName in DocComponentHandlers
 --------       getRawRect(el)           return LWRTHB of el direct from .style property
@@ -123,6 +129,36 @@ FF.getDocInfo = function (uuid) {
 		}
 	}
 	return null;
+}
+
+
+FF.getJLDI = function(key) {
+    let tmp = localStorage.getItem("curJLDI:" + FG.curDBName) || "{}";
+    tmp = JSON.parse(tmp);
+    return tmp[key]
+}
+
+
+FF.setJLDI = function(key, val) { // passing val as undefined removes the entry entirely (null stays present as null)
+    let tmp = localStorage.getItem("curJLDI:" + FG.curDBName) || "{}";
+    tmp = JSON.parse(tmp);
+    if (val === undefined) {
+        delete tmp[key];
+    } else {
+        tmp[key] = val;
+    }
+    tmp = JSON.stringify(tmp);
+    localStorage.setItem("curJLDI:" + FG.curDBName, tmp);
+}
+
+
+FF.setIdxpanded = function(docTreeId, yesno) {    
+    let opened = FF.getJLDI("idxpanded") || [];                 // JLDI = JotLiner Doc Info, 'index expanded' list
+    opened = opened.filter(item => item !== docTreeId);         // remove this id if already exists
+    if (yesno) {
+        opened.push(docTreeId);                                 // add (or add again) if needed
+    }
+    FF.setJLDI("idxpanded", opened);                            // store change
 }
 
 

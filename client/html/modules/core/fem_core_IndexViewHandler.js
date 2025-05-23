@@ -31,7 +31,7 @@ async function onCtxDelete() {
     if (yes) {
         let hasChildren = false;
         for (let idx = 0; idx < FG.docTree.length; idx++) {
-            if (FG.docTree[idx].__parent == info.uuid) {
+            if (FG.docTree[idx].parent == info.uuid) {
                 hasChildren = true;
                 break;
             }
@@ -162,6 +162,9 @@ function openDocInfoPopup(asChild) {
                 doc:        await exporter.export(FG.curDoc.rootDch),
             }
             pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
+            if (asChild) {
+                FF.setIdxpanded(info.id, true);
+            }
             await FF.loadDocTree();         // go fetch and reconstruct index pane
             await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
         }
@@ -219,6 +222,9 @@ async function showDocTree() { // build <UL> to display in left index pane
     let ul = document.getElementById("divIndexViewUL");
     ul.innerHTML = "";                                      // blow out any prior menus
 
+    let opened = FF.getJLDI("idxpanded") || [];  // JLDI = JotLiner Doc Info, 'index expanded' list
+
+    let nuOpened = [];
     for (let idx = 0; idx < FG.docTree.length; idx++) {
         let curr = FG.docTree[idx];
         let next = FG.docTree[idx + 1];
@@ -227,13 +233,17 @@ async function showDocTree() { // build <UL> to display in left index pane
         ul.appendChild(li);
         curr.li = li;                           // attach it to the FG.docTree item
 
-        li.id = curr.id.toString();
-        li._docUuid = curr.uuid;                // store the docUuid on the <li>
-        li.draggable = "true";
+        li._docTreeId = curr.id;
+        li._docUuid   = curr.uuid;                // store the docUuid on the <li>
+        li.draggable  = "true";
 
         if (next && next.depth > curr.depth) {              // if next entry is child of this one...
             let tmp = document.createElement("span");       // add <span class="arrow"></span>
             tmp.classList.add("arrow");
+            if (opened.includes(curr.id)) {
+                li.classList.add("expanded");              // set this arrow to 'expanded' state
+                nuOpened.push(curr.id);
+            }
             li.appendChild(tmp);
             li.append(curr.name);                           // add the doc name BEFORE the new <ul>
             ul = document.createElement("ul");              // create a new ul and use it as parent for future <li>s 
@@ -247,7 +257,8 @@ async function showDocTree() { // build <UL> to display in left index pane
                 ul = ul.parentNode.parentNode;      // stepout to parent <li> then to it's parent <ul>
             }
         }
-    }
+    } // end for
+    FF.setJLDI("idxpanded", nuOpened);
 }
 
 
@@ -257,8 +268,6 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
         node.style.backgroundColor = bgColorRaw;             // clear bgColor of all elements in <ul>, including children
     });
 
-
-    
     if (uuid.length > 0) {
         const info = FF.getDocInfo(uuid);
         if (info) {
@@ -295,7 +304,9 @@ function onClickULItem(evt) {
     evt.preventDefault();
     if (!FG.kmStates.modal) {
         if (evt.target.classList.contains("arrow")) {
-            evt.target.parentNode.classList.toggle("expanded");    // toggle the expanded state of the arrow's parent <li>
+            const etp = evt.target.parentNode;
+            etp.classList.toggle("expanded");         // toggle the expanded state of the arrow's parent <li>
+            FF.setIdxpanded(etp._docTreeId, etp.classList.contains("expanded"));
         } else {
             FF.selectAndLoadDoc(evt.target._docUuid);
         }
@@ -306,7 +317,8 @@ function onClickULItem(evt) {
 async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
     evt.preventDefault();
     if (!FG.kmStates.modal) {
-        localStorage.removeItem("curDBDoc:" + FG.curDBName);
+        FF.setJLDI("curDoc", undefined);
+        // localStorage.removeItem("curDBDoc:" + FG.curDBName);
         await FF.selectAndLoadDoc('');
     }
 }
@@ -389,6 +401,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     let pkt = WS.makePacket("GetDocTree")
     pkt = await WS.sendWait(pkt);           // SELECT * from docTree order by parent,listOrder
     let list;
+
     if (pkt.constructor.name == "Fault") {  // no db open, no doctree available
         list = [];
     } else {
@@ -425,7 +438,8 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     if (FG.curDoc) {                                    // if we had a doc currently selected
         if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
             await FF.clearDoc();                        // nuke it!
-            localStorage.removeItem("curDBDoc:" + FG.curDBName);  // delete our memory of it too
+            FF.setJLDI("curDoc", undefined);
+            // localStorage.removeItem("curDBDoc:" + FG.curDBName);  // delete our memory of it too
         }
     }
     showDocTree();
@@ -471,7 +485,8 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
         dirty:   false,
     };
 
-    localStorage.setItem("curDBDoc:" + FG.curDBName, uuid); // set uuid as currently selected/loaded doc
+    FF.setJLDI("curDoc", uuid);
+    // localStorage.setItem("curDBDoc:" + FG.curDBName, uuid); // set uuid as currently selected/loaded doc
 
     // console.log(FF.__FILE__(), "FF.loadDoc curDoc=", FG.curDoc);
 
