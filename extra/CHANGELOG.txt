@@ -4,7 +4,11 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-23------------------------------------------------------------------------------------------------------------
+* fixed compatibility issue between firefox and chrome that was due to the way I was shoehorning <style> into the
+    <form> data.  DFDialog now allows "form" or {form:"form", style:"style"} as a parameter to pass in a proper style
+block that now gets attached to the head where it belongs.
+
 2025-05-23 ------------------------------------------------------------------------------------------------------------
 * renamed TKMEventHandlers to DocViewHandler -- just makes more sense now that it's evolved
 * new child docs will now properly expand the doc they are a child of

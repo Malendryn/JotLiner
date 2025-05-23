@@ -72,11 +72,13 @@ DFDialog construction parameters:
 
 
 Functions within the class:
-    open(form, dict, buttonDict = null)
+    open(form or {form,style}, dict, buttonDict = null)
             Open a dialog based on the parameters passed
 
         form
-            A complete "<form>...</form>" element, as text, that will be parsed as html and shown in the popup dialog. 
+            form is either a string containing a complete "<form>...</form>" element, as text, or is a dict containing {form,style}
+            which are form="<form>...</form>" and style="<style>...</style>".
+            These will be parsed into DOM elements and displayed in the popup dialog. 
             Inside this text should be input fields, checkboxes, etc, with each element that will have any form of editable data a form
             can have. Each element that is to receive or submit data must have a name="..." attribute that will be populated automatically 
             via the data parameter, and by the preRun callback, before displaying the dialog.
@@ -137,7 +139,12 @@ class DFDialog {
     static _defaultButtons = { "Cancel": false, "OK": true };
 
     async open(form, data, buttons = null) {
-        this._form = document.createElement("div");              // first load and validate the form
+        let style = null;
+        if (typeof form == "object") {  // assume if {} then it contains {form,style}, if "" it's just the "<form>" 
+            style = form["style"] || null;
+            form = form["form"];
+        }
+        this._form = document.createElement("div");     // first load and validate the form
         this._form.innerHTML = form;
         this._form = this._form.firstElementChild;
         if (!this._form || this._form.tagName != "FORM") {
@@ -146,7 +153,11 @@ class DFDialog {
         }
         this._form.addEventListener("submit", this._onSubmit);
 
-        _loadCss();
+        _loadCss();                 // load the DFDialog.css file
+        if (!_loadStyle(style)) {   // load the passed-in <style> (if any)
+            return null;
+        }
+
         if (buttons) { 
             this._buttons = buttons; 
         } else {
@@ -251,6 +262,8 @@ class DFDialog {
         this._root.remove();                            // remove dialog and all eventListeners we added
         this._root = undefined;                         // clear it from ourselves
         document.body.style.overflow = this._overflow;  // restore orig overflow value
+        _loadStyle(null);
+
         this.onClose("", data);
         this._isClosing = false; 
     }
@@ -378,6 +391,26 @@ function _loadCss() {
         }
         _isCssLoaded = true;
     }
+}
+
+
+function _loadStyle(style) {     // style("<style>...</style>")=insert else null=remove
+    let el = document.querySelectorAll('[data-dfdlgstyle]');
+    for (const item of el) {     // SHOULD never be more than one, but since it returns a [] lets walk it!
+        item.remove();
+    }
+    if (style) {
+        el = document.createElement("div");              // first load and validate the form
+        el.innerHTML = style;
+        el = el.firstElementChild;
+        if (!el || el.tagName != "STYLE") {
+            alert("'style' parameter missing outermost <style> element");
+            return false;
+        }
+        el.dataset.dfdlgstyle = "";        // don't care about value, only about existence
+        document.head.appendChild(el);
+    }
+    return true;
 }
 
 
