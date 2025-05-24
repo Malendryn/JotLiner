@@ -1,45 +1,46 @@
 
 class DFContextMenu {
-    menu = null;
+//  constructor(dict={styles:[]})
+
     async open(entries, callback, locX, locY) {
         for (let idx = 0; idx < this._styles.length; idx++) {
             const style = this._styles[idx];
             await _loadStyle(this._styleId, idx + 2, style);  // idx is +2 cuz 1) so errs show 1-based and 2) to skip styles.unshift("DFDialog.css") above
         }
 
-        this.menu = _buildContextMenu(entries, false);
+        this._menu = _buildContextMenu(entries, false);
 
-        this.menu.style.left = locX + "px";
-        this.menu.style.top = locY + "px";
-        this.menu.classList.add("active");
+        this._menu.style.left = locX + "px";
+        this._menu.style.top = locY + "px";
+        this._menu.classList.add("active");
 
-        document.body.appendChild(this.menu);
+        document.body.appendChild(this._menu);
 
         const pRect = document.body.getBoundingClientRect();
-        const rect = this.menu.getBoundingClientRect();
+        const rect = this._menu.getBoundingClientRect();
         if (rect.left + rect.width > pRect.width) {
-            this.menu.style.left = Math.max(pRect.width - rect.width, 0) + "px";
+            this._menu.style.left = Math.max(pRect.width - rect.width, 0) + "px";
         }
         if (rect.top + rect.height > pRect.height) {
-            this.menu.style.top = Math.max(pRect.height - rect.height, 0) + "px";
+            this._menu.style.top = Math.max(pRect.height - rect.height, 0) + "px";
         }
     
-        this.menu.addEventListener("click", (evt) => {
+        this._menu.addEventListener("click", (evt) => {
             if (evt.target.dataset.action) {  // if not a submenu-opener entry
                 this.close();
                 callback(evt.target.dataset.action);
             }
         });
-        this.menu.addEventListener("mouseleave", (evt) => {
+        this._menu.addEventListener("mouseleave", (evt) => {
             this.close();
             callback('');
         });
     }
 
     close() {
-        if (this.menu) {
-            this.menu.remove();
-            this.menu = null;
+        if (this._menu) {
+            this._menu.remove();
+            this._menu = null;
         }
         const attr = "data-" + this._styleId;
         const elements = document.querySelectorAll(`[${attr}]`);
@@ -47,10 +48,11 @@ class DFContextMenu {
             el.remove();
         }
     }
+    _menu;
     _styleId;   // a unique id for this particular popup so we can delete all styles added by it at once
     _styles;    // list of styles to load into <head> on open()
-    constructor(styles = []) {
-        this._styles = Object.assign([], styles);
+    constructor(dict={styles:[]}) {
+        this._styles = Object.assign([], dict.styles || []);
         this._styleId = crypto.randomUUID().replaceAll("-", "");
         let fname = import.meta.url;    // get full path to this file without this file's name
         fname = fname.slice(0, fname.lastIndexOf("."));     // lose the ending .js or .mjs or any
@@ -62,37 +64,37 @@ export { DFContextMenu };
 
 
 class DFMenuBar {
-    bar = null;     // the <div> that shows the menuEntries left to right inside the parent
-    cm = null;      // contextMenu that opens beneath a menuEntry
+ //   constructor(dict={menuStyles:[], contextStyles:[]})
+
     async open(parent, entries, callback) {
         for (let idx = 0; idx < this._styles.length; idx++) {
             const style = this._styles[idx];
             await _loadStyle(this._styleId, idx + 2, style);  // idx is +2 cuz 1) so errs show 1-based and 2) to skip styles.unshift("DFDialog.css") above
         }
 
-        this.bar = document.createElement("div");
-        this.bar.id = "DFMenuBar"
-        parent.appendChild(this.bar);
+        this._bar = document.createElement("div");
+        this._bar.id = "DFMenuBar"
+        parent.appendChild(this._bar);
         for (const key in entries) {
             let el = document.createElement("div");
             el.classList.add("header");
             el.dataset.action = key;
             el.innerHTML = key;
-            this.bar.appendChild(el);
+            this._bar.appendChild(el);
         }
         parent.addEventListener("click", (evt) => {
             const which = evt.target.dataset.action;     // "File", or "Edit", or "Help" etc..
         
             const rect = evt.target.getBoundingClientRect();
             // FF.contextMenu.open(entries[which], callback, rect.left, rect.bottom);
-            this.cm.open(entries[which], callback, rect.left, rect.bottom);
+            this._cm.open(entries[which], callback, rect.left, rect.bottom);
         });
     }
 
     close() {
-        if (this.bar) {
-            this.bar.remove();
-            this.bar = null;
+        if (this._bar) {
+            this._bar.remove();
+            this._bar = null;
         }
         debugger; const attr = "data-" + this._styleId;
         const elements = document.querySelectorAll(`[${attr}]`);
@@ -101,12 +103,14 @@ class DFMenuBar {
         }
     }
 
+    _bar = null;     // the <div> that shows the menuEntries left to right inside the parent
+    _cm = null;      // contextMenu that opens beneath a menuEntry
     _styleId;   // a unique id for this particular popup so we can delete all styles added by it at once
     _styles;    // list of styles to load into <head> on open()
-    constructor(styles = []) {
-        this._styles = Object.assign([], styles);
+    constructor(dict={menuStyles:[], contextStyles:[]}) {
+        this._styles = Object.assign([], dict.menuStyles || []);
         this._styleId = crypto.randomUUID().replaceAll("-", "");
-        this.cm = new DFContextMenu(styles);
+        this._cm = new DFContextMenu({styles:dict.contextStyles || []});
         let fname = import.meta.url;    // get full path to this file without this file's name
         fname = fname.slice(0, fname.lastIndexOf("."));     // lose the ending .js or .mjs or any
         fname += ".css";                                    // and add a .css in its place

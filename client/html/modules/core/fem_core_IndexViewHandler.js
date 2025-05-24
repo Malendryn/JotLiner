@@ -125,8 +125,8 @@ function openDocRenamePopup() {
     }
 
     FG.kmStates.modal = true;
-    _dialog = new DFDialog({ onButton: _onDlgButton });        // new popup
-    _dialog.open(form, dict);
+    _dialog = new DFDialog({ onButton: _onDlgButton });
+    debugger; _dialog.open({form:form, fields:dict});
 }
 
 
@@ -175,7 +175,7 @@ function openDocInfoPopup(asChild) {
     let form = makeNewDocForm(asChild);
     FG.kmStates.modal = true;
     _dialog = new DFDialog({ onButton: _onDlgButton });        // new popup
-    _dialog.open(form, dict);
+    _dialog.open({form:form, fields:dict});
 }
 let _dialog;
 

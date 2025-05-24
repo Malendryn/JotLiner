@@ -150,8 +150,8 @@ function onNewDB() {
             localStorage.setItem("curDBName", dict.dbName) || "";   // set the new dbname
             await FF.updateDBSelector();                            // re-fetch the dblist and select new db
             return true;
-        } 
-        return false;
+        }
+        return true;        // close dlg on any button
     }
     const form = `<form>
     <b>Create New Database</b><br><br>
@@ -160,7 +160,7 @@ function onNewDB() {
 </form>`;
 
     dlg = new DFDialog({ onButton: _onButton });
-    dlg.open(form);
+    dlg.open({form:form});
 }
 
 
@@ -184,7 +184,7 @@ function onAbout() {
 </form>`;
 
     let dlgHandle = new DFDialog();
-    dlgHandle.open(form, null, { "OK":true });
+    dlgHandle.open({form:form, buttons:{"OK":true}});
 }
 
 
@@ -196,8 +196,8 @@ async function onLicense() {
             + '<a href="https://www.gnu.org/licenses/agpl-3.0.html"'
             + 'target="_blank" rel="noopener noreferrer">View AGPLv3 License</a></p>'
             + '</form>';
-            let dlgHandle = new DFDialog();
-            dlgHandle.open(form, null, { "OK":true });
+        let dlgHandle = new DFDialog();
+        dlgHandle.open({form:form, buttons:{"OK":true}});
         return;
     }
     const txt = await response.text();

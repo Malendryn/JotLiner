@@ -73,41 +73,36 @@ DFDialog construction parameters:
 
 -------------------------------------------------------------------------------------------
 Functions within the class:
-    open(form or {form:str,styles:[str[, str,...]]}, dict, buttonDict = null)
-            Open a dialog based on the parameters passed
+    open({ 
+            form: "<form/>" or "url",             // required: form to display
+            styles: [ "<style/> or "url", ... ],  // optional: array of styles
+            fields: { key: "value" },             // optional: form field presets
+            buttons: { buttonLabel: true/false }  // optional: buttons to display
+        }
 
-        form can be passed in in two ways:
-            either a string such as "<form>..</form>" or a URL path such as "./my/form.file";
-            or a dict containing {form: FRM, styles: [STYL1, STYL2, ...] }
-                where FRM is the same as already mentioned
-                and STYL1, STYL2 etc.. are strings of "<style>..</style>" or URL paths like "./my/form.css"
-            
-            Note that form, whether text or a file loaded via URL, must be a complete "<form>..</form>" block
-            and styles must either be a complete "<style>..</style>" block, or the URL to a .css formatted file
+        Opens a dialog based on the parameters passed
 
-NOTE:  If a a CSS file whos name matches this file (e.g., DFDialog.css) exists in the same directory, it will 
-automatically be loaded. You do not need to include it in the styles array of the open() call
+        parameters:
+            form:  (required) type=string
+                Contains either a complete, self-contained "<form>...</form>" HTML block, 
+                or a string representation of a URL/path to a file to load as the form.
 
-        dict
-            An object with multiple {"key": "value"} pairs, where for each "key", its "value" will get populated into the form's html
-            element having a 'name="key"' attribute
+            styles: (optional) type=array of strings
+                An array of strings, each either a self-contained "<style>...</style" HTML block,
+                or a string representation of a URL/path to a CSS file.
 
-        buttonDict 
-            A {"key":true/false} object (or null) that will cause buttons to be displayed underneath the form, from left to right, in 
-            the same order given.
-            If null, then a default of { "Cancel": false,  "OK": true } is supplied
+            fields: (optional) type=object {key-value pairs}
+                An object containing values to pre-populate the form fields where the form 
+                elements have a matching 'name' attribute equal to one of this object's keys.
 
-            key
-                The text to show as the label on the button
-
-            value
-                A true or false value that decides if this button acts as the 'submit' button would in a standard <form>.
-                Only one button in the dict should be set to true, but if more than one are, the first in the list will be chosen.
-                Pressing enter will 'fire' the first button in the list with this value set to true.
-                If all buttons have this value set to false, then pressing enter will have no effect at all.
+            buttons: (optional) type=object key-boolean pairs
+                An object where each key is the label to display on a button at the bottom, and the value
+                indicates whether the button acts as the submit button (true for submit, false otherwise).
+                These buttons will be shown left to right underneath and seperate from the form in the 
+                order contained in this object.
 
         RETURNS:
-            null if form could not be created, or a handle to the opened form
+            null if dialog could not be created, or a handle to the opened dialog
 
     close()
             Callable from within any callback or outside the dialog entirely through the handle returned via open(), to begin the dialog closing 
@@ -144,13 +139,13 @@ class DFDialog {
     _styleId;   // a unique id for this particular popup so we can delete all styles added by it at once
     static _defaultButtons = { "Cancel": false, "OK": true };
 
-    async open(form, data, buttons = null) {
-        let styles = [];
+    async open(dict) {
+        const form = dict.form || null;
+        const styles = dict.styles || [];
+        const fields = dict.fields || {};
+        this._buttons = dict.buttons || this.constructor._defaultButtons;
         this._styleId = crypto.randomUUID().replaceAll("-", "");
-        if (typeof form == "object") {  // assume if {} then it contains {form,style}, if "" it's just the "<form>"
-            styles = form["styles"] || [];
-            form = form["form"];
-        }
+
         let fname = import.meta.url;    // get full path to this file without this file's name
         fname = fname.slice(0, fname.lastIndexOf("."));     // lose the ending .js or .mjs or any
         fname += ".css";                                    // and add a .css in its place
@@ -174,12 +169,6 @@ class DFDialog {
         }
 
         this._form.addEventListener("submit", this._onSubmit);      // to handle the enter key
-
-        if (buttons) { 
-            this._buttons = buttons; 
-        } else {
-            this._buttons = this.constructor._defaultButtons;
-        }
 
         this._overflow = document.body.style.overflow;      // Disable page scroll
         document.body.style.overflow = 'hidden';
@@ -225,7 +214,7 @@ class DFDialog {
             }.bind(this);
             elBtnDiv.appendChild(btn);
         }
-        this._applyData(data);
+        this._applyData(fields);
 
         await this.preRun(tmp)
 

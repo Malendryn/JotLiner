@@ -6,6 +6,12 @@
 2025-05-24 ------------------------------------------------------------------------------------------------------------
 * DCH_BASE .loadCss is now .loadStyle(str) and it now supports a str of "<style>...</style>" or a URL path to a .css file
 * DFDialog has also been significantly tweaked to allow styles to be applied in a similar manner as DCH_BASE now does
+* DFContextMenu and DFMenuBar now accept the cssList as part of the class constructor, but otherwise operates the 
+    same as DFDialog does now.
+
+* further reworking of DFDialog, changed the params to open() to always be a dict.  Just adds much more flexibility!
+* doing the same for DFContextMenu and DFMenuBar which adds the bonus of allowing DFMenuBar to pass a different 
+    list of stylesheets to DFContextMenu, which it wasn't able to do before
 
 2025-05-23------------------------------------------------------------------------------------------------------------
 * fixed compatibility issue between firefox and chrome that was due to the way I was shoehorning <style> into the

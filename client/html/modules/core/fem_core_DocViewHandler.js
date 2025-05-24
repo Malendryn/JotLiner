@@ -228,7 +228,7 @@ function onContextDCHLayout() {
         form.addEventListener("input", onFormInput);
     }
     async function _onBtn(btnLabel, dict) {
-        if (dict.isSubmit) {
+        if (!dict.isSubmit) {
             const ss = FG.kmStates.dch.__sysDiv.style;
             ss.left   = formOrigVals.left;      // if dict == null, cancel was clicked, so restore original values
             ss.width  = formOrigVals.width;
@@ -251,8 +251,8 @@ function onContextDCHLayout() {
     }
     
     FG.kmStates.modal = true;
-    dlg = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onBtn });        // new popup
-    dlg.open({form:anchorForm, styles:[anchorStyle]}, null); // _preRunLayout handles populating form
+    dlg = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onBtn });
+    dlg.open({form:anchorForm, styles:[anchorStyle]}); // _preRun handles populating form so no fields passed in here
 }
 
 
@@ -274,8 +274,8 @@ because we can't rely on the dch to do it itself
     }
     
     FG.kmStates.modal = true;
-    dlg = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onBtn });        // new popup
-    dlg.open("<form>temporary</form>", null); // _preRunLayout handles populating form
+    dlg = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onBtn });
+    dlg.open({form:"<form>temporary</form>"});
 }
 
 
