@@ -8,7 +8,6 @@
 * DFDialog has also been significantly tweaked to allow styles to be applied in a similar manner as DCH_BASE now does
 * DFContextMenu and DFMenuBar now accept the cssList as part of the class constructor, but otherwise operates the 
     same as DFDialog does now.
-
 * further reworking of DFDialog, changed the params to open() to always be a dict.  Just adds much more flexibility!
 * doing the same for DFContextMenu and DFMenuBar which adds the bonus of allowing DFMenuBar to pass a different 
     list of stylesheets to DFContextMenu, which it wasn't able to do before

@@ -1,12 +1,6 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
-@@ consider removing the cssList from the DFDialog .open() call and making it a 5th parameter of the constructor
-This is how we are doing it now in the DFContextMenu and the DFMenuBar so it makes sense to do it here too (and I think
-it will look a lot cleaner!)
------------------------------------------------------------------------------------------------------------------------
-since DFMenuBar creates/opens DFContextMenu internally, maybe we should have 2 params in DFMenuBar's constructor. one
-for thecssList of DFMenuBar, and another to pass along to DFContextMenu
 -----------------------------------------------------------------------------------------------------------------------
 creating a simple painter plugin as an example,  howto/what to change/what to do.
 I don't have an 'auto .css' loader so I have to add that.  
@@ -15,12 +9,6 @@ I don't have an 'auto .css' loader so I have to add that.
         type is deleted from the module
 
 -----------------------------------------------------------------------------------------------------------------------
-@@ RSTODO grapple with how DFContextMenu and DFMenuBar can both handle the .css loading of [cssentries]
-@@ right now its done in the DFContextMenu so maybe DFMenuBar should have its own too?
-@@    but how is DFMenuBar going to pass it on to DFContextMenu?  (right NOW we do it all in a single .css file!)
------------------------------------------------------------------------------------------------------------------------
-rework DFDialog to support the new 'form' param allowing for multiple styles AND that the styles are put at the head of
-the <div> wrapping the dialog and not in <head> to allowfor cleaner removal when disposed of
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 minor quirk in that when rightpane is useless (no doc selected) alt+shift shouldn't do ANYthing at all.  (right now

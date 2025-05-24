@@ -28,13 +28,23 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-CAN-IMPLEMENT functions -------------------------------------------------------------------------------------
 // ****NOTE it is CRITICAL that these functions fully complete their ops before returning (EG must be async/await)
-    //        async construct(data=null)     // called by static create() after this.host created and saved styles applied
-                                                // if data != null, it contains a {} of data to be put on 'this' as properties
-                                                // in here is where to add your own <el>s and listeners to .host, etc..
-    //        async destruct()               // called immediately before removing all listeners and html, and destroying object
-    //        async importData(data)         // populate this component with data{} (calls Object.assign if NOT overridden)
-    // text = async exportData()             // return data to be preserved/exported as a {}
-    //        async update()                 // called right after imported or properties of it (or its children) were modified
+    async construct()      {}         // called by static create() after this.host created and saved styles applied
+                                         // if data != null, it contains a {} of data to be put on 'this' as properties
+                                         // in here is where to add your own <el>s and listeners to .host, etc..
+    async destruct()       {}         // called immediately before removing all listeners and html, and destroying object
+    async importData(data) {}         // data = key-value pairs to populate this component with. NOTE: Calls Object.assign if NOT overridden
+    async exportData() {}             // RETURNS:  an object of key-value pairs to be preserved/exported
+    async update()         {}                 // called right after imported or properties of it (or its children) were modified
+       // *overridable* populate this component with data
+       // *overridable* return data to be preserved/exported as a {}
+       // *overridable* do any other kind of cleanup before class destruction
+       // *overridable*
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// baseclass helper functions defined below for convenience -----------------------------------------------------------
+    async loadStyle(str) {} // loads a "<style></style>" text block or a .css file if str is a URL string and places it at
+                            // the very top of the this.host <div>
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create/destroy and other helper functions on baseclass (do not override!)----------------------------------------------------
     //  async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
@@ -44,17 +54,10 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 
     //  async destroy(); // recursive, calls this.destruct(), then removes all listeners, then destroys it
 
-    // async File("file.css")  // attach a <link rel="stylesheet" href="<yourmodulepath>/file.css"> to the <head>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // listener add/remove functions --------------------------------------------------------------------------------------
-//RSTODO OBSOLETE these have been replaced by FF.addTrackedListener, FF.removeTracked...
-    //OBSOLETE  id   = addDCHListener(el, action, callback, opts=undefined)
-    //OBSOLETE  succ = removeDCHListenerById(id)
-    //OBSOLETE         removeAllDCHListeners()
-// NOTE it is perfectly valid for 'el' to be 'document' or 'window' and it will get auto-removed when dch is removed
-
-// BE WARNED /NOW/ listeners added by addTrackedListener for an element that is NOT a child of 'this.host' WILL NOT be
+// BE AWARE listeners added by addTrackedListener for an element that is NOT a child of 'this.host' WILL NOT be
 // auto-removed when the dch is destroyed! so if the child class needs to implement them they must add and remove them
 // by themselves.  (they can still use addTrackedListener and removeTracked...  but they just won't be automatically)
 // removed on destruction
@@ -64,7 +67,7 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 //  none!
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// system-only properties, they should never be modified by the child class in any way
+// system-only properties and functions, they should never be modified or overridden by the child class in any way
 
     __parent = null;     // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
     __sysDiv = null;     // handle to a toplevel <div absolute>  housing the entire dch element tree (autocreated during create())
@@ -157,7 +160,9 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
         return dch;
     }
 
-    async importData(data) {Object.assign(this, data); }   // *overridable* populate this component with data
+// override above pre-defs in the help comments at the top of the class
+    async construct()      {}
+    async importData(data) { Object.assign(this, data); }  // *overridable* populate this component with data
     async exportData()     { return {}; }                  // *overridable* return data to be preserved/exported as a {}
     async destruct()       {}                              // *overridable* do any other kind of cleanup before class destruction
     async update()         {}                              // *overridable*
@@ -167,6 +172,7 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
         await this.destruct();
         this.__sysDiv.remove();
         if (this.hasToolbar) {
+            FF.removeAllTrackedListeners(this.toolbar);   // remove all listeners registered to this toolbar too
             this.toolbar.remove();
         }
         if (this.__parent) {                                  // if not at topmost dch

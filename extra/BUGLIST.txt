@@ -4,6 +4,7 @@ when client fails connection to server, it does not actually reconnect (though i
 -----------------------------------------------------------------------------------------------------------------------
 when in anchors dialog moving objs works great but resizing them doesnt resize the ghost along with the object
     in retrospect I'm thinking; leave the ghost where it was to show original position and just move the object!!!
+        (but that would require a new ghost to show it when it goes outside <div>)
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
