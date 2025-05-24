@@ -21,7 +21,7 @@ const mainMenu = {
 export async function initialize() {    // called from index.js
     _mmHandle = new DFMenuBar();                                // install the menubar
     let el = document.getElementById("mainMenuBar");
-    _mmHandle.open(el, mainMenu, onMainMenuCallback);
+    await _mmHandle.open(el, mainMenu, onMainMenuCallback);
 
     let sel = document.getElementById("dbSelector");
     sel.addEventListener("change", onDBSelectorChanged)

@@ -3,7 +3,10 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-24 ------------------------------------------------------------------------------------------------------------
+* DCH_BASE .loadCss is now .loadStyle(str) and it now supports a str of "<style>...</style>" or a URL path to a .css file
+* DFDialog has also been significantly tweaked to allow styles to be applied in a similar manner as DCH_BASE now does
+
 2025-05-23------------------------------------------------------------------------------------------------------------
 * fixed compatibility issue between firefox and chrome that was due to the way I was shoehorning <style> into the
     <form> data.  DFDialog now allows "form" -or- {form:"form", style:"style"} as a parameter to pass in a proper
@@ -11,12 +14,12 @@
 * added quick temporary actions to the Help menu for About and License
 * changed 'properties' to 'Layout, anchors and depth' and introduced a new properties menu option which will be a 
     direct call to the dch handlers to create their own properties dialog
-
 * adding a new plugin under JLPAINT as a tiny painting program (primarily for demoing how to create plugins)
 * moved .odt and .dia files in /extra to /extra/docs
 * added extra/docs/DCHModuleBuilding.ods to document the node creation process (using JLPAINT as an example)
 * moved various testing .html files out of /client into /extra/test HTMLs
 * fixed a bug in where tooltips werent appearing in context menus
+* realized I was missing a few files by accident!  added now
 
 2025-05-23 ------------------------------------------------------------------------------------------------------------
 * renamed TKMEventHandlers to DocViewHandler -- just makes more sense now that it's evolved

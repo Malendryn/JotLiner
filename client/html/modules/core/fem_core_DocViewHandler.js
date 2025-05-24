@@ -252,7 +252,7 @@ function onContextDCHLayout() {
     
     FG.kmStates.modal = true;
     dlg = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onBtn });        // new popup
-    dlg.open({form:anchorForm, style:anchorStyle}, null); // _preRunLayout handles populating form
+    dlg.open({form:anchorForm, styles:[anchorStyle]}, null); // _preRunLayout handles populating form
 }
 
 

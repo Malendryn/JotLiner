@@ -44,7 +44,7 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 
     //  async destroy(); // recursive, calls this.destruct(), then removes all listeners, then destroys it
 
-    // async loadCss("file.css")  // attach a <link rel="stylesheet" href="<yourmodulepath>/file.css"> to the <head>
+    // async File("file.css")  // attach a <link rel="stylesheet" href="<yourmodulepath>/file.css"> to the <head>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // listener add/remove functions --------------------------------------------------------------------------------------
@@ -70,7 +70,6 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
     __sysDiv = null;     // handle to a toplevel <div absolute>  housing the entire dch element tree (autocreated during create())
     __host   = null;     // all NON-DCH_BOX's get this
     __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv.__host.__shadow.host);
-
     static async create(dchName, parent=null, style=null) {
         const dch = new DCH[dchName].dchClass();            // create handler, do nothing else!
         dch.srcUrl = DCH[dchName].srcUrl;                  // set the path to its available content ('ghosts over' static srcUrl)
@@ -176,21 +175,21 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
         }
     }
 
-    
-    async loadCss(cssFile) {
-        // console.log(FF.__FILE__(), "HERE IS WHERE WE LOAD CSS");
-        const cssPath = this.srcUrl + "/" + cssFile;
-        const response = await fetch(cssPath);
-        if (!response.ok) {
-            throw new Error("could not load requested css file '" + cssFile + "'");
+    async loadStyle(str) {
+        const isBlock = /^\s*<style[\s>][\s\S]*<\/style>\s*$/i.test(str.trim()); //true if valid  "<style></style>"  else false=assume filepath
+      if (!isBlock) {
+        const cssPath = this.srcUrl + "/" + str;        // else go load it!
+            const response = await fetch(cssPath);
+            if (!response.ok) {
+                alert("Failed to load requested css file '" + str + "'");
+                return;
+            }
+            str = await response.text();
         }
-        const data = await response.text();
 
-        // const style = "<style>\n" + data + "\n</style>\n";
         const el = document.createElement("style");
-        el.textContent = data;
-        this.host.prepend(el);
-
+        el.textContent = str;
+        this.host.parentNode.insertBefore(el, this.host); // insert this style right before the host div
     }
 };
 

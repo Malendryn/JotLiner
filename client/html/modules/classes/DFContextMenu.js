@@ -1,14 +1,18 @@
 
 class DFContextMenu {
     menu = null;
-    open(entries, callback, locX, locY) {
-        _loadCss();
-        this.close();
+    async open(entries, callback, locX, locY) {
+        for (let idx = 0; idx < this._styles.length; idx++) {
+            const style = this._styles[idx];
+            await _loadStyle(this._styleId, idx + 2, style);  // idx is +2 cuz 1) so errs show 1-based and 2) to skip styles.unshift("DFDialog.css") above
+        }
+
         this.menu = _buildContextMenu(entries, false);
 
         this.menu.style.left = locX + "px";
         this.menu.style.top = locY + "px";
         this.menu.classList.add("active");
+
         document.body.appendChild(this.menu);
 
         const pRect = document.body.getBoundingClientRect();
@@ -32,13 +36,27 @@ class DFContextMenu {
         });
     }
 
-
     close() {
         if (this.menu) {
             this.menu.remove();
             this.menu = null;
         }
-    }    
+        const attr = "data-" + this._styleId;
+        const elements = document.querySelectorAll(`[${attr}]`);
+        for (const el of elements) {
+            el.remove();
+        }
+    }
+    _styleId;   // a unique id for this particular popup so we can delete all styles added by it at once
+    _styles;    // list of styles to load into <head> on open()
+    constructor(styles = []) {
+        this._styles = Object.assign([], styles);
+        this._styleId = crypto.randomUUID().replaceAll("-", "");
+        let fname = import.meta.url;    // get full path to this file without this file's name
+        fname = fname.slice(0, fname.lastIndexOf("."));     // lose the ending .js or .mjs or any
+        fname += ".css";                                    // and add a .css in its place
+        this._styles.unshift(fname);                        // then prepend it on the styles list
+    }
 }
 export { DFContextMenu };
 
@@ -46,9 +64,12 @@ export { DFContextMenu };
 class DFMenuBar {
     bar = null;     // the <div> that shows the menuEntries left to right inside the parent
     cm = null;      // contextMenu that opens beneath a menuEntry
-    open(parent, entries, callback) {
-        _loadCss(this.constructor.name);
-        this.close();
+    async open(parent, entries, callback) {
+        for (let idx = 0; idx < this._styles.length; idx++) {
+            const style = this._styles[idx];
+            await _loadStyle(this._styleId, idx + 2, style);  // idx is +2 cuz 1) so errs show 1-based and 2) to skip styles.unshift("DFDialog.css") above
+        }
+
         this.bar = document.createElement("div");
         this.bar.id = "DFMenuBar"
         parent.appendChild(this.bar);
@@ -73,33 +94,26 @@ class DFMenuBar {
             this.bar.remove();
             this.bar = null;
         }
+        debugger; const attr = "data-" + this._styleId;
+        const elements = document.querySelectorAll(`[${attr}]`);
+        for (const el in elements) {
+            el.remove();
+        }
     }
 
-
-    constructor() {
-        this.cm = new DFContextMenu();
+    _styleId;   // a unique id for this particular popup so we can delete all styles added by it at once
+    _styles;    // list of styles to load into <head> on open()
+    constructor(styles = []) {
+        this._styles = Object.assign([], styles);
+        this._styleId = crypto.randomUUID().replaceAll("-", "");
+        this.cm = new DFContextMenu(styles);
+        let fname = import.meta.url;    // get full path to this file without this file's name
+        fname = fname.slice(0, fname.lastIndexOf("."));     // lose the ending .js or .mjs or any
+        fname += ".css";                                    // and add a .css in its place
+        this._styles.unshift(fname);                        // then prepend it on the styles list
     }
 }
 export { DFMenuBar }
-
-
-let _isCssLoaded = false;
-function _loadCss() {
-    if (!_isCssLoaded) {
-        let url = import.meta.url;                              // get our http path to self
-        // url = url.substring(url.lastIndexOf("/") + 1)      // get filename part (after last '/')
-        url = url.substring(0, url.lastIndexOf("."));        // strip off the extension (.js)
-        url += ".css";
-        // url = new URL("./" + url + ".css", import.meta.url).href;  // rebuild with .css
-        if (!document.querySelector(`link[href="${url}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = url;
-            document.head.appendChild(link);
-        }
-        _isCssLoaded = true;
-    }
-}
 
 
 function _buildContextMenu(entries, isSubmenu = false) {
@@ -138,4 +152,27 @@ function _buildContextMenu(entries, isSubmenu = false) {
         menu.appendChild(optEl);
     };
     return menu;
+}
+
+
+async function _loadStyle(styleId, idx, style) {    // idx is only for errormsgs
+    const isBlock = /^\s*<style[\s>][\s\S]*<\/style>\s*$/i.test(style.trim()); //true if valid  "<style></style>"  else false=assume filepath
+      if (!isBlock) {
+        const response = await fetch(style);
+        if (!response.ok) {
+            console.warn(`Failed to download styles[${idx}] (${style}) as a css file`);
+            return null;                                  // fail silently (std practice in webpages)
+        }
+        style = "<style>" + await response.text() + "</style>";
+    }
+
+    let el = document.createElement("div");     // first load and validate the form
+    el.innerHTML = style;
+    el = el.firstElementChild;
+    if (!el || el.tagName != "STYLE") {
+        console.warn(`Parameter {styles:[${idx}]} missing outermost <style></style> element`);
+        return null;
+    }
+    el.dataset[styleId] = "";                    // content is irrelevant,  that it exists is all that matters
+    document.head.appendChild(el);               // stick it in!
 }

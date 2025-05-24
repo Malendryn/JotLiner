@@ -71,17 +71,22 @@ DFDialog construction parameters:
             nothing
 
 
+-------------------------------------------------------------------------------------------
 Functions within the class:
-    open(form or {form,style}, dict, buttonDict = null)
+    open(form or {form:str,styles:[str[, str,...]]}, dict, buttonDict = null)
             Open a dialog based on the parameters passed
 
-        form
-            form is either a string containing a complete "<form>...</form>" element, as text, or is a dict containing {form,style}
-            which are form="<form>...</form>" and style="<style>...</style>".
-            These will be parsed into DOM elements and displayed in the popup dialog. 
-            Inside this text should be input fields, checkboxes, etc, with each element that will have any form of editable data a form
-            can have. Each element that is to receive or submit data must have a name="..." attribute that will be populated automatically 
-            via the data parameter, and by the preRun callback, before displaying the dialog.
+        form can be passed in in two ways:
+            either a string such as "<form>..</form>" or a URL path such as "./my/form.file";
+            or a dict containing {form: FRM, styles: [STYL1, STYL2, ...] }
+                where FRM is the same as already mentioned
+                and STYL1, STYL2 etc.. are strings of "<style>..</style>" or URL paths like "./my/form.css"
+            
+            Note that form, whether text or a file loaded via URL, must be a complete "<form>..</form>" block
+            and styles must either be a complete "<style>..</style>" block, or the URL to a .css formatted file
+
+NOTE:  If a a CSS file whos name matches this file (e.g., DFDialog.css) exists in the same directory, it will 
+automatically be loaded. You do not need to include it in the styles array of the open() call
 
         dict
             An object with multiple {"key": "value"} pairs, where for each "key", its "value" will get populated into the form's html
@@ -136,27 +141,39 @@ class DFDialog {
     _overflow;  // state of body.overflow before dialog opened  (restored in .close())
     _buttons;   // set during open()
     _form;      // handle to the <form> passed in once converted to DOMelements
+    _styleId;   // a unique id for this particular popup so we can delete all styles added by it at once
     static _defaultButtons = { "Cancel": false, "OK": true };
 
     async open(form, data, buttons = null) {
-        let style = null;
-        if (typeof form == "object") {  // assume if {} then it contains {form,style}, if "" it's just the "<form>" 
-            style = form["style"] || null;
+        let styles = [];
+        this._styleId = crypto.randomUUID().replaceAll("-", "");
+        if (typeof form == "object") {  // assume if {} then it contains {form,style}, if "" it's just the "<form>"
+            styles = form["styles"] || [];
             form = form["form"];
         }
-        this._form = document.createElement("div");     // first load and validate the form
-        this._form.innerHTML = form;
-        this._form = this._form.firstElementChild;
-        if (!this._form || this._form.tagName != "FORM") {
-            alert("'form' parameter missing outermost <form> element");
-            return null;
-        }
-        this._form.addEventListener("submit", this._onSubmit);
+        let fname = import.meta.url;    // get full path to this file without this file's name
+        fname = fname.slice(0, fname.lastIndexOf("."));     // lose the ending .js or .mjs or any
+        fname += ".css";                                    // and add a .css in its place
+        styles.unshift(fname);                              // then prepend it on the styles list
 
-        _loadCss();                 // load the DFDialog.css file
-        if (!_loadStyle(style)) {   // load the passed-in <style> (if any)
-            return null;
+        this._form = document.createElement("div");     // first load and validate the form
+        try {
+            this._form.innerHTML = form;
+            this._form = this._form.firstElementChild;
+            if (!this._form || this._form.tagName != "FORM") {
+                throw new Error("'form' parameter missing outermost <form> element");
+            }
         }
+        catch (err) {
+            throw new Error("Error in 'form' parameter of DFDialog.open: " + err.message);
+        }
+
+        for (let idx = 0; idx < styles.length; idx++) {
+            const style = styles[idx];
+            const id = await _loadStyle(this._styleId, idx + 2, style);     // idx is +2 cuz 1) so errs show 1-based and 2) to skip styles.unshift("DFDialog.css") above
+        }
+
+        this._form.addEventListener("submit", this._onSubmit);      // to handle the enter key
 
         if (buttons) { 
             this._buttons = buttons; 
@@ -262,7 +279,12 @@ class DFDialog {
         this._root.remove();                            // remove dialog and all eventListeners we added
         this._root = undefined;                         // clear it from ourselves
         document.body.style.overflow = this._overflow;  // restore orig overflow value
-        _loadStyle(null);
+
+        const attr = "data-" + this._styleId;
+        const elements = document.querySelectorAll(`[${attr}]`);
+        for (const el of elements) {
+            el.remove();
+        }
 
         this.onClose("", data);
         this._isClosing = false; 
@@ -374,43 +396,25 @@ class DFDialog {
 };
 export { DFDialog };
 
-  
-let _isCssLoaded = false;
-function _loadCss() {
-    if (!_isCssLoaded) {
-        let url = import.meta.url;                              // get our http path to self
-        // url = url.substring(url.lastIndexOf("/") + 1)      // get filename part (after last '/')
-        url = url.substring(0, url.lastIndexOf("."));        // strip off the extension (.js)
-        url += ".css";
-        // url = new URL("./" + url + ".css", import.meta.url).href;  // rebuild with .css
-        if (!document.querySelector(`link[href="${url}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = url;
-            document.head.appendChild(link);
+ 
+async function _loadStyle(styleId, idx, style) {    // idx is only for errormsgs
+    const isBlock = /^\s*<style[\s>][\s\S]*<\/style>\s*$/i.test(style.trim()); //true if valid  "<style></style>"  else false=assume filepath
+      if (!isBlock) {
+        const response = await fetch(style);
+        if (!response.ok) {
+            console.warn(`Failed to download styles[${idx}] (${style}) as a css file`);
+            return;                             // fail silently (std practice in webpages)
         }
-        _isCssLoaded = true;
+        style = "<style>" + await response.text() + "</style>";
     }
+
+    let el = document.createElement("div");     // first load and validate the form
+    el.innerHTML = style;
+    el = el.firstElementChild;
+    if (!el || el.tagName != "STYLE") {
+        console.warn(`Parameter {styles:[${idx}]} missing outermost <style></style> element`);
+        return;
+    }
+    el.dataset[styleId] = "";                    // content is irrelevant,  that it exists is all that matters
+    document.head.appendChild(el);               // stick it in!
 }
-
-
-function _loadStyle(style) {     // style("<style>...</style>")=insert else null=remove
-    let el = document.querySelectorAll('[data-dfdlgstyle]');
-    for (const item of el) {     // SHOULD never be more than one, but since it returns a [] lets walk it!
-        item.remove();
-    }
-    if (style) {
-        el = document.createElement("div");              // first load and validate the form
-        el.innerHTML = style;
-        el = el.firstElementChild;
-        if (!el || el.tagName != "STYLE") {
-            alert("'style' parameter missing outermost <style> element");
-            return false;
-        }
-        el.dataset.dfdlgstyle = "";        // don't care about value, only about existence
-        document.head.appendChild(el);
-    }
-    return true;
-}
-
-
