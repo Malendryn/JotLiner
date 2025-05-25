@@ -177,37 +177,37 @@ dawAHL (AHR/AHT/AHB) is arrowhead facing Left, Right, Top, Bottom
 			<line x1="10" y1="10" x2="10" y2="66" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
 		</svg>
 		<div style="position:absolute;top:20px;left:110px;"><input id="dawIBCkBoxT" type="text" class="unAbled" value="X" readonly><label>top</label><br></div>
-		<input id="dawIBInputT" type="number"   style="padding:0;position:absolute;top:40px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<input id="dawIBInputT" type="number" min="-99999" max="99999" style="padding:0;position:absolute;top:40px;left:100px;width:60px;height:20px;">
 
 		<svg id="dawInnerArrowH" width="20" height="200" style="position:absolute;top:86px;left:120px;">
 			<line x1="10" y1="10" x2="10" y2="146" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
 		</svg>
 		<div style="position:absolute;top:160px;left:102px;"><input id="dawIBCkBoxH" type="text" class="unAbled" value="X" readonly><label>height</label><br></div>
-		<input id="dawIBInputH" type="number"   style="padding:0;position:absolute;top:180px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<input id="dawIBInputH" type="number" min="20" max="99999" style="padding:0;position:absolute;top:180px;left:100px;width:60px;height:20px;">
 
 		<svg id="dawInnerArrowB" width="20" height="100" style="position:absolute;top:248px;left:120px;">
 			<line x1="10" y1="10" x2="10" y2="66" stroke="#F00" stroke-width="2" marker-start="url(#dawAHT)" marker-end="url(#dawAHB)" />
 		</svg>
 		<div style="position:absolute;top:260px;left:100px;"><input id="dawIBCkBoxB" name="cboxB" type="text" class="unAbled" value="X" readonly><label>bottom</label><br></div>
-		<input id="dawIBInputB" name="inputB" type="number"   style="padding:0;position:absolute;top:280px;left:100px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<input id="dawIBInputB" name="inputB" type="number" min="-99999" max="99999"style="padding:0;position:absolute;top:280px;left:100px;width:60px;height:20px;">
 
 		<svg id="dawIBArrowL" width="100" height="20" style="position:absolute;top:115px;left:5px;">
 			<line x1="10" y1="10" x2="80" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
 		<div style="position:absolute;top:105px;left:33px;"><input id="dawIBCkBoxL" name="cboxL" type="text" class="unAbled" value="X" readonly><label>left</label><br></div>
-		<input id="dawIBInputL" name="inputL" type="number"   style="padding:0;position:absolute;top:125px;left:18px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<input id="dawIBInputL" name="inputL" type="number" min="-99999" max="99999"style="padding:0;position:absolute;top:125px;left:18px;width:60px;height:20px;">
 
 		<svg id="dawIBArrowW" width="200" height="20" style="position:absolute;top:115px;left:105px;">
 			<line x1="10" y1="10" x2="180" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
 		<div style="position:absolute;top:105px;left:180px;"><input id="dawIBCkBoxW" name="cboxW" type="text" class="enAbled" value="&#10004;" readonly><label>width</label><br></div>
-		<input id="dawIBInputW" name="inputW" type="number"   style="padding:0;position:absolute;top:125px;left:174px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<input id="dawIBInputW" name="inputW" type="number" min="20" max="99999" style="padding:0;position:absolute;top:125px;left:174px;width:60px;height:20px;">
 
 		<svg id="dawIBArrowR" width="100" height="20" style="position:absolute;top:115px;left:302px;">
 			<line x1="10" y1="10" x2="80" y2="10" stroke="#000" stroke-width="2" marker-start="url(#dawAHL)" marker-end="url(#dawAHR)" />
 		</svg>
 		<div style="position:absolute;top:105px;left:322px;"><input id="dawIBCkBoxR" name="cboxR" type="text" class="enAbled" value="&#10004;" readonly><label>right</label><br></div>
-		<input id="dawIBInputR" name="inputR" type="number"   style="padding:0;position:absolute;top:125px;left:316px;width:60px;height:20px;" value="-99999" min="-99999" max="99999">
+		<input id="dawIBInputR" name="inputR" type="number" min="-99999" max="99999" style="padding:0;position:absolute;top:125px;left:316px;width:60px;height:20px;">
 	</form>
 `;
 let dlg;

@@ -15,6 +15,7 @@
     to be stored rather than everything-must-be-a-key-value-STRING-pair
 * the new JLPAINT plugin is working!   
 
+* in the anchor dialog, min width and height now limited to min=20
 2025-05-23------------------------------------------------------------------------------------------------------------
 * fixed compatibility issue between firefox and chrome that was due to the way I was shoehorning <style> into the
     <form> data.  DFDialog now allows "form" -or- {form:"form", style:"style"} as a parameter to pass in a proper
