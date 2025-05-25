@@ -1,0 +1,12 @@
+canvas {
+    background-color:white;
+    cursor: crosshair;
+    width:100%;
+    height:100%;
+}
+.controls {
+    margin: 10px;
+}
+.controls > * {
+    margin-right: 10px;
+}

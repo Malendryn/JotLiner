@@ -21,13 +21,13 @@ export class DocExporter {
     }
     
     async _export(dch) {
-        let cName;
-        for (const key in DCH) {            // get it's cName by searching for it in the loaded DCH ComponentHandlers
-            if (dch instanceof DCH[key].dchClass) {  
-                cName = key;
-                break;
-            }
-        }
+        const cName = FF.getDchName(dch);
+        // for (const key in DCH) {            // get it's cName by searching for it in the loaded DCH ComponentHandlers
+        //     if (dch instanceof DCH[key].dchClass) {  
+        //         cName = key;
+        //         break;
+        //     }
+        // }
         let str = "";
         if (dch.__sysDiv.style.left   != '') {  str += this._elToStr("L", parseInt(dch.__sysDiv.style.left));   }
         if (dch.__sysDiv.style.right  != '') {  str += this._elToStr("R", parseInt(dch.__sysDiv.style.right));  }
@@ -52,31 +52,61 @@ export class DocExporter {
 
 
     _elToStr(key, val) {
-        if (typeof(val) === undefined) {            // undefined not supported so change it to a null  (RSTODO consider throwing error instead?)
-            val = null;
-        } else if (typeof(val) != "string") {
-            val = val.toString();
-        }
-        function testB64(str) {
-            for (let idx = 0; idx < str.length; idx++) {
-                const ch = str.charCodeAt(idx);
-                if (ch < 30 || ch > 126) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        let vlen = val.length;
-        if (testB64(val)) {
-            val = new TextEncoder().encode(val);
+        let dtype;
+        if (val instanceof Uint8Array) {
+            dtype = "u";    // for 'Uint8Array'
             let bin = '';
             for (let byte of val) {
                 bin += String.fromCharCode(byte);
             }
             val = btoa(bin);
-
-            vlen = 0 - val.length;          // when uuencoded, store vlen as negative
+        } else {
+            if (val === undefined) {
+                debugger; val = '';
+                dtype = '?';
+            } else if (val === null) {
+                debugger; val = '';
+                dtype = "~";
+            } else if (typeof val == "boolean") {
+                debugger; val = (val) ? "t" : "f"
+                dtype = "B";
+            } else if (typeof val == "number") {
+                val = val.toString();
+                dtype = "N";
+            } else if (typeof val  == "string") {
+                dtype = "S";
+            } else if (Array.isArray(val)) {
+                debugger; val = JSON.stringify(val);
+                dtype = "A";
+            } else {
+                debugger; val = JSON.stringify(val);    // only thing really left here is an {} object
+                dtype = "O";
+            }
+            if (!dtype) {
+                const tmp = Object.prototype.toString.call(val).slice(8, -1);
+                console.log(FF.__FILE___(), "invalid datatype for export: '" + tmp + "'");
+                return '';
+            }
+            function testB64(str) {
+                for (let idx = 0; idx < str.length; idx++) {
+                    const ch = str.charCodeAt(idx);
+                    if (ch < 30 || ch > 126) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            if (testB64(val)) {
+                dtype = dtype.toLowerCase();            // change ABNS to abns to flag as encoded
+                val = new TextEncoder().encode(val);
+                let bin = '';
+                for (let byte of val) {
+                    bin += String.fromCharCode(byte);
+                }
+                val = btoa(bin);
+            }
         }
-        return key + "=" + vlen + ";" + val;
+        const vlen = val.length + 1;    // the +1 is for the new dtype char
+        return key + "=" + vlen.toString() + ";" + dtype + val;
     }
 };

@@ -4,7 +4,7 @@
 // FG.baseURL   = "";       // for backend this is __filename, for frontend this is 'http://site:port'
 // FG.__dirname   
 // ==== FROM fem_core_WSockHandler ====================================================================================
-FG.VERSION; //  ="1.0";     // SET AT TOP OF "index.js", NOT HERE !!!!  (used to compare and upgrade docs when loading)
+FG.VERSION       = "1.1";
 
 FG.baseURL       = window.location.origin;  // EG: "http://localhost:3000"
 

@@ -707,9 +707,11 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
             if (FG.ghosts.nesw.length > 0) {            // if over an edge or corner, resize...
                 FF.sizeDivRelative(dch.__sysDiv, FG.ghosts.nesw, deltaX, deltaY);
                 FF.sizeDivRelative(FG.ghosts.divGhost, FG.ghosts.nesw, deltaX, deltaY);
+                dch.onResize();
             } else {                                // ...else move
                 FF.moveDivRelative(dch.__sysDiv, deltaX, deltaY);
                 FF.moveDivRelative(FG.ghosts.divGhost, deltaX, deltaY);
+                dch.onMove();
             }
         }
 

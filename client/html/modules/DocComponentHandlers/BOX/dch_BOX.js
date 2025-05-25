@@ -27,16 +27,16 @@ class DCH_BOX extends FG.DCH_BASE {
     }
 
     async importData(data) {    // populate this component with data
-        if (Object.keys(data).length > 0) {     
-            this.zX      = parseInt(data.zX);       // how far all children are shifted over to give the infinite canvas illusion
-            this.zY      = parseInt(data.zY);
+        if (Object.keys(data).length > 0) {
+            this.zX      = data.zX;       // how far all children are shifted over to give the infinite canvas illusion
+            this.zY      = data.zY;
         }
     }
 
     async exportData() {       // return data to be preserved/exported as a {}
         return {
-            zX: this.zX.toString(),
-            zY: this.zY.toString(),
+            zX: this.zX,
+            zY: this.zY,
         };
     }
 

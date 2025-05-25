@@ -7,6 +7,7 @@
 // X.attach(str, div);      // attach the component (and all its children) to <div> (and div's handler)
 // X.detach(div);           // detach component(and all its children) from <div> and return exportable str
 
+let __docVer;
 class StringReader {
     str;
     idx;
@@ -26,37 +27,82 @@ class StringReader {
 
     readEl() {                      // read "WRD=LEN;DATA", decode base64 if LEN=negative, return [dchName, data]
         let tmp = this.readToSem();     // read ("WRD=LEN" and lose the ';')
+        if (tmp == "") {
+            return null;
+        }        
         tmp = tmp.split('=');           // split ["WRD", "LEN"]
         if (tmp.length != 2) {          // EOFile (or some kinda other illegal junk!)
             return null;
         }
-        const dchName = tmp[0].trim();  // trim offwhitespace around WRD
-        let len = parseInt(tmp[1]);     // integerize "LEN" and test if negative then data=base64 encoded
-        let isBase64 = (len < 0);
-        len = Math.abs(len);            // finally, positivize len
+        const wrd = tmp[0].trim();      // trim off whitespace around WRD
+        let len = parseInt(tmp[1]);     // integerize 'len'
 
-        if (this.idx > this.str.length) {    // test for end of data  (fires when len == 0)        
-            throw new Error("Data stream too short");
+        if (this.idx > this.str.length) {    // test for end of data
+            console.warn(FF.__FILE__(), "readEl() Data stream too short");
+            return null;
         }
 
-        const end = Math.min(this.idx + len, this.str.length);
-        let data = this.str.substring(this.idx, end);
-        // if (1) {
-            this.idx = end;                      // works but leaves memory in use while StringReader exists...
-        // } else {
-        //     this.str = this.str.substring(end);  // ...alternate, shrink string each time
-        //     this.idx = 0;
-        // }
-
-        if (isBase64) {
-            data = atob(data);
-            const bytes = new Uint8Array(data.length);
-            for (let idx = 0; idx < data.length; idx++) {
-                bytes[idx] = data.charCodeAt(idx);
+        let val;
+        if (Number(__docVer) < 1.1) {                                       // V1.0 way: 
+            let isBase64 = (len < 0);       // if len < 0 its b64
+            len = Math.abs(len);            // finally, positivize len
+            const end = Math.min(this.idx + len, this.str.length);
+            val = this.str.substring(this.idx, end);
+            this.idx = end;
+    
+            if (isBase64) {
+                val = atob(val);
+                const bytes = new Uint8Array(val.length);
+                for (let idx = 0; idx < val.length; idx++) {
+                    bytes[idx] = val.charCodeAt(idx);
+                }
+                val = new TextDecoder().decode(bytes);
             }
-            data = new TextDecoder().decode(bytes);
+        } else {                                                            // V1.1 way:  (len is now always positive)
+            const end = Math.min(this.idx + len, this.str.length);
+            let dtype = this.str[this.idx];               // peel off first letter as datatype
+            val = this.str.substring(this.idx + 1, end);    // extract the rest
+            this.idx = end;
+            if (/^[a-z]$/.test(dtype)) {  // if is lowercase a-z
+                function decode(base64) {
+                    const binaryString = atob(base64);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                      bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    return bytes;
+                }
+                val = decode(val);
+                if (dtype != 'u') {                         // if not expecting a true Uint8Array...
+                    val = new TextDecoder().decode(val);    // textify it
+                }
+                dtype = dtype.toUpperCase();    // now everything's decoded, uppercase dtype for testing
+            }
+            switch(dtype) {
+                case '?': {
+                    debugger; val = undefined;
+                    break; }
+                case '~': {
+                    debugger; val = null;
+                    break; }
+                case 'B': {
+                    debugger; val = ('t') ? true : false;
+                    break; }
+                case 'N': {
+                    val = Number(val);
+                    break; }
+                case 'S': {     // val is alrady a string, nothing done here
+                    break; }
+                case 'A': {
+                    debugger; val = JSON.parse(val);
+                    break; }
+                case 'N': {
+                    debugger; val = JSON.parse(val);
+                    break; }
+            }
         }
-        return [ dchName, data ];
+        return [ wrd, val ];
     }
 
     constructor(str) {
@@ -67,14 +113,13 @@ class StringReader {
 
 
 export class DocImporter {   // create and return a DCH from a stream
-    docVer;
     docUuid;        // tmp holder for uuid of imported doc
     sr;
     rootDch;
 
     async attach(str, parent)  {        // attach as child of parent.__sysDiv  (or to "divDocView" if parent=null)
         this.sr = new StringReader(str);
-        this.docVer = FG.VERSION;       // STARTWITH matching the sysVersion (so copypaste always compares to proper version)
+        __docVer = FG.VERSION;       // STARTWITH matching the sysVersion (so copypaste always compares to proper version)
         this.rootDch = null;
         let tmp;
 
@@ -85,8 +130,8 @@ export class DocImporter {   // create and return a DCH from a stream
         if (tmp.charAt(0) != '@') {
             throw new Error("Cannot load document, improperly formatted");
         }
-        this.docVer = tmp.substr(1);    // chopoff "@", save ver as "n.n"
-        if (this.docVer > FG.VERSION) {
+        __docVer = tmp.substr(1);    // chopoff "@", save ver as "n.n"
+        if (__docVer > FG.VERSION) {
             throw new Error("Document is newer than this software supports");
         }
         // if (parent == null)  {          // if toplevel document (and not just a copypaste subset)
@@ -112,7 +157,12 @@ export class DocImporter {   // create and return a DCH from a stream
         if (parent) {                       // if parent was passed, attach this to its children
             parent.__children.push(dch);
         }
-        await dch.importData(dchData.data);                         // implant the data into the <div>
+        try {
+            await dch.importData(dchData.data);                         // implant the data into the <div>
+        } catch (err) {
+            console.warn("Error importing data of dch '" + dchData.cName + "', " + err.message);
+        }
+
         for (let idx = 0; idx < dchData.children; idx++) {          // load children of component (if any)
             await this._importNext(dch);
         }

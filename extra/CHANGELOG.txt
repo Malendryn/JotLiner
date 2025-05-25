@@ -11,6 +11,9 @@
 * further reworking of DFDialog, changed the params to open() to always be a dict.  Just adds much more flexibility!
 * doing the same for DFContextMenu and DFMenuBar which adds the bonus of allowing DFMenuBar to pass a different 
     list of stylesheets to DFContextMenu, which it wasn't able to do before
+* changed internal version to 1.1 so docImporter can handle a new storage format that now allows for many 'true' datatypes
+    to be stored rather than everything-must-be-a-key-value-STRING-pair
+* the new JLPAINT plugin is working!   
 
 2025-05-23------------------------------------------------------------------------------------------------------------
 * fixed compatibility issue between firefox and chrome that was due to the way I was shoehorning <style> into the

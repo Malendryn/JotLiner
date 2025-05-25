@@ -28,18 +28,16 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-CAN-IMPLEMENT functions -------------------------------------------------------------------------------------
 // ****NOTE it is CRITICAL that these functions fully complete their ops before returning (EG must be async/await)
-    async construct()      {}         // called by static create() after this.host created and saved styles applied
-                                         // if data != null, it contains a {} of data to be put on 'this' as properties
-                                         // in here is where to add your own <el>s and listeners to .host, etc..
-    async destruct()       {}         // called immediately before removing all listeners and html, and destroying object
-    async importData(data) {}         // data = key-value pairs to populate this component with. NOTE: Calls Object.assign if NOT overridden
-    async exportData() {}             // RETURNS:  an object of key-value pairs to be preserved/exported
-    async update()         {}                 // called right after imported or properties of it (or its children) were modified
-       // *overridable* populate this component with data
-       // *overridable* return data to be preserved/exported as a {}
-       // *overridable* do any other kind of cleanup before class destruction
-       // *overridable*
+    async construct()      {}   // called by static create() after this.host created and saved styles applied
+                                  // if data != null, it contains a {} of data to be put on 'this' as properties
+                                  // in here is where to add your own <el>s and listeners to .host, etc..
+    async destruct()       {}   // called immediately before removing all listeners and html, and destroying object
+    async importData(data) {}   // data = key-value pairs to populate this component with. NOTE: Calls Object.assign if NOT overridden
+    async exportData()     {}   // RETURNS:  an object of key-value pairs to be preserved/exported
+    async update()         {}   // called right after imported or properties of it (or its children) were modified
 
+    onResize()  {}
+    onMove()    {}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // baseclass helper functions defined below for convenience -----------------------------------------------------------
     async loadStyle(str) {} // loads a "<style></style>" text block or a .css file if str is a URL string and places it at
@@ -187,7 +185,7 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
         const cssPath = this.srcUrl + "/" + str;        // else go load it!
             const response = await fetch(cssPath);
             if (!response.ok) {
-                alert("Failed to load requested css file '" + str + "'");
+                console.warn("Failed to load requested css file '" + str + "'");
                 return;
             }
             str = await response.text();

@@ -5,7 +5,6 @@ globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Share
 globalThis.DCH = {}; // DocumentComponentHandler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
 globalThis.WS  = {}; // WebSocket and Packet transmit/receive CLASSES, funcs, etc
 
-FG.VERSION = "1.0";     // system version (primarily for importing/exporting docs and docdata)
 WS.wssPort = 3000;      // must match port in server/server.js
 
 FF.loadModule = async (modulePath) => {
