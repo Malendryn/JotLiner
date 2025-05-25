@@ -97,7 +97,7 @@ class StringReader {
                 case 'A': {
                     debugger; val = JSON.parse(val);
                     break; }
-                case 'N': {
+                case 'O': {
                     debugger; val = JSON.parse(val);
                     break; }
             }
