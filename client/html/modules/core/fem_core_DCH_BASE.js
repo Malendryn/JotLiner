@@ -94,12 +94,12 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
         dch.__sysDiv.style.minHeight = "20px";
         parentDiv.appendChild(dch.__sysDiv);
 
-        if (dchName == "BOX") {                    // BOX is SpecialCase, DON'T give it a shadowDom! 
+        if (dchName == "BOX") {                  // BOX is SpecialCase, DON'T give it a shadowDom, DO give it a .host! 
             dch.host = document.createElement("div");       // this is now where all child elements get appended to
             dch.host.id = (FG._idCounter++).toString();
             dch.host.style.position = "absolute";
             dch.__sysDiv.appendChild(dch.host);
-        } else {                                // if it's NOT a BOX, give it a shadowDom!
+        } else {                                // if it's NOT a BOX, give it a shadowDom in .__host, THEN give it a .host!
             dch.__host = document.createElement("div"); 
             dch.__host.id = (FG._idCounter++).toString();
             dch.__host.style.position = "absolute";
@@ -181,8 +181,8 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 
     async loadStyle(str) {
         const isBlock = /^\s*<style[\s>][\s\S]*<\/style>\s*$/i.test(str.trim()); //true if valid  "<style></style>"  else false=assume filepath
-      if (!isBlock) {
-        const cssPath = this.srcUrl + "/" + str;        // else go load it!
+        if (!isBlock) {
+            const cssPath = this.srcUrl + "/" + str;        // else go load it!
             const response = await fetch(cssPath);
             if (!response.ok) {
                 console.warn("Failed to load requested css file '" + str + "'");

@@ -5,7 +5,7 @@
 2025-05-25 ------------------------------------------------------------------------------------------------------------
 * finished the DocFileFormat 1.1.odt documentation
 
-2025-05-24 ------------------------------------------------------------------------------------------------------------
+ 2025-05-24 ------------------------------------------------------------------------------------------------------------
 * DCH_BASE .loadCss is now .loadStyle(str) and it now supports a str of "<style>...</style>" or a URL path to a .css file
 * DFDialog has also been significantly tweaked to allow styles to be applied in a similar manner as DCH_BASE now does
 * DFContextMenu and DFMenuBar now accept the cssList as part of the class constructor, but otherwise operates the 

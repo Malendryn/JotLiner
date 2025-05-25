@@ -1,6 +1,11 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
+checkout quilljs.com
+-----------------------------------------------------------------------------------------------------------------------
+Remaster addTrackedListener() etc... into a class, and supply it in DCH_BASE such that each plugin owns its own listeners
+and I won't have to worry about one listener removing from another
+
 -----------------------------------------------------------------------------------------------------------------------
 creating a simple painter plugin as an example,  howto/what to change/what to do.
 I don't have an 'auto .css' loader so I have to add that.  
