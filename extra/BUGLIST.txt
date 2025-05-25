@@ -3,8 +3,6 @@ when import to 1.1 finished, remove parseInt( in dch.BOX.js line 31)
 -----------------------------------------------------------------------------------------------------------------------
 when painting, then change doc too quick (< 1 second) painting doesnt autosave.  is this true for other plugins too?
 -----------------------------------------------------------------------------------------------------------------------
-in anchor dialog need to prevent width/height from getting set to less than 20 
-
 -----------------------------------------------------------------------------------------------------------------------
 when client fails connection to server, it does not actually reconnect (though it does say 'reconnecting...')
 -----------------------------------------------------------------------------------------------------------------------
