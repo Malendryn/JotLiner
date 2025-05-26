@@ -27,29 +27,18 @@ usage:
                 .add(el, "button", onButton, true)
         RETURNS:  an integer value you can use as an id.
 
-    removeById(id) 
+    remove(id) 
         removes any formerly added eventListener by the id returned.
-        RETURNS: true if found and removed, false if not found
+        RETURNS: remaining number of listeners added with the same parameters.  
+          -or-   -1 if unable to find listener to remove/was already removed
+
+    removeAll()
+        removes all listeners added by add to this instance of DFListenerTracker
+        RETURNS: nothing
     
 */
 
 class DFListenerTracker {
-    constructor() {
-        this._entries   = new Map(); // integer id:  .__listener id
-        this._listeners = new Map(); // integer id: {id, el, type, cb, opts, count}
-        this._entryId = 0;
-        this._listenerId = 0;
-    }
-
-    _findListener = (el, type, cb, opts) => {            // find the id of the entry in _listeners
-        opts = JSON.stringify(opts || null);
-        for (const [id, entry] of this._listeners.entries()) {
-            if (entry.el === el && entry.type == type && entry.cb === cb && entry.opts == opts) {
-                return id;      // found matching id
-            }
-        }
-        return null;            // not found
-    }
     add(el, type, cb, opts = false) {
         const idx = this._findListener(el, type, cb, opts);  // Find if this exact listener already exists
         let listenerId;
@@ -70,7 +59,7 @@ class DFListenerTracker {
     remove(id) {
         const listenerId = this._entries.get(id);
         if (!listenerId) {
-            return -1;                                  // -1 to indicate key doesnt exist
+            return -1;          // -1 to indicate key wasn't found
         }
         const val = this._listeners.get(listenerId);   // get the listener
 
@@ -87,6 +76,23 @@ class DFListenerTracker {
             const id = this._entries.keys().next().value;
             this.remove(id);
         }
+    }
+
+    _findListener = (el, type, cb, opts) => {            // find the id of the entry in _listeners
+        opts = JSON.stringify(opts || null);
+        for (const [id, entry] of this._listeners.entries()) {
+            if (entry.el === el && entry.type == type && entry.cb === cb && entry.opts == opts) {
+                return id;      // found matching id
+            }
+        }
+        return null;            // not found
+    }
+
+    constructor() {
+        this._entries   = new Map(); // integer id:  .__listener id
+        this._listeners = new Map(); // integer id: {id, el, type, cb, opts, count}
+        this._entryId = 0;
+        this._listenerId = 0;
     }
 }
 export { DFListenerTracker };

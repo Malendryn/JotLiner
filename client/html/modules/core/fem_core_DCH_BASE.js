@@ -7,7 +7,9 @@
 // ALL components are always inside a <div> that is 'absolute', with all measurements done in pixels
 
 // NOTE: do not instance any DCH class directly, use FG.DCH_BASE.create() instead
-FG._idCounter = 0;
+FG._debugIdCounter = 0;
+
+import { DFListenerTracker } from "/modules/classes/DFListenerTracker.js";
 
 FG.DCH_BASE = class DCH_BASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,12 +41,14 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
     onResize()  {}
     onMove()    {}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// baseclass helper functions defined below for convenience -----------------------------------------------------------
+// baseclass helper properties and functions for convenience ----------------------------------------------------------
+    tracker  = new DFListenerTracker(); // see below under 'listener add/remove functions'
+
     async loadStyle(str) {} // loads a "<style></style>" text block or a .css file if str is a URL string and places it at
                             // the very top of the this.host <div>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// create/destroy and other helper functions on baseclass (do not override!)----------------------------------------------------
+// create/destroy and other helper functions on baseclass (do not override!)-------------------------------------------
     //  async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
                     // whos parent is parent
                     // and populate div style with style data
@@ -55,10 +59,9 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // listener add/remove functions --------------------------------------------------------------------------------------
-// BE AWARE listeners added by addTrackedListener for an element that is NOT a child of 'this.host' WILL NOT be
-// auto-removed when the dch is destroyed! so if the child class needs to implement them they must add and remove them
-// by themselves.  (they can still use addTrackedListener and removeTracked...  but they just won't be automatically)
-// removed on destruction
+// a DFListenerTracker is attached to the DCH_BASE class as 'this.tracker' that can be used as an automatic means
+// to track and cleanup/remove listeners when the plugin is destroy()ed.   To use, 
+//  instead of using 'el.addListener("click", callback, opts)', use 'this.tracker.add("click", callback, opts)'
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal functions,  (do not override!)-----------------------------------------------------------------------------
@@ -67,16 +70,17 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // system-only properties and functions, they should never be modified or overridden by the child class in any way
 
-    __parent = null;     // parent component of this component (or null if topLevel, (typically ONLY a DOC element will ever be null))
-    __sysDiv = null;     // handle to a toplevel <div absolute>  housing the entire dch element tree (autocreated during create())
-    __host   = null;     // all NON-DCH_BOX's get this
-    __shadow = null;     // all NON-DCH_BOX's get this (full chain is: this.__sysDiv.__host.__shadow.host);
+    __parent = null;     // private! parent dch (or null if topLevel, (ONLY the root BOX element will ever be null))
+    __sysDiv = null;     // private! handle to toplevel absolute div  housing entire dch element tree (created during create())
+    __host   = null;     // private! all NON-DCH_BOX's get this
+    __shadow = null;     // private! all NON-DCH_BOX's get this (full chain is: this.__sysDiv.__host.__shadow.host);
+
     static async create(dchName, parent=null, style=null) {
         const dch = new DCH[dchName].dchClass();            // create handler, do nothing else!
         dch.srcUrl = DCH[dchName].srcUrl;                  // set the path to its available content ('ghosts over' static srcUrl)
         dch.__parent = parent;
         dch.__sysDiv = document.createElement("div");       // create div
-        dch.__sysDiv.id = (FG._idCounter++).toString();
+        dch.__sysDiv.id = (FG._debugIdCounter++).toString();
         // dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
         dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
         dch.__sysDiv._dchMouseOp = "dchComponent";          // to let us know via mouse/kbd evts that this is <el> is a dch component
@@ -96,12 +100,12 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 
         if (dchName == "BOX") {                  // BOX is SpecialCase, DON'T give it a shadowDom, DO give it a .host! 
             dch.host = document.createElement("div");       // this is now where all child elements get appended to
-            dch.host.id = (FG._idCounter++).toString();
+            dch.host.id = (FG._debugIdCounter++).toString();
             dch.host.style.position = "absolute";
             dch.__sysDiv.appendChild(dch.host);
         } else {                                // if it's NOT a BOX, give it a shadowDom in .__host, THEN give it a .host!
             dch.__host = document.createElement("div"); 
-            dch.__host.id = (FG._idCounter++).toString();
+            dch.__host.id = (FG._debugIdCounter++).toString();
             dch.__host.style.position = "absolute";
             dch.__host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
             dch.__sysDiv.appendChild(dch.__host);      
@@ -124,7 +128,7 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
             dch.host = document.createElement("div")          // this is now where all child elements get appended to
             dch.host.style.width = "100%";
             dch.host.style.height = "100%";                   // make sure host always fills parent completely
-            dch.host.id = (FG._idCounter++).toString();
+            dch.host.id = (FG._debugIdCounter++).toString();
             dch.host = dch.__shadow.appendChild(dch.host);    // give it its first element as it has none to start with
         }
 
@@ -166,11 +170,10 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
     async update()         {}                              // *overridable*
 
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
-        FF.removeAllTrackedListeners(this.__sysDiv);      // remove all listeners registered to this dch FIRST
+        this.tracker.removeAll();
         await this.destruct();
         this.__sysDiv.remove();
         if (this.hasToolbar) {
-            FF.removeAllTrackedListeners(this.toolbar);   // remove all listeners registered to this toolbar too
             this.toolbar.remove();
         }
         if (this.__parent) {                                  // if not at topmost dch

@@ -27,12 +27,6 @@ obj    =       getJLDI(key)             // get value of key in localStorage."cur
 --------       autoSave(delay=5000)     uses a reTimer() to autoSave FG.curDoc after (delay) millisecs has passed
 -------- async waitDirty()              spin-wait up to 15 secs while (FG.curdoc && FG.curDoc.dirty)
 
-id     =       addTrackedListener(el, action, callback, opts=undefined)
-                    performs a 'tracked'  el.addListener(action, callback, opts) and returns an integer id for it
--------------- removeTrackedListenerById(id)  
-                    remove tracked listener by its id
--------------- removeAllTrackedListeners(el)
-                    remove all tracked listeners from an element /and all its children/
 
 ==== FROM fem_core_WSockHandler.js ====================================================================================
 pkt    = makePacket(name)               create and return a new packet
@@ -313,41 +307,3 @@ FF.waitDirty = async function() {
     });
 }
 
-
-FG.__registeredEventListeners = [];     // [{id, el, action, callback, opts}]
-FG.__nextListenerId = 1;
-
-
-FF.addTrackedListener = function(el, action, callback, opts=undefined) {
-    let id = FG.__nextListenerId++;
-    FG.__registeredEventListeners.push({id, el, action, callback, opts});
-    el.addEventListener(action, callback, opts);
-    return id;
-}
-
-
-FF.removeTrackedListenerById = function(id) {
-    for (let idx = 0; idx < FG.__registeredEventListeners.length; idx++) {
-        let tmp = FG.__registeredEventListeners[idx];        // {id, el, action, callback, opts}
-        if (tmp.id == id) {
-            tmp.el.removeEventListener(tmp.action, tmp.callback);   // unlisten
-            FG.__registeredEventListeners.splice(idx, 1);           // and remove
-            return true;
-        }
-    }
-    return false;
-}
-
-
-
-FF.removeAllTrackedListeners = function(el) {
-    let nodes = [el, ...el.querySelectorAll("*")];
-
-    for (let idx = FG.__registeredEventListeners.length - 1; idx >= 0; idx--) {
-        let tmp = FG.__registeredEventListeners[idx];        // {id, el, action, callback, opts}
-        if (nodes.includes(tmp.el)) {
-            tmp.el.removeEventListener(tmp.action, tmp.callback);   // unlisten
-            FG.__registeredEventListeners.splice(idx, 1);           // and remove
-        }
-    }
-}

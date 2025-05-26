@@ -5,6 +5,11 @@
 2025-05-25 ------------------------------------------------------------------------------------------------------------
 * finished the DocFileFormat 1.1.odt documentation
 
+* wrote and added a DFListenerTracker class and added it to DCH_BASE so all plugins can use it as a clean way to add
+    and remove listeners, which will automatically be removed when the plugin is .destroy()'ed.
+* removed addTrackedListener(), removeTrackedListenerById() and removeAllTrackedListeners() from fem_core_Functions.js
+* minor cleanups
+
  2025-05-24 ------------------------------------------------------------------------------------------------------------
 * DCH_BASE .loadCss is now .loadStyle(str) and it now supports a str of "<style>...</style>" or a URL path to a .css file
 * DFDialog has also been significantly tweaked to allow styles to be applied in a similar manner as DCH_BASE now does

@@ -15,7 +15,7 @@ class DCH_TXA extends FG.DCH_BASE {
         this.el.style.resize = "none";                      // turn off the textarea's resizer drag-gadget at lowerright corner
         this.el.style.backgroundColor = "lightGreen";
         this.host.appendChild(this.el);
-        FF.addTrackedListener(this.el, "input", this.onContentChanged);
+        this.tracker.add(this.el, "input", this.onContentChanged);
     }
 
 

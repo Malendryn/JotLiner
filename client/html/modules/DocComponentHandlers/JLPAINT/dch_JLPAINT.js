@@ -43,14 +43,14 @@ class DCH_JLPAINT extends FG.DCH_BASE {
         this.brushSize = document.getElementById('brushSize');
         this.painting = false;
 
-        FF.addTrackedListener(this.canvas, 'mousedown', this.startPainting);  // These are Automatically removed when the plugin is destroyed
-        FF.addTrackedListener(this.canvas, 'mouseup',   this.stopPainting);
-        FF.addTrackedListener(this.canvas, 'mouseout',  this.stopPainting);
-        FF.addTrackedListener(this.canvas, 'mousemove', this.draw);
+        this.tracker.add(this.canvas, 'mousedown', this.startPainting);  // These are Automatically removed when the plugin is destroyed
+        this.tracker.add(this.canvas, 'mouseup',   this.stopPainting);
+        this.tracker.add(this.canvas, 'mouseout',  this.stopPainting);
+        this.tracker.add(this.canvas, 'mousemove', this.draw);
         let el = document.getElementById("clearCanvas");
-        FF.addTrackedListener(el, 'click', this.clearCanvas);
+        this.tracker.add(el, 'click', this.clearCanvas);
         el = document.getElementById("saveCanvas");
-        FF.addTrackedListener(el, 'click', this.saveCanvas);
+        this.tracker.add(el, 'click', this.saveCanvas);
     }
     
     startPainting = (evt) => {
@@ -97,20 +97,7 @@ class DCH_JLPAINT extends FG.DCH_BASE {
         link.click();
     }
       
-    
-    // async construct() {
-    //     this.el = document.createElement("textarea");
-    //     this.el.style.position = "absolute";
-    //     this.el.style.left = "0px";
-    //     this.el.style.top = "0px";
-    //     this.el.style.right = "0px";
-    //     this.el.style.bottom = "0px";
-    //     this.el.style.resize = "none";                      // turn off the textarea's resizer drag-gadget at lowerright corner
-    //     this.el.style.backgroundColor = "lightGreen";
-    //     this.host.appendChild(this.el);
-    //     FF.addTrackedListener(this.el, "input", this.onContentChanged);
-    // }
-
+   
     async importData(data) {    // populate this component with data
         const blob = new Blob([data["PNG"]], { type: 'image/png' });
         const bitmap = await createImageBitmap(blob);
@@ -127,11 +114,6 @@ class DCH_JLPAINT extends FG.DCH_BASE {
                 resolve({"PNG" : byteArray});
             }, 'image/png');
         });
-    }
-
-    onResizeOLD = () => {
-        this.canvas.width = this.host.clientWidth;
-        this.canvas.height = this.host.clientHeight;
     }
 
     onResize = (canvas, newWidth, newHeight) => {

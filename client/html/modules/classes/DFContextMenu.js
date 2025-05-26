@@ -1,3 +1,39 @@
+/*!
+ * DFDialog.js
+ * Copyright (c) Malendryn Tiger (Ron Stanions @ DragonsFire Creations)
+ *
+ * This software is licensed under the GNU Affero General Public License v3.0.
+ * You may obtain a copy of the License at https://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+class DFContextMenu
+    Create a simple but powerful multitiered context menu with infinite expandable submenus
+
+class DFMenuBar
+    Create a menu bar that uses a DFContextMenu to display multitiered selectable dropdown beneath each entry
+
+Basic usage:
+-------------------------------------------------------------------------------------------
+    const dlg = new DFContextMenu({
+        styles:[
+            "<style>...</style>",
+            "./myStyleFile.css"
+        ]
+    });
+
+    const mnu = new DFMenuBar( {
+        menuStyles: [
+            "<style>...</style>",
+            "./myStyleFile.css"
+        ],
+        contextStyles: [
+            "<style>...</style>",
+            "./myStyleFile.css"
+        ]
+    });
+*/
 
 class DFContextMenu {
 //  constructor(dict={styles:[]})

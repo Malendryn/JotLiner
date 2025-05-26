@@ -27,7 +27,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
 
         this.el.innerHTML = '';         // if I don't do this and we don't type in it, it exports "undefined"
         this.host.appendChild(this.el);
-        FF.addTrackedListener(this.el, "input", this.onContentChanged);
+        this.tracker.add(this.el, "input", this.onContentChanged);
 
 // create the icons for the toolbar and attach them to this._tbar
         let btn, img;
@@ -37,7 +37,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         img = document.createElement("img");            // create a 24x24px img to put on button
         img.src = this.srcUrl + "/icons/bold-96.png";    //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
         btn.appendChild(img);
-        FF.addTrackedListener(btn, "click", this.onToolBtnBold.bind(this));
+        this.tracker.add(btn, "click", this.onToolBtnBold.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -45,7 +45,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         img = document.createElement("img");
         img.src = this.srcUrl + "/icons/italic-52.png";
         btn.appendChild(img);
-        FF.addTrackedListener(btn, "click", this.onToolBtnItalic.bind(this));
+        this.tracker.add(btn, "click", this.onToolBtnItalic.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -53,7 +53,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         img = document.createElement("img");
         img.src = this.srcUrl + "/icons/underline-64.png";
         btn.appendChild(img);
-        FF.addTrackedListener(btn, "click", this.onToolBtnUnderline.bind(this));
+        this.tracker.add(btn, "click", this.onToolBtnUnderline.bind(this));
 
         btn = document.createElement("button");
         btn.className = "dchButton";
@@ -61,7 +61,7 @@ class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (p
         img = document.createElement("img");
         img.src = this.srcUrl + "/icons/strikethrough-64.png";
         btn.appendChild(img);
-        FF.addTrackedListener(btn, "click", this.onToolBtnStrikethrough.bind(this));
+        this.tracker.add(btn, "click", this.onToolBtnStrikethrough.bind(this));
     }
 
     onToolBtnBold(evt) {
