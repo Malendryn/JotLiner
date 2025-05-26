@@ -1,7 +1,30 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
-checkout quilljs.com
+checkout quilljs.com as a textEditor plugin
+-----------------------------------------------------------------------------------------------------------------------
+lets start by moving all the upgrade code OUT of bem_core_dbHandler.js and into a new dbupdate/dbUpdate_######-######.js
+    where the first ######- is what this dbupdater updates FROM and the ending -###### is what the new dbVer will be
+    
+so to migrate the database:
+
+3 -> 4
+*) read all docTree:ic,parent vals
+   rename docTree to docTree_old
+   create a new docTree
+   walk through docTree_old and gather all id,uuid into a dict
+   read from docTree_old and write to docTree except, 
+     take old 'parent' uuid and find its recId in the gathered id,uuid in the walkthrough step above
+     replace the old 'parent' id with this new id in the new write
+*** this will of course break the docTree code so that needs to be fixed after this step as well
+
+4->5
+*) add 'bump' to every table
+*) add new 'dch' table
+*) go through each doc table and yank it apart, putting all the dch elements into the dch table
+*) remove 'content' field from doc table
+*) update extra.dbVersion to 4
+
 -----------------------------------------------------------------------------------------------------------------------
 A) consider on the menu for inserting plugins to add them as a submenu and not use the phrase "Insert New" in such a way 
      that makes plugins named "My Plugin" seem awkwared, (Insert New My Plugin just doesn't read well! )
@@ -9,7 +32,6 @@ B) once we do this, go repair the "HOWTO create a plugin.odt" file too
 
 Come up with a simple WS packet for plugins to use,  something that can create/delete tables in the DB so that they
 never have to modify the server or client .js in order to add features to the serverside
-
 -----------------------------------------------------------------------------------------------------------------------
 creating a simple painter plugin as an example,  howto/what to change/what to do.
 I don't have an 'auto .css' loader so I have to add that.  
@@ -18,6 +40,11 @@ I don't have an 'auto .css' loader so I have to add that.
         type is deleted from the module
 
 -----------------------------------------------------------------------------------------------------------------------
+WHAT IF FOR allowing plugins to have DB recs of their own, we simply had them pass us a dict, and we created a table
+for them based on that dict. (which must also include a vernum perhaps AND an id field)  and then they could upgrade
+by passing us a new dict with a new vernum and we parsed it and figured out what needed to be done to migrate from
+that old format to the new one.  (which may be easier by creating a whole new table in a 
+one-time-only pull-from-old,writeto-new,nuke-old)
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 minor quirk in that when rightpane is useless (no doc selected) alt+shift shouldn't do ANYthing at all.  (right now
@@ -25,6 +52,11 @@ it's taking over the titlebar/toolbar)
 -----------------------------------------------------------------------------------------------------------------------
 the position of the seperator dragbar between index and doc views needs to be recorded in localStorage on a per-database level
 -----------------------------------------------------------------------------------------------------------------------
+Would it make sense to put autoSave into DCH_BASE?  if we did we could make the default timeout different per-plugin!
+-----------------------------------------------------------------------------------------------------------------------
+Would it make sense to break every 'doc' down into per-plugin records in the DB?  It would make for much shorter and 
+quicker push-pulls and collaboration read-writes!  (This would also allow each plugin to handle their own undo-redo without
+affecting other plugins)
 -----------------------------------------------------------------------------------------------------------------------
 change 'properties' to 'Layout, anchors and depth'
     add zX/zY properties to the box DCH

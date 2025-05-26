@@ -145,34 +145,34 @@ class DBHandler {
     }
 
 
-    updateDB = async (fromVersion, toVersion, func) => {
-        var version;
+    // updateDB = async (fromVersion, toVersion, func) => {
+    //     var version;
 
-        const exists = await this.tableExists("extra")   // if 'extra' table doesnt yet exist, start currentVersion at 0
-        if (!exists) {
-            version = 0;
-        } else {                                         // else we start the update process AFTER the current version
-            version = await this.query("SELECT value from extra where key='dbVersion'");
-            version = parseInt(version[0]["value"]);
-        }
+    //     const exists = await this.tableExists("extra")   // if 'extra' table doesnt yet exist, start currentVersion at 0
+    //     if (!exists) {
+    //         version = 0;
+    //     } else {                                         // else we start the update process AFTER the current version
+    //         version = await this.query("SELECT value from extra where key='dbVersion'");
+    //         version = parseInt(version[0]["value"]);
+    //     }
 
-        if (toVersion <= version) {     // if the target version is less than the current version, just go home
-            return;
-        }
-        if (fromVersion != version) {   // if the upgradeFrom version != current DB version, throw an error
-            throw new Error(`DB Version is ${version}, FAILED request to upgrade from ${fromVersion} to ${toVersion}`)
-        }
+    //     if (toVersion <= version) {     // if the target version is less than the current version, just go home
+    //         return;
+    //     }
+    //     if (fromVersion != version) {   // if the upgradeFrom version != current DB version, throw an error
+    //         throw new Error(`DB Version is ${version}, FAILED request to upgrade from ${fromVersion} to ${toVersion}`)
+    //     }
 
-        await this.run("BEGIN TRANSACTION");
-        try {
-            await func();
-            await this.run(`UPDATE extra set value='${toVersion}' where key='dbVersion'`);
-            await this.run("COMMIT TRANSACTION");
-        } catch (error) {
-            await this.run("ROLLBACK TRANSACTION");
-            throw error;
-        }
-    }
+    //     await this.run("BEGIN TRANSACTION");
+    //     try {
+    //         await func();
+    //         await this.run(`UPDATE extra set value='${toVersion}' where key='dbVersion'`);
+    //         await this.run("COMMIT TRANSACTION");
+    //     } catch (error) {
+    //         await this.run("ROLLBACK TRANSACTION");
+    //         throw error;
+    //     }
+    // }
 
     constructor() {
     }
@@ -184,6 +184,26 @@ BF.openDB = async function(dbName) {
     const db = await new DBHandler();
     await db.open(dbName + ".db");
     let sql;
+
+    let curVer = 0;
+
+    const dbPath = path.join(BG.basePath, "server/modules/core/dbUpdaters");
+    let files = await fs.promises.readdir(dirPath, { withFileTypes: true });    // fetch all the dbUpdate_######-######.js files...
+    files = files.filter(f => f.startsWith('dbUpdate_') && f.endsWith('.js'))   // filter for only those named dbUpdate_.....js
+    files = files.sort();                                                       // and finally make sure they're properly sorted lowest to highest
+
+
+    if (await db.tableExists("extra")) {        // if 'extra' table doesnt exists we're not creating new!
+        curVer = await this.query("SELECT value FROM extra WHERE key='dbVersion'");
+    }
+
+    for (const fname of files) {
+        iter through filenames parsing out the [from,to] in the name, compare from against curVer, if lower move on, if higher throw err as something was missed?
+        use the 2nd value of the filename to set the new curVer after file is done
+    }
+
+
+
 
     await db.updateDB(0, 1, async() => {  // update 0=>1, create extra table ONLY and add extra:dbVersion=0
         sql =
@@ -220,4 +240,45 @@ BF.openDB = async function(dbName) {
     }); // ************************************************************************************************************
     return db;
 }   
+
+// BF.openDB = async function(dbName) {
+//     const db = await new DBHandler();
+//     await db.open(dbName + ".db");
+//     let sql;
+
+//     await db.updateDB(0, 1, async() => {  // update 0=>1, create extra table ONLY and add extra:dbVersion=0
+//         sql =
+// "CREATE TABLE extra"
+// + "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
+// + ", key        TEXT NOT NULL UNIQUE"
+// + ", value      TEXT NOT NULL"
+// + ")";
+//         await db.run(sql);                                                           // create table
+//         await db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // incremented for each .updateDB()
+//     }); // ************************************************************************************************************
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//     await db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables
+//         sql = 
+// "CREATE TABLE docTree"
+// + "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"  // id of entry in index table (used by parent)
+// + ", name       TEXT    NOT NULL"  // name of entry in index table
+// + ", uuid       TEXT    NOT NULL"  // uuid of entry in doc table
+// + ", listOrder  INTEGER NOT NULL"  // ('order'=reserved word in sqlite3) 'display order' of recs in this table (when at same parent level)
+// + ", parent     TEXT    NOT NULL"  // uuid of parent rec this is a child of, or '' if toplevel
+// + ");"; // don't add 'WITHOUT ROWID' just to be more compatible/inline-with other SQL language derivatives
+//         await db.run(sql);
+//     }); // ************************************************************************************************************
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//     await db.updateDB(2, 3, async() => {  // update 2=>3, create index and doc tables
+//         sql = 
+// "CREATE TABLE doc"
+// + "( id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
+// + ", uuid        TEXT    NOT NULL UNIQUE"  //UUID of doc
+// + ", version     TEXT    NOT NULL"         //"n.n" major.minor version of doc (for auto-upgrade when loaded)
+// + ", content     TEXT    NOT NULL"         // textified 'exported' doc body
+// + ");";
+//         await db.run(sql);
+//     }); // ************************************************************************************************************
+//     return db;
+// }   
 
