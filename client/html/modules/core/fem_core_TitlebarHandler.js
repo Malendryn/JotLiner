@@ -1,5 +1,5 @@
-import { DFMenuBar } from "/modules/classes/DFContextMenu.js";
-import { DFDialog } from "/modules/classes/DFDialog.js";
+import { DFMenuBar } from "/public/classes/DFContextMenu.js";
+import { DFDialog } from "/public/classes/DFDialog.js";
 
 let _mmHandle;
 

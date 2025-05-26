@@ -53,6 +53,6 @@ Feel free to reach out with ideas or feedback!
 
 ## License
 
-This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for more details.
+This project is licensed under the AGPL V3 License. See the [LICENSE](LICENSE) file for more details.
 
 Copyright 2025 Malendryn Tiger (Ron Stanions @ DragonsFire Creations)

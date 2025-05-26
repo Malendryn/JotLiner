@@ -32,7 +32,6 @@ window.addEventListener('load', async function() {
     let mod;
     await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate basics of FG
     await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate basics of FF
-    await FF.loadModule("./modules/core/fem_core_DCH_BASE.js");            // FG.DCH_BASE -- class for all other DocComponentHandlers to inherit from
     await FF.loadModule("./modules/core/fem_core_DocViewHandler.js");      // handle all the docview and Alt+Shift stuff
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");

@@ -1,5 +1,7 @@
-import { DFContextMenu } from "/modules/classes/DFContextMenu.js";
-import { DFDialog }      from "/modules/classes/DFDialog.js";
+import { DFContextMenu } from "/public/classes/DFContextMenu.js";
+import { DFDialog }      from "/public/classes/DFDialog.js";
+
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 const indexMenuEntries = [
 //   action,      entryText,             tooltipText
@@ -66,7 +68,7 @@ FF.newDoc = async () => {
     await FF.clearDoc();
     
     // then create a new doc by adding a single BOX handler as the docRoot
-    const dch = await FG.DCH_BASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel DOC object
+    const dch = await DCH_BASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel DOC object
     dch.__sysDiv.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.__sysDiv.style.top/bottom/etc during exportDoc()
     dch.__sysDiv.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
     dch.__sysDiv.style.right  = "0px";

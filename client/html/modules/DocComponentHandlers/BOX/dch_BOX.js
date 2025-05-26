@@ -1,5 +1,7 @@
 
-class DCH_BOX extends FG.DCH_BASE {
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+
+class DCH_BOX extends DCH_BASE {
     __children = [];      // changing to [] to allow children
 
     static pluginName    = "Infinite Box";

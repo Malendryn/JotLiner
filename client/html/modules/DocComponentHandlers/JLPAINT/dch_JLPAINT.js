@@ -12,8 +12,10 @@ const html = `
     <button id="clearCanvas">Clear</button>
     <button id="saveCanvas">Save as PNG</button>
   </div>`;
-  
-class DCH_JLPAINT extends FG.DCH_BASE {
+
+  import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+
+  class DCH_JLPAINT extends DCH_BASE {
     static pluginName  = "Example Painter";
     static menuTooltip = "A basic painting node for learning how to make your own plugins";
 

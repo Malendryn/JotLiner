@@ -1,5 +1,7 @@
 
-class DCH_TXA extends FG.DCH_BASE {
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+
+class DCH_TXA extends DCH_BASE {
     el;                 // becomes childof this.host and is a "textarea"  (see construct())
 
     static pluginName    = "<textarea> node";

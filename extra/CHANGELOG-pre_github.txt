@@ -203,7 +203,8 @@ system overhaul: MUCH needs to change now to handle infinite canvas!
 * added FF.autoSave(delay) func that saves current FG.curDoc (if not null) to backend after 5 secs, unless called again
     in which case it's aborted and a new AutoSave() is called
 * added FF.waitDirty() paired with FF.autoSave() to wait until save is complete and dirty is clear before moving on
-* worked out an Apache 2.0 license that I think fits my goals and allows 3rd party plugins in the way I want
+* worked out an Apache 2.0 license that I think fits my goals and allows 3rd party plugins in the way I want  (Note: this
+    has been changed to AGPLv3 in later revisions)
 
 2025-05-05 ------------------------------------------------------------------------------------------------------------
 * dch resize now fully working! (ctrl+alt+cornerdrag)

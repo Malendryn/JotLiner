@@ -1,5 +1,7 @@
 // DocViewHandler = Toplevel Keyboard and Mouse Event Handlers
 
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+
 let el = document.getElementById("divDocView");
 // el.addEventListener("focus",       onTkmDocViewFocus, true);                                           // listen for 'leaving browser' specifically
 // el.addEventListener("blur",        onTkmDocViewBlur, true);                                           // listen for 'leaving browser' specifically
@@ -290,8 +292,8 @@ FF.getDchName = function (dch) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-import { DFContextMenu } from "/modules/classes/DFContextMenu.js";
-import { DFDialog }      from "/modules/classes/DFDialog.js";
+import { DFContextMenu } from "/public/classes/DFContextMenu.js";
+import { DFDialog }      from "/public/classes/DFDialog.js";
 
 const _dchContextMenu = new DFContextMenu();
 function openDCHContextMenu() {      // based on the dch the mouse is over when rightmouse was pressed...
@@ -329,7 +331,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
             let dchName = action.substr(7);
 console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
             const style = {L:startX, T:startY, W:100, H:100};
-            const nuDch = await FG.DCH_BASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
+            const nuDch = await DCH_BASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
             dch.__children.push(nuDch);
             FF.autoSave();          // autosave after 5 secs
         }

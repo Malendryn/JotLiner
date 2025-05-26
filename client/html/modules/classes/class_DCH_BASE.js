@@ -1,17 +1,13 @@
-/////////////////////////////////////////////////////////
-// Licensed under Apache 2.0 - see LICENSE for details //
-/////////////////////////////////////////////////////////
-
 // herein is the base class of all DocumentComponentHandlers
 
 // ALL components are always inside a <div> that is 'absolute', with all measurements done in pixels
 
-// NOTE: do not instance any DCH class directly, use FG.DCH_BASE.create() instead
-FG._debugIdCounter = 0;
+// NOTE: do not instance any DCH class directly, use DCH_BASE.create() instead
 
-import { DFListenerTracker } from "/modules/classes/DFListenerTracker.js";
+import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
-FG.DCH_BASE = class DCH_BASE {   // base class of all document components
+let _debugIdCounter = 0;    // for debug purposes
+class DCH_BASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // these next values are static so we can access them at the class level for building menus and accessing files, etc
 static pluginName  = "Unnamed Plugin";  // PLUGIN supplied; the plugin's name as shown in menus and command modes
@@ -76,11 +72,20 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
     __shadow = null;     // private! all NON-DCH_BOX's get this (full chain is: this.__sysDiv.__host.__shadow.host);
 
     static async create(dchName, parent=null, style=null) {
-        const dch = new DCH[dchName].dchClass();            // create handler, do nothing else!
-        dch.srcUrl = DCH[dchName].srcUrl;                  // set the path to its available content ('ghosts over' static srcUrl)
+        if (!dchName in DCH) {
+            return null;
+        }
+        let dch;
+        try {
+            dch = new DCH[dchName].dchClass();        // create handler, do nothing else!
+        } catch (err) {
+            console.warn("Failed to create plugin '" + dchName + "', reason: " + err.message);
+            return null;
+        }
+        dch.srcUrl = DCH[dchName].srcUrl;                   // set the path to its available content ('ghosts over' static srcUrl)
         dch.__parent = parent;
         dch.__sysDiv = document.createElement("div");       // create div
-        dch.__sysDiv.id = (FG._debugIdCounter++).toString();
+        dch.__sysDiv.dataset._id = (_debugIdCounter++).toString();
         // dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
         dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
         dch.__sysDiv._dchMouseOp = "dchComponent";          // to let us know via mouse/kbd evts that this is <el> is a dch component
@@ -100,12 +105,12 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
 
         if (dchName == "BOX") {                  // BOX is SpecialCase, DON'T give it a shadowDom, DO give it a .host! 
             dch.host = document.createElement("div");       // this is now where all child elements get appended to
-            dch.host.id = (FG._debugIdCounter++).toString();
+            dch.host.dataset._id = (_debugIdCounter++).toString();
             dch.host.style.position = "absolute";
             dch.__sysDiv.appendChild(dch.host);
         } else {                                // if it's NOT a BOX, give it a shadowDom in .__host, THEN give it a .host!
             dch.__host = document.createElement("div"); 
-            dch.__host.id = (FG._debugIdCounter++).toString();
+            dch.__host.dataset._id = (_debugIdCounter++).toString();
             dch.__host.style.position = "absolute";
             dch.__host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
             dch.__sysDiv.appendChild(dch.__host);      
@@ -128,7 +133,7 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
             dch.host = document.createElement("div")          // this is now where all child elements get appended to
             dch.host.style.width = "100%";
             dch.host.style.height = "100%";                   // make sure host always fills parent completely
-            dch.host.id = (FG._debugIdCounter++).toString();
+            dch.host.dataset._id = (_debugIdCounter++).toString();
             dch.host = dch.__shadow.appendChild(dch.host);    // give it its first element as it has none to start with
         }
 
@@ -199,4 +204,4 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
         this.host.parentNode.insertBefore(el, this.host); // insert this style right before the host div
     }
 };
-
+export { DCH_BASE };

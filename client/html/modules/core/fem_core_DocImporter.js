@@ -7,6 +7,8 @@
 // X.attach(str, div);      // attach the component (and all its children) to <div> (and div's handler)
 // X.detach(div);           // detach component(and all its children) from <div> and return exportable str
 
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+
 let __docVer;
 class StringReader {
     str;
@@ -150,7 +152,10 @@ export class DocImporter {   // create and return a DCH from a stream
         if (!dchData) {                           // end of stream
             return null;
         }
-        const dch = await FG.DCH_BASE.create(dchData.cName, parent, dchData.style);  // create handler, assign parent, create <div>, set style
+        const dch = await DCH_BASE.create(dchData.cName, parent, dchData.style);  // create handler, assign parent, create <div>, set style
+        if (!dch) {
+            return;
+        }
         if (this.rootDch == null) {         // record the topmost dch for returning
             this.rootDch = dch;
         }
@@ -166,7 +171,7 @@ export class DocImporter {   // create and return a DCH from a stream
         for (let idx = 0; idx < dchData.children; idx++) {          // load children of component (if any)
             await this._importNext(dch);
         }
-        await dch.update();     //finally AFTER ALL children loaded, update scrollRegion
+        await dch.update();     //finally AFTER ALL children loaded, update plugin!
     }
 
 

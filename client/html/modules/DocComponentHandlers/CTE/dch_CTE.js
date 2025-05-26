@@ -4,7 +4,9 @@
 
 //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
 
-class DCH_CTE extends FG.DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+
+class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
     hasToolbar = true;
 
     el;                     // becomes childof this.host and is a "div" that is "contexteditable"  (see construct())
