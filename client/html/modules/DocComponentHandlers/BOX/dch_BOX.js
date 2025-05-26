@@ -28,8 +28,8 @@ class DCH_BOX extends FG.DCH_BASE {
 
     async importData(data) {    // populate this component with data
         if (Object.keys(data).length > 0) {
-            this.zX      = data.zX;       // how far all children are shifted over to give the infinite canvas illusion
-            this.zY      = data.zY;
+            this.zX      = parseInt(data.zX);  // transform:translate(zX,zY) of all children of BOX to give the infinite canvas illusion
+            this.zY      = parseInt(data.zY);  // NOTE: parseInt() not needed for FileFormat > 1.0, here only for backwards compatibility
         }
     }
 

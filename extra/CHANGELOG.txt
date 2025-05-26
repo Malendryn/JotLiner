@@ -2,9 +2,9 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
+
 2025-05-25 ------------------------------------------------------------------------------------------------------------
 * finished the DocFileFormat 1.1.odt documentation
-
 * wrote and added a DFListenerTracker class and added it to DCH_BASE so all plugins can use it as a clean way to add
     and remove listeners, which will automatically be removed when the plugin is .destroy()'ed.
 * removed addTrackedListener(), removeTrackedListenerById() and removeAllTrackedListeners() from fem_core_Functions.js

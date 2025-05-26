@@ -10,9 +10,9 @@ server/db/*.db
 !server/db/Getting\ Started.db
 
 # extra stuff
-extra/*~
-extra/.*~       # account for .cherrytree.ctb~ etc
-extra/*.bak
+extra/**/*~
+extra/**/.*~       # account for .cherrytree.ctb~ etc
+extra/**/*.bak
 
 # general (both client + server) stuff
 package-lock.json
