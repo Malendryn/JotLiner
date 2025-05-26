@@ -5,6 +5,7 @@
 * various cleanups,  renamed a .doc, got rid of some stale files,  fixed a .gitignore, etc...
 * fixed some old license references to Apache  --> AGPLv3
 * turned what was FG.DCH_BASE into a real importable class in the new html/modules/classes directory
+* beefed up the new JLPAINT plugin slightly, and completed the 'HOWTO create a plugin.odt' document
 
 2025-05-25 ------------------------------------------------------------------------------------------------------------
 * finished the DocFileFormat 1.1.odt documentation

@@ -3,7 +3,9 @@ Review the licenses and licensed files to make sure everything's in place as it 
 -----------------------------------------------------------------------------------------------------------------------
 checkout quilljs.com
 -----------------------------------------------------------------------------------------------------------------------
-
+A) consider on the menu for inserting plugins to add them as a submenu and not use the phrase "Insert New" in such a way 
+     that makes plugins named "My Plugin" seem awkwared, (Insert New My Plugin just doesn't read well! )
+B) once we do this, go repair the "HOWTO create a plugin.odt" file too
 
 Come up with a simple WS packet for plugins to use,  something that can create/delete tables in the DB so that they
 never have to modify the server or client .js in order to add features to the serverside

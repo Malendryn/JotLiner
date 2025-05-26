@@ -168,7 +168,7 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
     }
 
 // override above pre-defs in the help comments at the top of the class
-    async construct()      {}
+    async construct()      { throw new Error("Subclass is missing method construct()"); }
     async importData(data) { Object.assign(this, data); }  // *overridable* populate this component with data
     async exportData()     { return {}; }                  // *overridable* return data to be preserved/exported as a {}
     async destruct()       {}                              // *overridable* do any other kind of cleanup before class destruction

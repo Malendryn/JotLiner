@@ -16,7 +16,7 @@ const html = `
   import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
   class DCH_JLPAINT extends DCH_BASE {
-    static pluginName  = "Example Painter";
+    static pluginName  = "My Example Painter Plugin";
     static menuTooltip = "A basic painting node for learning how to make your own plugins";
 
     hasToolbar = true;  // without this the class would have no toolbar!
@@ -45,7 +45,7 @@ const html = `
         this.brushSize = document.getElementById('brushSize');
         this.painting = false;
 
-        this.tracker.add(this.canvas, 'mousedown', this.startPainting);  // These are Automatically removed when the plugin is destroyed
+        this.tracker.add(this.canvas, 'mousedown', this.startPainting);  // this.tracker automatically removes these when the plugin is destroyed
         this.tracker.add(this.canvas, 'mouseup',   this.stopPainting);
         this.tracker.add(this.canvas, 'mouseout',  this.stopPainting);
         this.tracker.add(this.canvas, 'mousemove', this.draw);
@@ -55,6 +55,24 @@ const html = `
         this.tracker.add(el, 'click', this.saveCanvas);
     }
     
+    async importData(data) {    // populate this component with data
+        const blob = new Blob([data["PNG"]], { type: 'image/png' });
+        const bitmap = await createImageBitmap(blob);
+        this.canvas.width = bitmap.width;
+        this.canvas.height = bitmap.height;
+        this.ctx.drawImage(bitmap, 0, 0);
+    }
+
+    async exportData() {       // return data to be preserved/exported as a {}
+        return new Promise((resolve) => {
+            this.canvas.toBlob(async (blob) => {
+                const arrayBuffer = await blob.arrayBuffer();
+                const byteArray = new Uint8Array(arrayBuffer);
+                resolve({"PNG" : byteArray});
+            }, 'image/png');
+        });
+    }
+
     startPainting = (evt) => {
         this.painting = true;
         this.draw(evt);
@@ -99,25 +117,6 @@ const html = `
         link.click();
     }
       
-   
-    async importData(data) {    // populate this component with data
-        const blob = new Blob([data["PNG"]], { type: 'image/png' });
-        const bitmap = await createImageBitmap(blob);
-        this.canvas.width = bitmap.width;
-        this.canvas.height = bitmap.height;
-        this.ctx.drawImage(bitmap, 0, 0);
-    }
-
-    async exportData() {       // return data to be preserved/exported as a {}
-        return new Promise((resolve) => {
-            this.canvas.toBlob(async (blob) => {
-                const arrayBuffer = await blob.arrayBuffer();
-                const byteArray = new Uint8Array(arrayBuffer);
-                resolve({"PNG" : byteArray});
-            }, 'image/png');
-        });
-    }
-
     onResize = (canvas, newWidth, newHeight) => {
         const tempCanvas = document.createElement('canvas');  // Step 1: Save current content
         tempCanvas.width = this.oldcvW;
