@@ -4,10 +4,19 @@ Review the licenses and licensed files to make sure everything's in place as it 
 checkout quilljs.com as a textEditor plugin
 -----------------------------------------------------------------------------------------------------------------------
 so to migrate the database:
-
 3 -> 4 -> 5  now done, but think about export:
 
 as docname is now in doc and not docTree, we should make that part of the import/export logic.
+
+so now lets add import/export to the contextmenu so we can actually save/load this stuff
+
+
+upcoming comment for CHANGELOG.txt:
+    
+* as a subpart of the 4->5 conversion we're adding the doc name to the doc export functions.  so at the head of the export
+   instead of just @1.1;uu-i-d;  we'll have @1.1;uu-i-d;This is my \;test\; doc;  (introducing escaped charcodes now too)
+
+
 
 we must make sure it's all valid text and maybe doesn't use semicolons?  (either
 that or we need to start supporting escaped semicolons!)
@@ -28,6 +37,13 @@ REMEMBER NOW WHEN DELETING FROM table:doc WE ALSO HAVE TO DELETE ALL ITS KIDS IN
 so now also when editing a loaded dch we need to know its recid even though this is something that never needed to happen
 before.
 
+-----------------------------------------------------------------------------------------------------------------------
+change these two:
+    {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
+    {action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"},
+to a single one, and in the dialog add a checkmark 'as childof' instead
+
+.... so that it now matches the 'import' dialog style
 -----------------------------------------------------------------------------------------------------------------------
 A) consider on the menu for inserting plugins to add them as a submenu and not use the phrase "Insert New" in such a way 
      that makes plugins named "My Plugin" seem awkwared, (Insert New My Plugin just doesn't read well! )

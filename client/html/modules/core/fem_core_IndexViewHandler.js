@@ -13,17 +13,54 @@ const indexMenuEntries = [
     {action:"indent",        label:"> Make child of",         tip:"Make document a child of the document above it"},
     {action:"dedent",        label:"< Move to parent level",  tip:"Move document up to parent's level"},
     {action:"",              label:"",                        tip:""},
+    {action:"import",        label:"Import Document",         tip:"Import document from local file"},
     {action:"export",        label:"Export Document",         tip:"Export document to a local file"},
     {action:"",              label:"",                        tip:""},
     {action:"delete",        label:"Delete Document",         tip:"Delete document under cursor (and all its children)"},
 ];
     
     
+async function onCtxImport() {
+}
 async function onCtxExport() {
     let exporter = new FG.DocExporter();
     const str = await exporter.export(FG.curDoc.rootDch);
-    console.log(FF.__FILE__(), "RSTODO");
-    console.log(str);
+
+    async function _onDlgButton(btnLabel, dict) {
+        if (dict.isSubmit) {
+            const blob = new Blob([str], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const tmp = document.createElement("a");
+            tmp.href = url;
+            tmp.download = dict.fileName;
+            tmp.style.display = "none";
+            document.body.appendChild(tmp);
+            tmp.click();
+            document.body.removeChild(tmp);
+            URL.revokeObjectURL(url);
+            FG.kmStates.modal = false;
+            return true;
+        }
+        return false;
+    }
+
+    const info = FF.getDocInfo(FG.curDoc.uuid);
+    const form = `
+<form>
+    <b>Export document:</b> ${info.name}<br>
+    <label>Save as: </label>
+
+    <input type="text" name="fileName">
+</form>`;
+
+    let dict = {
+        fileName: info.name + ".txt"
+    }
+
+    FG.kmStates.modal = true;
+    _dialog = new DFDialog({ onButton: _onDlgButton });
+    _dialog.open({form:form, fields:dict});
 }
 
 
@@ -57,6 +94,7 @@ function onIdxContextMenuAction(action) {
         case "newDocAtSame":    {   openDocInfoPopup(false);    break; }
         case "newDocAsChild":   {   openDocInfoPopup(true);     break; }
         case "renameDoc":       {   openDocRenamePopup();       break; }
+        case "import":          {   onCtxImport();              break; }
         case "export":          {   onCtxExport();              break; }
         case "delete":          {   onCtxDelete();              break; }
     }

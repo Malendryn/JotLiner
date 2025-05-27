@@ -5,6 +5,10 @@
     recs id instead of the recs uuid, also added 'bump' field
 * 4->5 completed, moved the 'name' out of table:docTree and into table:doc, and updated all code to match.  (this change
     was purely serverside)
+* made index pane contextMenu entry 'export document' now works, since as part of the phase of the next db upgrade 
+    from 5->6 will change the export format as well, I wanted a quicker way to compare old vs new and having this
+    exporter working /now/ will facilitate that.
+
 2025-05-26 ------------------------------------------------------------------------------------------------------------
 * various cleanups,  renamed a .doc, got rid of some stale files,  fixed a .gitignore, etc...
 * fixed some old license references to Apache  --> AGPLv3
