@@ -3,6 +3,8 @@ import { DFDialog }      from "/public/classes/DFDialog.js";
 
 import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
+import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
+
 const indexMenuEntries = [
 //   action,      entryText,             tooltipText
     {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
@@ -20,13 +22,131 @@ const indexMenuEntries = [
 ];
     
     
-async function onCtxImport() {
+async function onCtxImport2(file) {     // user has selected file, now ask if they want to change the name
+    let docName = file.name;
+    if (docName.endsWith(".jldoc")) {
+        docName = docName.substring(0, docName.length - 6);
+    }
+
+    function onDlgButton(btnLabel, dict) {
+        FG.kmStates.modal = false;
+        if (dict.isSubmit) {
+            if (!dict.placement) {
+                alert("Please choose whether to import as child or beneath.");
+                return false;
+            }
+            debugger;
+        }
+        return true;
+    }
+
+    const info = FF.getDocInfo(FG.curDoc.uuid); // get info about doc to insert this one as child of or beneath
+    const form = `
+<form>
+    <p><h3>Choose where to import document</h3></p>
+    <div id="radioGroup">
+        <label>
+            <input type="radio" name="placement" value="child">
+            As child of <b>${info.name}</b>
+        </label>
+        <br>
+        <label>
+            <input type="radio" name="placement" value="sibling">
+            Or beneath <b>${info.name}</b>
+        </label>
+    </div>
+    <br>
+    <label>Named:</label>&nbsp;<input type="text" name="newName">
+    <br>
+</form>`;
+
+    let dict = {
+        "newName": docName
+    }
+
+    FG.kmStates.modal = true;
+    let dlg = new DFDialog({ onButton: onDlgButton });
+    dlg.open({form:form, fields:dict, buttons: {"Cancel": false, "Import": true}});
 }
+async function onCtxImport() {
+    let dlg;
+    const tracker = new DFListenerTracker();
+    async function onDlgButton(btnLabel, dict) {
+        tracker.removeAll();
+        FG.kmStates.modal = false;
+        return true;
+    }
+
+    function handleFiles(files) {
+        tracker.removeAll();
+        FG.kmStates.modal = false;
+        dlg.close();
+        if (files.length == 1) {
+            onCtxImport2(files[0]);
+        }
+    }
+    async function preRun(frm)  {
+        const drop = document.getElementById("__dlgDrop")
+        const file = document.getElementById("__dlgFile");
+        tracker.add(drop, 'click', () => {         // click --> open file dlg and go!
+            file.click();
+        });
+
+        tracker.add(file, 'change', (evt) => {     // (from file dlg) change --> file input selection
+            handleFiles(evt.target.files);
+        });
+    
+        tracker.add(drop, 'dragover', (evt) => {   // dragover/leave visual feedback
+            evt.preventDefault();
+            drop.classList.add('hover');
+        });
+        tracker.add(drop, 'dragleave', () => {
+            drop.classList.remove('hover');
+        });
+        tracker.add(drop, 'drop', (evt) => {        // drop --> get filepath and go!
+            evt.preventDefault();
+            drop.classList.remove('hover');
+            handleFiles(evt.dataTransfer.files);
+        });
+    }
+
+    
+    const style = `
+<style>
+    #__dlgDrop {
+        border: 2px dashed #888;
+        padding: 40px;
+        text-align: center;
+        color: #555;
+        font-family: sans-serif;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+    #__dlgDrop.hover {
+        border-color: #0b79d0;
+        background-color: #f0faff;
+    }
+  </style>
+`
+    const form = `
+<form>
+    <div id="__dlgDrop">
+    Drag & Drop files here or click to browse
+    <input type="file" id="__dlgFile" style="display:none;">
+</div></form>`;
+
+    FG.kmStates.modal = true;
+    dlg = new DFDialog({ preRun:preRun, onButton: onDlgButton });
+    dlg.open({form:form, styles:[style], buttons: {"Cancel": true}});
+}
+
+
+
 async function onCtxExport() {
     let exporter = new FG.DocExporter();
     const str = await exporter.export(FG.curDoc.rootDch);
 
-    async function _onDlgButton(btnLabel, dict) {
+    async function onDlgButton(btnLabel, dict) {
         if (dict.isSubmit) {
             const blob = new Blob([str], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -50,16 +170,15 @@ async function onCtxExport() {
 <form>
     <b>Export document:</b> ${info.name}<br>
     <label>Save as: </label>
-
     <input type="text" name="fileName">
 </form>`;
 
     let dict = {
-        fileName: info.name + ".txt"
+        fileName: info.name + ".jldoc"
     }
 
     FG.kmStates.modal = true;
-    _dialog = new DFDialog({ onButton: _onDlgButton });
+    _dialog = new DFDialog({ onButton: onDlgButton });
     _dialog.open({form:form, fields:dict});
 }
 
@@ -132,7 +251,7 @@ function makeNewDocForm(asChild) {
 
 
 function openDocRenamePopup() {
-    async function _onDlgButton(btnLabel, dict) {
+    async function onDlgButton(btnLabel, dict) {
         if (dict.isSubmit) {
             if (dict.docName.length == 0) {                 // validate
                 alert("Document name cannot be empty");
@@ -165,7 +284,7 @@ function openDocRenamePopup() {
     }
 
     FG.kmStates.modal = true;
-    _dialog = new DFDialog({ onButton: _onDlgButton });
+    _dialog = new DFDialog({ onButton: onDlgButton });
     _dialog.open({form:form, fields:dict});
 }
 
@@ -175,7 +294,7 @@ function openDocInfoPopup(asChild) {
         "docName": ""
     }
 
-    async function _onDlgButton(btnLabel, dict) {
+    async function onDlgButton(btnLabel, dict) {
         if (dict.isSubmit) {
             if (dict.docName.length == 0) {                 // validate
                 alert("Document name cannot be empty");
@@ -214,7 +333,7 @@ function openDocInfoPopup(asChild) {
 
     let form = makeNewDocForm(asChild);
     FG.kmStates.modal = true;
-    _dialog = new DFDialog({ onButton: _onDlgButton });        // new popup
+    _dialog = new DFDialog({ onButton: onDlgButton });        // new popup
     _dialog.open({form:form, fields:dict});
 }
 let _dialog;

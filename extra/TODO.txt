@@ -3,6 +3,9 @@ Review the licenses and licensed files to make sure everything's in place as it 
 -----------------------------------------------------------------------------------------------------------------------
 checkout quilljs.com as a textEditor plugin
 -----------------------------------------------------------------------------------------------------------------------
+TODO change the 'onButton' op of DFDialog such that we don't pass 'button', dict, and dict.isSubmit,  but instead 
+    just pass dict, with dict.btnLabel and dict.btnSubmit instead
+-----------------------------------------------------------------------------------------------------------------------
 so to migrate the database:
 3 -> 4 -> 5  now done, but think about export:
 
@@ -41,7 +44,7 @@ before.
 change these two:
     {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
     {action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"},
-to a single one, and in the dialog add a checkmark 'as childof' instead
+to a single one, and in the dialog add a checkmark 'as childof' instead  (see onCtxImport() for its radiobuttons on this)
 
 .... so that it now matches the 'import' dialog style
 -----------------------------------------------------------------------------------------------------------------------

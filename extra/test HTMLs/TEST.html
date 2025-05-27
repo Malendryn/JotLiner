@@ -1,9 +1,68 @@
-
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-    </head>
-    <body>
-        <div style="background-color:lightblue;width:300px;">testing</div>
-    </body>
+<head>
+  <meta charset="UTF-8">
+  <title>File Upload Zone</title>
+  <style>
+    #dropzone {
+      border: 2px dashed #888;
+      padding: 40px;
+      text-align: center;
+      color: #555;
+      font-family: sans-serif;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    #dropzone.hover {
+      border-color: #0b79d0;
+      background-color: #f0faff;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="dropzone">
+    Drag & Drop files here or click to browse
+    <input type="file" id="fileInput" style="display: none;">
+  </div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+
+    // Handle click to trigger file input
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    // Handle file input selection
+    fileInput.addEventListener('change', (event) => {
+      handleFiles(event.target.files);
+    });
+
+    // Drag-over visual feedback
+    dropzone.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      dropzone.classList.add('hover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('hover');
+    });
+
+    dropzone.addEventListener('drop', (event) => {
+      event.preventDefault();
+      dropzone.classList.remove('hover');
+      handleFiles(event.dataTransfer.files);
+    });
+
+    // Process file(s)
+    function handleFiles(files) {
+      for (const file of files) {
+        console.log('File dropped or selected:', file.name);
+        // You could now upload it, preview it, etc.
+      }
+    }
+  </script>
+
+</body>
 </html>
+`
