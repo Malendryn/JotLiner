@@ -11,7 +11,6 @@ function logPkt(name) {
 WS.classes.GetExtra.prototype.process = async function(client) {
     logPkt("GetExtra");
     this.txt = null;
-    debugger; 
     if (!client.db) { return BF.fault("Database not selected"); }
     let tmp = await client.db.query("SELECT value FROM extra WHERE key=?", [this.txt]);
     if (tmp.length == 1) {
@@ -22,7 +21,7 @@ WS.classes.GetExtra.prototype.process = async function(client) {
 WS.classes.SetExtra.prototype.process = async function(client) {
     logPkt("SetExtra");
     if (!client.db) { return BF.fault("Database not selected"); }
-    debugger; let tmp = await client.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
+    let tmp = await client.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
     return null;
 }
 
@@ -54,8 +53,11 @@ WS.classes.GetDCHList.prototype.process = async function(client) {
 WS.classes.GetDocTree.prototype.process = async function(client) {
     logPkt("GetDocTree");
     if (!client.db) { return BF.fault("Database not selected"); }
-    this.list = [];
-    this.list = await client.db.query("SELECT * from docTree order by parent,listOrder");
+    // this.list = await client.db.query("SELECT * from docTree order by parent,listOrder");
+    let sql = "SELECT docTree.*, doc.name FROM docTree"
+            + " JOIN doc ON docTree.uuid = doc.uuid"
+            + " ORDER BY parent,listOrder;";
+    this.list = await client.db.query(sql);
     return this;
 }
 
@@ -92,10 +94,10 @@ WS.classes.NewDoc.prototype.process = async function(client) {    // insert new 
             await client.db.run("UPDATE docTree SET listOrder = listOrder + 1 where id=?", [recs[idx].id]);   // increment existing rec's listorder's
         }
 
-        let list = [this.dict.uuid, this.dict.version, this.dict.doc];
-        this.docId = await client.db.run("INSERT INTO doc (uuid,version,content) values (?,?,?)", list);               // insert the doc
-        list = [this.dict.name, this.dict.uuid, order, this.dict.parent];
-        this.docTreeId = await client.db.run("INSERT INTO docTree (name,uuid,listOrder,parent) values (?,?,?,?)", list);   // insert the index entry
+        let list = [this.dict.version, this.dict.uuid, this.dict.name, this.dict.doc];
+        this.docId = await client.db.run("INSERT INTO doc (version,uuid,name,content) values (?,?,?,?)", list);     // insert doc
+        list = [this.dict.uuid, order, this.dict.parent];
+        this.docTreeId = await client.db.run("INSERT INTO docTree (uuid,listOrder,parent) values (?,?,?)", list);   // insert index entry
         await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
         await client.db.run("ROLLBACK TRANSACTION");
@@ -125,7 +127,7 @@ WS.classes.RenameDoc.prototype.process = async function(client) {    // rename a
     logPkt("RenameDoc");
     if (!client.db) { return BF.fault("Database not selected"); }
     await client.db.run("BEGIN TRANSACTION");
-    await client.db.run("UPDATE docTree SET name=? WHERE uuid=?", [this.dict.name, this.dict.uuid]);
+    await client.db.run("UPDATE doc SET name=? WHERE uuid=?", [this.dict.name, this.dict.uuid]);
     await client.db.run("COMMIT TRANSACTION");
     BF.onChanged(client.ws, {what: "docTree"});      // tell the world that the docTree changed!
     this.uuid = "";

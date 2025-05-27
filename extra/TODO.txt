@@ -5,22 +5,28 @@ checkout quilljs.com as a textEditor plugin
 -----------------------------------------------------------------------------------------------------------------------
 so to migrate the database:
 
-3 -> 4
-*) read all docTree:ic,parent vals
-   rename docTree to docTree_old
-   create a new docTree
-   walk through docTree_old and gather all id,uuid into a dict
-   read from docTree_old and write to docTree except, 
-     take old 'parent' uuid and find its recId in the gathered id,uuid in the walkthrough step above
-     replace the old 'parent' id with this new id in the new write
-*** this will of course break the docTree code so that needs to be fixed after this step as well
+3 -> 4 -> 5  now done, but think about export:
 
-4->5
+as docname is now in doc and not docTree, we should make that part of the import/export logic.
+
+we must make sure it's all valid text and maybe doesn't use semicolons?  (either
+that or we need to start supporting escaped semicolons!)
+
+I thought about b64encoding it but it would be nice to see the docname in a text editor!
+
+maybe we should focus on export/import first so we understand the logic better?
+
+
+5->6
 *) add 'bump' to every table
 *) add new 'dch' table
 *) go through each doc table and yank it apart, putting all the dch elements into the dch table
 *) remove 'content' field from doc table
-*) update extra.dbVersion to 4
+
+REMEMBER NOW WHEN DELETING FROM table:doc WE ALSO HAVE TO DELETE ALL ITS KIDS IN table:dch
+
+so now also when editing a loaded dch we need to know its recid even though this is something that never needed to happen
+before.
 
 -----------------------------------------------------------------------------------------------------------------------
 A) consider on the menu for inserting plugins to add them as a submenu and not use the phrase "Insert New" in such a way 

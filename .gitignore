@@ -10,10 +10,16 @@ server/db/*.db
 !server/db/Getting\ Started.db
 
 # extra stuff
+# handles .cherrytree.ctb~ etc
 extra/**/*~
-extra/**/.*~       # account for .cherrytree.ctb~ etc
+extra/**/.*~
 extra/**/*.bak
 
+# handle drawio backup and temp files
+extra/**/*.bkp
+extra/**/.*.bkp
+extra/**/.*.dtmp
+extra/**/*.dtmp
 # general (both client + server) stuff
 package-lock.json
 .vscode/

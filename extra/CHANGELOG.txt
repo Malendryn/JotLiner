@@ -1,9 +1,10 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
-* db conversion underway, 3-4 completed now, reworked table docTree so that parent is now an int reffing back to the 
+2025-05-27 ------------------------------------------------------------------------------------------------------------
+* db conversion underway, 3->4 completed now, reworked table docTree so that parent is now an int reffing back to the 
     recs id instead of the recs uuid, also added 'bump' field
-
+* 4->5 completed, moved the 'name' out of table:docTree and into table:doc, and updated all code to match.  (this change
+    was purely serverside)
 2025-05-26 ------------------------------------------------------------------------------------------------------------
 * various cleanups,  renamed a .doc, got rid of some stale files,  fixed a .gitignore, etc...
 * fixed some old license references to Apache  --> AGPLv3
