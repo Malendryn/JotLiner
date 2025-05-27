@@ -3,7 +3,7 @@
 
 import path from "path";
 import sqlite3 from "sqlite3";
-// import fs from "fs";
+import fs from "fs"; //'node:fs/promises'; <-- this works too
 
 
 class DBHandler {
@@ -183,28 +183,53 @@ class DBHandler {
 BF.openDB = async function(dbName) {
     const db = await new DBHandler();
     await db.open(dbName + ".db");
-    let sql;
+
+    const updaterPath = path.join(BG.basePath, "server/modules/core/dbUpdaters");
+    let flist = await fs.promises.readdir(updaterPath, { withFileTypes: true });    // fetch all the dbUpdate_######-######.js files...
+    let files = [];
+    for (const entry of flist) {
+        files.push(entry.name);
+    }
+    files = files.filter(f => f.startsWith('dbUpdate_') && f.endsWith('.js')); // filter for only those named dbUpdate_.....js
+    files = files.sort();                                                            // and finally make sure they're properly ascii sorted lowest to highest
+
 
     let curVer = 0;
-
-    const dbPath = path.join(BG.basePath, "server/modules/core/dbUpdaters");
-    let files = await fs.promises.readdir(dirPath, { withFileTypes: true });    // fetch all the dbUpdate_######-######.js files...
-    files = files.filter(f => f.startsWith('dbUpdate_') && f.endsWith('.js'))   // filter for only those named dbUpdate_.....js
-    files = files.sort();                                                       // and finally make sure they're properly sorted lowest to highest
-
-
-    if (await db.tableExists("extra")) {        // if 'extra' table doesnt exists we're not creating new!
-        curVer = await this.query("SELECT value FROM extra WHERE key='dbVersion'");
+    if (await db.tableExists("extra")) {        // if 'extra' table exists fetch the dbVersion else leave at 0
+        curVer = await db.query("SELECT value FROM extra WHERE key='dbVersion'");
+        curVer = parseInt(curVer[0].value);
     }
 
-    for (const fname of files) {
-        iter through filenames parsing out the [from,to] in the name, compare from against curVer, if lower move on, if higher throw err as something was missed?
-        use the 2nd value of the filename to set the new curVer after file is done
+    for (let fname of files) {                  // iter through filenames
+        let tmp = fname.substring(9,22);   // strip 'dbUpdate_123456-654321.js' down to 123456-654321
+        // let from,to;
+        let [from,to] = tmp.split('-');
+        from = parseInt(from);
+        to = parseInt(to);
+        if (from < curVer) {            // skipover already-done updaters
+            continue;
+        }
+        if (from != curVer) {
+            throw new Error(`DB update aborted, no updater found to update from version ${curVer}`);
+        }
+        let mod = await BF.loadModule("./modules/core/dbUpdaters/" + fname);    // load this module
+        await db.run("BEGIN TRANSACTION");                                      // start transaction
+        try {
+            mod = await mod.updateDb(db);                                               // do the upgdate/upgrade
+            curVer = to;
+            await db.query(`UPDATE extra set value='${curVer}' where key='dbVersion'`);   // update the dbVersion to the 'to' value
+            await db.run("COMMIT TRANSACTION");                             // commit!
+        } catch (err) {
+            await db.run("ROLLBACK TRANSACTION");
+            throw err;
+        }
     }
+    return db;
+}
 
 
 
-
+/*
     await db.updateDB(0, 1, async() => {  // update 0=>1, create extra table ONLY and add extra:dbVersion=0
         sql =
 "CREATE TABLE extra"
@@ -282,3 +307,4 @@ BF.openDB = async function(dbName) {
 //     return db;
 // }   
 
+*/

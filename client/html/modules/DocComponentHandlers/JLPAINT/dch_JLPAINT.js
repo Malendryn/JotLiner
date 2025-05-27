@@ -16,7 +16,7 @@ const html = `
   import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
   class DCH_JLPAINT extends DCH_BASE {
-    static pluginName  = "My Example Painter Plugin";
+    static pluginName  = "Simple Painter Plugin";
     static menuTooltip = "A basic painting node for learning how to make your own plugins";
 
     hasToolbar = true;  // without this the class would have no toolbar!

@@ -63,7 +63,7 @@ BF.checkDBName = function(dbName) {
         return "Database name cannot contain periods";
     }
 
-    const badChars = /[<>:"/\\|?*\x00-\x1F]/g;    // Generally invalid chars for Windows, linux, mac
+    const badChars = /[<>:"/\\|?*\x00-\x1F]/g;  // Generally invalid chars for Windows, linux, mac
     if (badChars.test(dbName)) {
         return "Database name contains invalid characters";
     }
@@ -72,9 +72,8 @@ BF.checkDBName = function(dbName) {
         return "Database name cannot begin or end with whitespace"
 
     }
-    // Disallowed Windows reserved dbNames (case-insensitive)
-    const reservedNames = [
-        "CON", "PRN", "AUX", "NUL",
+    const reservedNames = [                     // Disallow Windows reserved dbNames (case-insensitive)
+    "CON", "PRN", "AUX", "NUL",
         "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
         "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
     ];
