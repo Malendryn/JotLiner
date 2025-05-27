@@ -81,7 +81,7 @@ WS.classes.NewDoc.prototype.process = async function(client) {    // insert new 
         for (idx = 0; idx < recs.length; idx++) {   // find listOrder # of 'after' rec (else get highest listOrder# in use at this parentLevel)
             const rec = recs[idx];
             order = rec.listOrder;          
-            if (rec.uuid == this.dict.after) {
+            if (rec.id == this.dict.after) {
                 break;
             }
         }
@@ -138,18 +138,21 @@ WS.classes.DeleteDoc.prototype.process = async function(client) {    // insert n
     try {
         await client.db.run("BEGIN TRANSACTION");
 
-        async function deleteRec(uuid) {
-            let recs = await client.db.query("SELECT uuid from docTree where parent=?", [uuid]);
-            for (let idx = 0; idx < recs.length; idx++) {
-                await deleteRec(recs[idx].uuid);
+        async function deleteRec(rootId) {
+            let recs = await client.db.query("SELECT id from docTree where parent=?", [rootId]);  // get all children whos parent is recToDelete
+            for (let idx = 0; idx < recs.length; idx++) {                                         // recursively delete them and their children
+                await deleteRec(recs[idx].id);
             }
-            recs = await client.db.query("SELECT listOrder,parent from docTree where uuid=?", [uuid]);
+            recs = await client.db.query("SELECT listOrder,parent,uuid from docTree where id=?", [rootId]); // get info about rec to delete
             let rec = recs[0];
-            await client.db.run("DELETE FROM doc WHERE uuid=?", [uuid]);
-            await client.db.run("DELETE FROM docTree WHERE uuid=?", [uuid]);
-            await client.db.run("UPDATE docTree SET listOrder = listOrder - 1 WHERE parent = ? and listOrder > ?", [rec.parent, rec.listOrder]);
+            await client.db.run("DELETE FROM doc WHERE uuid=?", [rec.uuid]);  // delete entry from doc table
+            await client.db.run("DELETE FROM docTree WHERE id=?", [rootId]);  // delete entry from docTree table
+            await client.db.run("UPDATE docTree SET listOrder = listOrder - 1"
+                              + " WHERE parent = ? and listOrder > ?", [rec.parent, rec.listOrder]);  // decrement listOrders to close the gap
         }
-        await deleteRec(this.uuid);
+        let rootId = await client.db.query("SELECT id from docTree where uuid=?", [this.uuid]);     // get id of rec who's uuid=
+        rootId = rootId[0].id;
+        await deleteRec(rootId);
 
         await client.db.run("COMMIT TRANSACTION");
     } catch (err) {

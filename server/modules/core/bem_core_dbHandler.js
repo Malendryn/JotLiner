@@ -202,22 +202,21 @@ BF.openDB = async function(dbName) {
 
     for (let fname of files) {                  // iter through filenames
         let tmp = fname.substring(9,22);   // strip 'dbUpdate_123456-654321.js' down to 123456-654321
-        // let from,to;
-        let [from,to] = tmp.split('-');
-        from = parseInt(from);
-        to = parseInt(to);
-        if (from < curVer) {            // skipover already-done updaters
+        let [before,after] = tmp.split('-');
+        before = parseInt(before);
+        after = parseInt(after);
+        if (before < curVer) {            // skipover already-done updaters
             continue;
         }
-        if (from != curVer) {
+        if (before != curVer) {
             throw new Error(`DB update aborted, no updater found to update from version ${curVer}`);
         }
         let mod = await BF.loadModule("./modules/core/dbUpdaters/" + fname);    // load this module
         await db.run("BEGIN TRANSACTION");                                      // start transaction
         try {
             mod = await mod.updateDb(db);                                               // do the upgdate/upgrade
-            curVer = to;
-            await db.query(`UPDATE extra set value='${curVer}' where key='dbVersion'`);   // update the dbVersion to the 'to' value
+            curVer = after;
+            await db.query(`UPDATE extra set value='${curVer}' where key='dbVersion'`);   // update the dbVersion to the 'after' value
             await db.run("COMMIT TRANSACTION");                             // commit!
         } catch (err) {
             await db.run("ROLLBACK TRANSACTION");

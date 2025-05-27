@@ -33,7 +33,7 @@ async function onCtxDelete() {
     if (yes) {
         let hasChildren = false;
         for (let idx = 0; idx < FG.docTree.length; idx++) {
-            if (FG.docTree[idx].parent == info.uuid) {
+            if (FG.docTree[idx].parent == info.id) {
                 hasChildren = true;
                 break;
             }
@@ -128,7 +128,7 @@ function openDocRenamePopup() {
 
     FG.kmStates.modal = true;
     _dialog = new DFDialog({ onButton: _onDlgButton });
-    debugger; _dialog.open({form:form, fields:dict});
+    _dialog.open({form:form, fields:dict});
 }
 
 
@@ -148,7 +148,7 @@ function openDocInfoPopup(asChild) {
             if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
                 info = { uuid:'', parent:'' };
             } else {
-                info = FG.curDoc && FF.getDocInfo(FG.curDoc.uuid);
+                info = FF.getDocInfo(FG.curDoc.uuid);
             }
 
             await FF.newDoc();                // initialize system with an empty document and new uuid
@@ -159,8 +159,8 @@ function openDocInfoPopup(asChild) {
                 name:       dict.docName,   // name of doc
                 uuid:       FG.curDoc.uuid, // uuid of doc
                 version:    FG.VERSION,     // version of doc
-                after:      (asChild) ? ''        : info.uuid,      // ifChild, set after to none, else to selected
-                parent:     (asChild) ? info.uuid : info.parent,    // ifChild, set parent to selected, else selecteds parent
+                after:      (asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
+                parent:     (asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
                 doc:        await exporter.export(FG.curDoc.rootDch),
             }
             pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
@@ -409,7 +409,9 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     } else {
         list = pkt.list;
     }
-    const parents = {'': []};               // start with an empty toplevel (for when absolutely no recs exist yet)
+
+// convert recs into a parenTree of {parentId:[recsWithThatParentId]}
+    const parents = {0: []};                // start with an empty toplevel (for when absolutely no recs exist yet)
     for (let idx = 0; idx < list.length; idx++) {   // break list down into {}-by-parents
         const entry = list[idx];
         if (!parents.hasOwnProperty(entry.parent)) {
@@ -426,14 +428,14 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
             const entry = list.splice(0, 1)[0]; // remove-and-return first element from list
             entry.depth = depth;                // to make showing the list easier (see showDocTree)
             nuTree.push(entry);
-            if (parents.hasOwnProperty(entry.uuid)) {
+            if (parents.hasOwnProperty(entry.id)) {
                 ++depth;
-                doParentsOf(entry.uuid);
+                doParentsOf(entry.id);
                 --depth;
             }
         }
     }
-    doParentsOf('');
+    doParentsOf('0');
 
     FG.docTree = nuTree;
 

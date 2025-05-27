@@ -3,9 +3,6 @@ Review the licenses and licensed files to make sure everything's in place as it 
 -----------------------------------------------------------------------------------------------------------------------
 checkout quilljs.com as a textEditor plugin
 -----------------------------------------------------------------------------------------------------------------------
-lets start by moving all the upgrade code OUT of bem_core_dbHandler.js and into a new dbupdate/dbUpdate_######-######.js
-    where the first ######- is what this dbupdater updates FROM and the ending -###### is what the new dbVer will be
-    
 so to migrate the database:
 
 3 -> 4
