@@ -60,36 +60,6 @@ class DBHandler {
     }
 
 
-    // run = async (sql, params = []) => {
-    //     return new Promise(async (resolve, reject) => {
-    //         this.lastAccessed = Date.now();
-    //         let lastId = 0;
-    //         this.db.serialize(async () => {
-    //             let stmt;
-    //             try {
-    //                 stmt = await this.db.prepare(sql);
-    //                 // const row = stmt.get(1);
-    //                 // console.log(row)
-
-    //                 await stmt.run(...params, function (err) {    // warning! some statements simply crash and exit, unable to try/catch!
-    //                     if (err) {
-    //                         reject(err.message);
-    //                         return;
-    //                     }
-    //                     lastId = this.lastID;
-    //                 });
-    //                 await stmt.finalize();
-    //             }
-    //             catch (err) {
-    //                 console.log(err.message);
-    //                 reject(err.message);
-    //                 return;
-    //             }
-    //         })
-    //         resolve(lastId)
-    //     });
-    // }
-
     run = async (sql, params = []) => {
         this.lastAccessed = Date.now();
     
@@ -122,6 +92,7 @@ class DBHandler {
         });
     }
 
+
     query = async (sql, params = []) => {
         return new Promise((resolve, reject) => {
             this.lastAccessed = Date.now();
@@ -145,34 +116,67 @@ class DBHandler {
     }
 
 
-    // updateDB = async (fromVersion, toVersion, func) => {
-    //     var version;
-
-    //     const exists = await this.tableExists("extra")   // if 'extra' table doesnt yet exist, start currentVersion at 0
-    //     if (!exists) {
-    //         version = 0;
-    //     } else {                                         // else we start the update process AFTER the current version
-    //         version = await this.query("SELECT value from extra where key='dbVersion'");
-    //         version = parseInt(version[0]["value"]);
-    //     }
-
-    //     if (toVersion <= version) {     // if the target version is less than the current version, just go home
-    //         return;
-    //     }
-    //     if (fromVersion != version) {   // if the upgradeFrom version != current DB version, throw an error
-    //         throw new Error(`DB Version is ${version}, FAILED request to upgrade from ${fromVersion} to ${toVersion}`)
-    //     }
-
-    //     await this.run("BEGIN TRANSACTION");
-    //     try {
-    //         await func();
-    //         await this.run(`UPDATE extra set value='${toVersion}' where key='dbVersion'`);
-    //         await this.run("COMMIT TRANSACTION");
-    //     } catch (error) {
-    //         await this.run("ROLLBACK TRANSACTION");
-    //         throw error;
-    //     }
+    // iter = async (sql, callback, params = []) => {
+    //     return new Promise((resolve, reject) => {
+    //         this.db.serialize(() => {
+    //             this.db.each(sql, params, async function (err, row) {
+    //                 if (err) {
+    //                     return reject(err);
+    //                 }
+    //                 try {
+    //                     await callback(row);
+    //                 } catch (err) {
+    //                     return reject(err);
+    //                 }
+    //             },
+    //             function (err, count) {
+    //                 debugger; if (err) {
+    //                     return reject(err);
+    //                 }
+    //                 resolve(count);
+    //             });
+    //         });
+    //     });
     // }
+    iter = async (sql, callback, params = []) => {
+        return new Promise((resolve, reject) => {
+            this.lastAccessed = Date.now();
+    
+            const stmt = this.db.prepare(sql, params, (err) => {
+                if (err) {
+                    return reject(err);
+                }
+    
+                const next = () => {
+                    stmt.get(async (err, row) => {
+                        this.lastAccessed = Date.now();
+                        if (err) {
+                            stmt.finalize(() => reject(err));
+                            return;
+                        }
+    
+                        if (!row) {
+                            stmt.finalize((err) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve();
+                                }
+                            });
+                            return;
+                        }
+    
+                        const cont = await callback(this.db, row);
+                        if (!cont) {
+                            return resolve();
+                        }
+                        next();
+                    });
+                };
+                next();
+            });
+        });
+    };
 
     constructor() {
     }
@@ -225,85 +229,3 @@ BF.openDB = async function(dbName) {
     }
     return db;
 }
-
-
-
-/*
-    await db.updateDB(0, 1, async() => {  // update 0=>1, create extra table ONLY and add extra:dbVersion=0
-        sql =
-"CREATE TABLE extra"
-+ "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
-+ ", key        TEXT NOT NULL UNIQUE"
-+ ", value      TEXT NOT NULL"
-+ ")";
-        await db.run(sql);                                                           // create table
-        await db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // incremented for each .updateDB()
-    }); // ************************************************************************************************************
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    await db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables
-        sql = 
-"CREATE TABLE docTree"
-+ "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"  // id of entry in index table (used by parent)
-+ ", name       TEXT    NOT NULL"  // name of entry in index table
-+ ", uuid       TEXT    NOT NULL"  // uuid of entry in doc table
-+ ", listOrder  INTEGER NOT NULL"  // ('order'=reserved word in sqlite3) 'display order' of recs in this table (when at same parent level)
-+ ", parent     TEXT    NOT NULL"  // uuid of parent rec this is a child of, or '' if toplevel
-+ ");"; // don't add 'WITHOUT ROWID' just to be more compatible/inline-with other SQL language derivatives
-        await db.run(sql);
-    }); // ************************************************************************************************************
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    await db.updateDB(2, 3, async() => {  // update 2=>3, create index and doc tables
-        sql = 
-"CREATE TABLE doc"
-+ "( id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
-+ ", uuid        TEXT    NOT NULL UNIQUE"  //UUID of doc
-+ ", version     TEXT    NOT NULL"         //"n.n" major.minor version of doc (for auto-upgrade when loaded)
-+ ", content     TEXT    NOT NULL"         // textified 'exported' doc body
-+ ");";
-        await db.run(sql);
-    }); // ************************************************************************************************************
-    return db;
-}   
-
-// BF.openDB = async function(dbName) {
-//     const db = await new DBHandler();
-//     await db.open(dbName + ".db");
-//     let sql;
-
-//     await db.updateDB(0, 1, async() => {  // update 0=>1, create extra table ONLY and add extra:dbVersion=0
-//         sql =
-// "CREATE TABLE extra"
-// + "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
-// + ", key        TEXT NOT NULL UNIQUE"
-// + ", value      TEXT NOT NULL"
-// + ")";
-//         await db.run(sql);                                                           // create table
-//         await db.run("INSERT INTO extra (key,value) values ('dbVersion', '0')");     // incremented for each .updateDB()
-//     }); // ************************************************************************************************************
-// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//     await db.updateDB(1, 2, async() => {  // update 1=>2, create index and doc tables
-//         sql = 
-// "CREATE TABLE docTree"
-// + "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"  // id of entry in index table (used by parent)
-// + ", name       TEXT    NOT NULL"  // name of entry in index table
-// + ", uuid       TEXT    NOT NULL"  // uuid of entry in doc table
-// + ", listOrder  INTEGER NOT NULL"  // ('order'=reserved word in sqlite3) 'display order' of recs in this table (when at same parent level)
-// + ", parent     TEXT    NOT NULL"  // uuid of parent rec this is a child of, or '' if toplevel
-// + ");"; // don't add 'WITHOUT ROWID' just to be more compatible/inline-with other SQL language derivatives
-//         await db.run(sql);
-//     }); // ************************************************************************************************************
-// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//     await db.updateDB(2, 3, async() => {  // update 2=>3, create index and doc tables
-//         sql = 
-// "CREATE TABLE doc"
-// + "( id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
-// + ", uuid        TEXT    NOT NULL UNIQUE"  //UUID of doc
-// + ", version     TEXT    NOT NULL"         //"n.n" major.minor version of doc (for auto-upgrade when loaded)
-// + ", content     TEXT    NOT NULL"         // textified 'exported' doc body
-// + ");";
-//         await db.run(sql);
-//     }); // ************************************************************************************************************
-//     return db;
-// }   
-
-*/

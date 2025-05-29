@@ -95,7 +95,7 @@ WS.classes.NewDoc.prototype.process = async function(client) {    // insert new 
         }
 
         let list = [this.dict.version, this.dict.uuid, this.dict.name, this.dict.doc];
-        this.docId = await client.db.run("INSERT INTO doc (version,uuid,name,content) values (?,?,?,?)", list);     // insert doc
+        debugger; this.docId = await client.db.run("INSERT INTO doc (version,uuid,name,content) values (?,?,?,?)", list);     // insert doc
         list = [this.dict.uuid, order, this.dict.parent];
         this.docTreeId = await client.db.run("INSERT INTO docTree (uuid,listOrder,parent) values (?,?,?)", list);   // insert index entry
         await client.db.run("COMMIT TRANSACTION");
@@ -113,7 +113,7 @@ WS.classes.SaveDoc.prototype.process = async function(client) {    // insert new
     try {
         await client.db.run("BEGIN TRANSACTION");
         let list = [this.dict.version, this.dict.doc, this.dict.uuid];
-        await client.db.run("UPDATE doc SET version=?,content=? WHERE uuid=?", [list]);               // insert the doc
+        debugger; await client.db.run("UPDATE doc SET version=?,content=? WHERE uuid=?", [list]);               // insert the doc
         await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
         await client.db.run("ROLLBACK TRANSACTION");

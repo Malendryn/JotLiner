@@ -1,5 +1,7 @@
 // globalThis.WS = {} is defined already.  (see index.js or server.js)
 
+import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";   // load the known SHARED baseline packet definitions
+
 WS.__waitList = {};  // dict of packetId: [TimeInserted, callback]
 
 
@@ -9,7 +11,7 @@ export async function init() {          // load, init, and establish connection 
         console.log("WebSocket connecting to ", wsUrl, "...");
         
         WS.ws = new WebSocket(wsUrl);               // Connect to the same port as the Express server  RSTODO RSFIX retry if fail
-        // WS.ws.binaryType = 'arraybuffer';           // always force arraybuffer (uint8array)
+        WS.ws.binaryType = 'arraybuffer';           // always force arraybuffer (uint8array)
 
         WS.ws.onopen = () => {
             console.log("WebSocket connection opened");

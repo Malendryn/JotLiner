@@ -1,5 +1,8 @@
 // globalThis.WS = {} must be defined already.  (see index.js or server.js)
 
+import { DFCoder } from "../../../client/html/modules/shared/DFCoder.mjs";   // load the known SHARED baseline packet definitions
+
+
 export async function init() {                      // load, init, and establish wss before returning
     return new Promise(async (resolve, reject) => {
         const module = await import("ws");

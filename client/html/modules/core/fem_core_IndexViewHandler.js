@@ -21,22 +21,45 @@ const indexMenuEntries = [
     {action:"delete",        label:"Delete Document",         tip:"Delete document under cursor (and all its children)"},
 ];
     
-    
+
 async function onCtxImport2(file) {     // user has selected file, now ask if they want to change the name
     let docName = file.name;
     if (docName.endsWith(".jldoc")) {
         docName = docName.substring(0, docName.length - 6);
     }
 
-    function onDlgButton(btnLabel, dict) {
-        FG.kmStates.modal = false;
+    async function onDlgButton(btnLabel, dict) {
         if (dict.isSubmit) {
-            if (!dict.placement) {
-                alert("Please choose whether to import as child or beneath.");
+            if (dict.docName.length == 0) {                 // validate
+                alert("Document name cannot be empty");
                 return false;
             }
-            debugger;
+
+            if (!dict.placement) {
+                alert("Please choose whether to import as child or as beneath.");
+                return false;
+            }
+// so how to do this?
+// 1 using the name given go through the 'create new doc' or 'new child doc' procedure
+// 2 call saveDoc() on this but pass it the content?
+// see openDocInfoPopup(asChild) and insertDoc(dict) below as our new/now way to do this!
+
+            debugger; const abuf = await file.arrayBuffer();
+            const raw = new Uint8Array(abuf);
+            const dimp = new FG.DocImporter();
+            dict2 = dimp.validate(raw);
+
+//          dict.docname =  ... already present
+debugger;   dict.uuid = "";     // extract from importing doc from {} = DocImporter.validate(doc)
+            dict.doc = "";      // straight from the imported file
+            dict.asChild = (dict.placement == "child");     // based on the radiobutton
+
+            const result = insertDoc(dict);
+            if (!result) {
+                return false;
+            }
         }
+        FG.kmStates.modal = false;
         return true;
     }
 
@@ -56,12 +79,12 @@ async function onCtxImport2(file) {     // user has selected file, now ask if th
         </label>
     </div>
     <br>
-    <label>Named:</label>&nbsp;<input type="text" name="newName">
+    <label>Named:</label>&nbsp;<input type="text" name="docName">
     <br>
 </form>`;
 
     let dict = {
-        "newName": docName
+        "docName": docName
     }
 
     FG.kmStates.modal = true;
@@ -71,7 +94,7 @@ async function onCtxImport2(file) {     // user has selected file, now ask if th
 async function onCtxImport() {
     let dlg;
     const tracker = new DFListenerTracker();
-    async function onDlgButton(btnLabel, dict) {
+    async function onDlgButton(btnLabel, dict) {        // only button option here is "Cancel"
         tracker.removeAll();
         FG.kmStates.modal = false;
         return true;
@@ -144,11 +167,11 @@ async function onCtxImport() {
 
 async function onCtxExport() {
     let exporter = new FG.DocExporter();
-    const str = await exporter.export(FG.curDoc.rootDch);
+    const bin = await exporter.export(FG.curDoc.rootDch);
 
     async function onDlgButton(btnLabel, dict) {
         if (dict.isSubmit) {
-            const blob = new Blob([str], { type: 'text/plain' });
+            const blob = new Blob([bin], { type: "application/octet-stream" });
             const url = URL.createObjectURL(blob);
 
             const tmp = document.createElement("a");
@@ -288,6 +311,41 @@ function openDocRenamePopup() {
     _dialog.open({form:form, fields:dict});
 }
 
+// insert a new doc AND select/open it
+async function insertDoc(dict) {   // dict={docName, uuid, doc, asChild};  returns true=success, false=fail
+    if (dict.docName.length == 0) {                 // validate
+        alert("Document name cannot be empty");
+        return false;
+    }
+
+    let info;
+    if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
+        info = { uuid:'', parent:'' };
+    } else {
+        info = FF.getDocInfo(FG.curDoc.uuid);
+    }
+
+    await FF.newDoc();                // initialize system with an empty document and new uuid
+
+    let exporter = new FG.DocExporter();
+    let pkt = WS.makePacket("NewDoc")
+    pkt.dict = {
+        name:       dict.docName,   // name of doc
+        uuid:       FG.curDoc.uuid, // uuid of doc
+        version:    FG.VERSION,     // version of doc
+        after:      (asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
+        parent:     (asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
+        doc:        await exporter.export(FG.curDoc.rootDch),
+    }
+    pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
+    if (asChild) {
+        FF.setIdxpanded(info.id, true);
+    }
+    await FF.loadDocTree();         // go fetch and reconstruct index pane
+    await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
+    return true;
+}
+
 
 function openDocInfoPopup(asChild) {
     let dict = {
@@ -295,41 +353,59 @@ function openDocInfoPopup(asChild) {
     }
 
     async function onDlgButton(btnLabel, dict) {
-        if (dict.isSubmit) {
-            if (dict.docName.length == 0) {                 // validate
-                alert("Document name cannot be empty");
-                return false;
-            }
-
-            let info;
-            if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
-                info = { uuid:'', parent:'' };
-            } else {
-                info = FF.getDocInfo(FG.curDoc.uuid);
-            }
-
+        debugger; if (dict.isSubmit) {
+            let exporter = new FG.DocExporter();
             await FF.newDoc();                // initialize system with an empty document and new uuid
 
-            let exporter = new FG.DocExporter();
-            let pkt = WS.makePacket("NewDoc")
-            pkt.dict = {
-                name:       dict.docName,   // name of doc
-                uuid:       FG.curDoc.uuid, // uuid of doc
-                version:    FG.VERSION,     // version of doc
-                after:      (asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
-                parent:     (asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
-                doc:        await exporter.export(FG.curDoc.rootDch),
+//          dict.docName = <already present in dict>
+            dict.doc = await exporter.export(FG.curDoc.rootDch);
+            dict.asChild = asChild;           // taken from wrapping openDocInfoPopup(asChild)
+            dict.uuid = FG.curDoc.uuid;       // steal its uuid and pass that in too
+
+            const result = await insertDoc(dict);
+            if (!result) {
+                return false;
             }
-            pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
-            if (asChild) {
-                FF.setIdxpanded(info.id, true);
-            }
-            await FF.loadDocTree();         // go fetch and reconstruct index pane
-            await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
         }
         FG.kmStates.modal = false;
         return true;
     }
+    // async function onDlgButton(btnLabel, dict) {
+    //     if (dict.isSubmit) {
+    //         if (dict.docName.length == 0) {                 // validate
+    //             alert("Document name cannot be empty");
+    //             return false;
+    //         }
+
+    //         let info;
+    //         if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
+    //             info = { uuid:'', parent:'' };
+    //         } else {
+    //             info = FF.getDocInfo(FG.curDoc.uuid);
+    //         }
+
+    //         await FF.newDoc();                // initialize system with an empty document and new uuid
+
+    //         let exporter = new FG.DocExporter();
+    //         let pkt = WS.makePacket("NewDoc")
+    //         pkt.dict = {
+    //             name:       dict.docName,   // name of doc
+    //             uuid:       FG.curDoc.uuid, // uuid of doc
+    //             version:    FG.VERSION,     // version of doc
+    //             after:      (asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
+    //             parent:     (asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
+    //             doc:        await exporter.export(FG.curDoc.rootDch),
+    //         }
+    //         pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
+    //         if (asChild) {
+    //             FF.setIdxpanded(info.id, true);
+    //         }
+    //         await FF.loadDocTree();         // go fetch and reconstruct index pane
+    //         await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
+    //     }
+    //     FG.kmStates.modal = false;
+    //     return true;
+    // }
 
     let form = makeNewDocForm(asChild);
     FG.kmStates.modal = true;
@@ -629,12 +705,11 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
     pkt = await WS.sendWait(pkt);
     let doc = null;
     if (pkt.constructor.name != "Fault") {  // no db open, no doctree available
-        doc = pkt.doc;
+        doc = new Uint8Array(pkt.doc, 0, pkt.doc.byteLength);      // purely for consistency
     }
 
-
     if (doc == null) {                  // could not load doc, therefore can't set as curDoc
-        console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=false");
+        console.log("Server:GetDoc " + uuid + " failed");
         return false;
     }
 

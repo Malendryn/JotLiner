@@ -6,10 +6,21 @@ checkout quilljs.com as a textEditor plugin
 TODO change the 'onButton' op of DFDialog such that we don't pass 'button', dict, and dict.isSubmit,  but instead 
     just pass dict, with dict.btnLabel and dict.btnSubmit instead
 -----------------------------------------------------------------------------------------------------------------------
+There is currently no validation process on saving docData or on importing it.  This is something that should happen on
+the serverside too, not the client side.  In order for it to be quick we wouldnt want it to go into detail, especially
+where dch-specific data is concerned, only that it can be read and broken down as proper data.
+
+This does beg a question going forward reguarding the new seperate-dch-table strategy on how to validate that kind of data
+as it won't be transmitted to the server as an export/import format any more.  (actually it will as we'll still be calling
+exportdata/importdata on the specific dch's, hmmm.. but now going forward how do we want to deal with deltas?)
+
+lets also get rid of the whitespace rule as we're sliding towards binary now
+-----------------------------------------------------------------------------------------------------------------------
 so to migrate the database:
 3 -> 4 -> 5  now done, but think about export:
 
 as docname is now in doc and not docTree, we should make that part of the import/export logic.
+
 
 so now lets add import/export to the contextmenu so we can actually save/load this stuff
 
@@ -28,6 +39,7 @@ I thought about b64encoding it but it would be nice to see the docname in a text
 
 maybe we should focus on export/import first so we understand the logic better?
 
+=============================when updating the docFileFormat don't forget to do both import and export!===============
 
 5->6
 *) add 'bump' to every table

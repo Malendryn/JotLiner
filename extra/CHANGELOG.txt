@@ -9,6 +9,12 @@
     from 5->6 will change the export format as well, I wanted a quicker way to compare old vs new and having this
     exporter working /now/ will facilitate that.
 
+* DocImporter is now v1.2 and uses 0x1E as the seperator instead of ';'
+    and also inlcudes the docName now too.  We are gradually moving towards a mostly binary (uint8array) storage format
+    and these are the first stages of that process
+* added importers recognition of '\' as an escape of the next char, even though its now largely obsolete by using
+    0x1E as the new seperator char
+
 2025-05-26 ------------------------------------------------------------------------------------------------------------
 * various cleanups,  renamed a .doc, got rid of some stale files,  fixed a .gitignore, etc...
 * fixed some old license references to Apache  --> AGPLv3
