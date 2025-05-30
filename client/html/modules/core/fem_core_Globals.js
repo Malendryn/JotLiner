@@ -4,7 +4,7 @@
 // FG.baseURL   = "";       // for backend this is __filename, for frontend this is 'http://site:port'
 // FG.__dirname   
 // ==== FROM fem_core_WSockHandler ====================================================================================
-FG.VERSION       = "1.2";
+// FG.VERSION       = "1.2"; now fed from server at connectTime
 
 FG.baseURL       = window.location.origin;  // EG: "http://localhost:3000"
 
@@ -16,7 +16,7 @@ FG.docTree       = [];       // [{id,uuid,name,listOrder,parent,li}[,...]] order
 FG.curDBName     = "";       // "" or currently selected DB name (localStorage = "lastDBDoc:<curDBname>:<curDoc.uuid>")
 FG.curDoc        = null;     // null or dict{ uuid, rootDch, dirty }
 
-FG.DocImporter   = null;     // CLASS to import a stringstream into a doc (see fem_core_DocImporter.js)
+FG.DocAttacher   = null;     // CLASS to import a stringstream into a doc (see fem_core_DocAttacher.js)
 FG.DocExporter   = null;     // CLASS to export a doc to a stringstream   (see fem_core_DocExporter.js)
 
 FG.kmStates      = {};       // kbd and mouse states at any instant in time (see fem_core_DocViewHandler.js)

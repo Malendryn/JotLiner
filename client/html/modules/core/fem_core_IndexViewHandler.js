@@ -5,29 +5,25 @@ import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
-const indexMenuEntries = [
-//   action,      entryText,             tooltipText
-    {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
-    {action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"},
-    {action:"",              label:"",                        tip:""},
-    {action:"renameDoc",     label:"Rename document",         tip:"Rename the selected document"},
-    {action:"",              label:"",                        tip:""},
-    {action:"indent",        label:"> Make child of",         tip:"Make document a child of the document above it"},
-    {action:"dedent",        label:"< Move to parent level",  tip:"Move document up to parent's level"},
-    {action:"",              label:"",                        tip:""},
-    {action:"import",        label:"Import Document",         tip:"Import document from local file"},
-    {action:"export",        label:"Export Document",         tip:"Export document to a local file"},
-    {action:"",              label:"",                        tip:""},
-    {action:"delete",        label:"Delete Document",         tip:"Delete document under cursor (and all its children)"},
-];
-    
 
 async function onCtxImport2(file) {     // user has selected file, now ask if they want to change the name
     let docName = file.name;
-    if (docName.endsWith(".jldoc")) {
-        docName = docName.substring(0, docName.length - 6);
+    if (!docName.endsWith(".jldoc")) {
+        alert("Filename must end with .jldoc");     // we only enforce it so we can chop it off with impunity
+        return false;
     }
+    docName = docName.substring(0, docName.length - 6);
 
+debugger;    debugger; const abuf = await file.arrayBuffer();
+    const u8a = new Uint8Array(abuf);
+    // const dimp = new FG.DocAttacher();
+    // dict2 = dimp.validate(raw);
+
+    debugger; let  pkt = WS.makePacket("ValidateDoc");     // first thing we have to do is validate, separate, and upgrade-if-needed this doc
+    pkt.doc = u8a;
+    pkt = await WS.sendWait(pkt);   // returns {ver, uuid, name, doc}  -- this time doc does NOT contain ver, uuid OR name in it
+
+debugger;
     async function onDlgButton(btnLabel, dict) {
         if (dict.isSubmit) {
             if (dict.docName.length == 0) {                 // validate
@@ -44,13 +40,13 @@ async function onCtxImport2(file) {     // user has selected file, now ask if th
 // 2 call saveDoc() on this but pass it the content?
 // see openDocInfoPopup(asChild) and insertDoc(dict) below as our new/now way to do this!
 
-            debugger; const abuf = await file.arrayBuffer();
-            const raw = new Uint8Array(abuf);
-            const dimp = new FG.DocImporter();
-            dict2 = dimp.validate(raw);
+//xxx            debugger; const abuf = await file.arrayBuffer();
+//xxx            const raw = new Uint8Array(abuf);
+//xxx            const dimp = new FG.DocAttacher();
+//xxx            dict2 = dimp.validate(raw);
 
 //          dict.docname =  ... already present
-debugger;   dict.uuid = "";     // extract from importing doc from {} = DocImporter.validate(doc)
+debugger;   dict.uuid = "";     // extract from importing doc from {} = DocAttacher.validate(doc)
             dict.doc = "";      // straight from the imported file
             dict.asChild = (dict.placement == "child");     // based on the radiobutton
 
@@ -370,42 +366,6 @@ function openDocInfoPopup(asChild) {
         FG.kmStates.modal = false;
         return true;
     }
-    // async function onDlgButton(btnLabel, dict) {
-    //     if (dict.isSubmit) {
-    //         if (dict.docName.length == 0) {                 // validate
-    //             alert("Document name cannot be empty");
-    //             return false;
-    //         }
-
-    //         let info;
-    //         if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
-    //             info = { uuid:'', parent:'' };
-    //         } else {
-    //             info = FF.getDocInfo(FG.curDoc.uuid);
-    //         }
-
-    //         await FF.newDoc();                // initialize system with an empty document and new uuid
-
-    //         let exporter = new FG.DocExporter();
-    //         let pkt = WS.makePacket("NewDoc")
-    //         pkt.dict = {
-    //             name:       dict.docName,   // name of doc
-    //             uuid:       FG.curDoc.uuid, // uuid of doc
-    //             version:    FG.VERSION,     // version of doc
-    //             after:      (asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
-    //             parent:     (asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
-    //             doc:        await exporter.export(FG.curDoc.rootDch),
-    //         }
-    //         pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
-    //         if (asChild) {
-    //             FF.setIdxpanded(info.id, true);
-    //         }
-    //         await FF.loadDocTree();         // go fetch and reconstruct index pane
-    //         await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
-    //     }
-    //     FG.kmStates.modal = false;
-    //     return true;
-    // }
 
     let form = makeNewDocForm(asChild);
     FG.kmStates.modal = true;
@@ -415,11 +375,43 @@ function openDocInfoPopup(asChild) {
 let _dialog;
 
 const _indexContextMenu = new DFContextMenu();
+
+// const indexMenuEntries = [
+//     //   action,      entryText,             tooltipText
+//         {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
+//         {action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"},
+//         {action:"",              label:"",                        tip:""},
+//         {action:"renameDoc",     label:"Rename document",         tip:"Rename the selected document"},
+//         {action:"",              label:"",                        tip:""},
+//         {action:"indent",        label:"> Make child of",         tip:"Make document a child of the document above it"},
+//         {action:"dedent",        label:"< Move to parent level",  tip:"Move document up to parent's level"},
+//         {action:"",              label:"",                        tip:""},
+//         {action:"import",        label:"Import Document",         tip:"Import document from local file"},
+//         {action:"export",        label:"Export Document",         tip:"Export document to a local file"},
+//         {action:"",              label:"",                        tip:""},
+//         {action:"delete",        label:"Delete Document",         tip:"Delete document under cursor (and all its children)"},
+// ];
+    
+
 function openIndexContextMenu() {
-    let tmp = Object.assign([], indexMenuEntries);
-    if (FG.curDoc == null) {
-        tmp.splice(1);   // lose all but newDocAtSame
+    let tmp = [];
+        tmp.push({action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"        });
+    if (FG.curDoc) {
+        tmp.push({action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"});
+        tmp.push({action:"",              label:"",                        tip:""                                                    });
+        tmp.push({action:"renameDoc",     label:"Rename document",         tip:"Rename the selected document"                        });
+        tmp.push({action:"",              label:"",                        tip:""                                                    });
+        tmp.push({action:"indent",        label:"> Make child of",         tip:"Make document a child of the document above it"      });
+        tmp.push({action:"dedent",        label:"< Move to parent level",  tip:"Move document up to parent's level"                  });
     }
+        tmp.push({action:"",              label:"",                        tip:""                                                    });
+        tmp.push({action:"import",        label:"Import Document",         tip:"Import document from local file"                     });
+    if (FG.curDoc) {
+        tmp.push({action:"export",        label:"Export Document",         tip:"Export document to a local file"                     });
+        tmp.push({action:"",              label:"",                        tip:""                                                    });
+        tmp.push({action:"delete",        label:"Delete Document",         tip:"Delete selected document (and all its children)"     });
+    }
+
     FG.kmStates.modal = true;
     _indexContextMenu.open(tmp, onIdxContextMenuAction, FG.kmStates.clientX, FG.kmStates.clientY);
 }
@@ -636,7 +628,6 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     let pkt = WS.makePacket("GetDocTree")
     pkt = await WS.sendWait(pkt);           // SELECT * from docTree order by parent,listOrder
     let list;
-
     if (pkt.constructor.name == "Fault") {  // no db open, no doctree available
         list = [];
     } else {
@@ -703,21 +694,21 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
     let pkt = WS.makePacket("GetDoc");
     pkt.uuid = uuid;
     pkt = await WS.sendWait(pkt);
-    let doc = null;
-    if (pkt.constructor.name != "Fault") {  // no db open, no doctree available
-        doc = new Uint8Array(pkt.doc, 0, pkt.doc.byteLength);      // purely for consistency
-    }
+    // let doc = null;
+    // if (pkt.constructor.name != "Fault") {  // no db open, no doctree available
+    //     doc = new Uint8Array(pkt.doc, 0, pkt.doc.byteLength);      // purely for consistency
+    // }
 
-    if (doc == null) {                  // could not load doc, therefore can't set as curDoc
+    if (pkt.doc == null) {                  // could not load doc, therefore can't set as curDoc
         console.log("Server:GetDoc " + uuid + " failed");
         return false;
     }
 
-    const imp = new FG.DocImporter();
+    const imp = new FG.DocAttacher();
 
     FG.curDoc = { 
         uuid:    uuid, 
-        rootDch: await imp.attach(doc, null),  // now build-and-attach doc to the system as new root doc!
+        rootDch: await imp.attach(pkt.doc.dchList, null),  // now build-and-attach doc to the system as new root doc!
         dirty:   false,
     };
 

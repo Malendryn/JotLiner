@@ -278,7 +278,7 @@ const autoSaveCallback = async function() {
             version:    FG.VERSION,
             doc:        str,
         }
-        pkt = WS.sendExpect(pkt);	// send to backend, /maybe/ get a response-or-Fault, don't care!
+        pkt = WS.send(pkt);	        // send to backend, /maybe/ get a response-or-Fault, ?don't care?
     	FG.curDoc.dirty = false;
     }
 }

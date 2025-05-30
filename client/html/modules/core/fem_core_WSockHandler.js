@@ -20,7 +20,7 @@ export async function init() {          // load, init, and establish connection 
         };
 
         WS.ws.onmessage = (event) => {
-            process(event.data);                      // NOTE we use event.data here, but data.toString() on nodeServer! 
+            process(event.data);
         };
 
         WS.ws.onclose = () => {
@@ -29,9 +29,9 @@ export async function init() {          // load, init, and establish connection 
         };
 
         WS.send = (pkt) => {
-            const stream = JSON.stringify(pkt);
-            const ss = pkt.constructor.name + "|" + stream;
-            WS.ws.send(ss);
+            let enc = new DFEncoder();
+            const stream = enc.encode([pkt.constructor.name, pkt]);
+            WS.ws.send(stream);
         }
 
         WS.sendExpect = async (pkt, callback) => {     // send packet and expect a response, fire callback(pkt) which MAY BE A 'new Error()' !
@@ -49,9 +49,12 @@ export async function init() {          // load, init, and establish connection 
 };
 
 
-
-function process(data) {
-    const pkt = WS.parsePacket(data);
+function process(buf) {
+    buf = new Uint8Array(buf);
+    const dec = new DFDecoder(buf);
+    buf = dec.decode();
+    
+    const pkt = WS.parsePacket(buf);
 
     if ("__r" in pkt) {                     // is it a response packet?
         if (pkt.__id in WS.__waitList) {    // is it in waitList?  if not, probably timed out

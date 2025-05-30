@@ -17,11 +17,12 @@ WS.makePacket = function(name)  {
 }
 
 
-WS.parsePacket = function(stream) {         // decode "className|{dict}" into actual packet
-    const idx = stream.indexOf('|');
-    const name = stream.substring(0, idx);
-    const tmp = stream.substring(idx + 1);
-    const dict = JSON.parse(tmp);
+WS.parsePacket = function(pair) {         // decode ["className", pktData{} into actual packet
+    let [name,dict] = pair;
+    // const idx = stream.indexOf('|');
+    // const name = stream.substring(0, idx);
+    // const tmp = stream.substring(idx + 1);
+    // const dict = JSON.parse(tmp);
     const pkt = new WS.classes[name]();   // create new packet WITHOUT incrementing __id
     Object.assign(pkt, dict);               // copy all stream's dictEls onto packet
     return pkt;
@@ -48,6 +49,9 @@ class PacketBASE {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // see bem_core_PacketHandlers.js for the CLASS.prototype.process(){} backend overrides for these classes
 
+//                <-- means server to client
+//                --> means client to server
+
 WS.registerPacketClass(class Fault extends PacketBASE { // if error thrown, it's sent back as a Fault
     msg;        // <-- "msg" indicating what the fault was
 });
@@ -64,8 +68,8 @@ WS.registerPacketClass(class SetExtra extends PacketBASE { // get any element fr
 WS.registerPacketClass(class Changed extends PacketBASE {    // Something changed  (serverSend only)
     dict;   // dict containing {what:"something"} and any other data
 });
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// see index.js
 WS.registerPacketClass(class GetDCHList extends PacketBASE { // get list of all available DocComponentHandlers
     list;       // <--  ["DOC","BOX"] etc... 
 });
@@ -73,6 +77,7 @@ WS.registerPacketClass(class GetDCHList extends PacketBASE { // get list of all 
 WS.registerPacketClass(class GetDocTree extends PacketBASE { // get docTree table contents
     list;       // <-- [{id,name,docId,listOrder,parent}[,{}...]] etc... 
 });
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
     uuid;       // -->  uuid of doc to get 
@@ -93,9 +98,18 @@ WS.registerPacketClass(class RenameDoc extends PacketBASE {  // Delete a documen
     uuid;       // -->  uuid of doc to get 
     name;       // -->  new document name
 });
-WS.registerPacketClass(class DeleteDoc extends PacketBASE {  // Delete a document from the system
+WS.registerPacketClass(class DeleteDoc extends PacketBASE {   // Delete a document from the system
     uuid;       // -->  uuid of doc to get 
 });
+WS.registerPacketClass(class ValidateDoc extends PacketBASE {  // explode and return (upgrade doc if less-than FG.VERSION) but NOT insert -> db!
+    doc;        // F->B entire Uint8Array document raw from importDlg (!including @n.n header stuff!)
+                //        uuid,version is extracted at server
+                // B->F validated, updated-to-latest if-needed (WITHOUT the '@n.n; headerstuff, just the raw doc!)
+    name;       // B->F extracted from doc if 1.2+, else null if 1.0/1.1
+    uuid;       // B->F extracted from doc
+    warn;       // B->F true if this uuid already exists in DB
+});
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class CreateDB extends PacketBASE {  // Delete a document from the system
     text;       // --> string name of db to create

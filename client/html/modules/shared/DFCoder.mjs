@@ -1,58 +1,53 @@
-/*
-    obj -> stream  (Uint8Array)
 
-
-*/
 class DFEncoder {
-    // bytes = encode(obj) {}       // return a Uint8Array of the object in question
-    // obj   = decode(bytes) {}     // return a decoded Uint8Array bytestream
+    list = [];
 
-    encode(val) {
-        const list = [];
+    encode(val, reserveLen = 0) {
         let tmp = undefined;
- // 0-15 are types with no datalen        
+        if (reserveLen) {                   // allows to inject some freespace at the beginning
+            this.list.push(new Uint8Array(reserveLen));
+        }
+// 0-15 are types with no datalen        
         if (val === undefined) {
-            list.push(this._makeHeader(1, 0));                      // 1 = undefined
+            this.list.push(this._makeHeader(1, 0));                      // 1 = undefined
         } else if (val === null) {
-            list.push(this._makeHeader(2, 0));                      // 2 = null
+            this.list.push(this._makeHeader(2, 0));                      // 2 = null
         } else if (typeof val == "boolean") {
-            list.push(this._makeHeader((val) ? 3 : 4, 0));          // 3 = true, 4 = false
+            this.list.push(this._makeHeader((val) ? 3 : 4, 0));          // 3 = true, 4 = false
 
 // 16 - 31 are single element types like number, string, Uint8Array            
         } else if (typeof val == "number") {
             tmp = new TextEncoder().encode(val.toString());
-            list.push(this._makeHeader(23, tmp.length));             // 16-23 are numeric types, right now only 23, jsType Number()
+            this.list.push(this._makeHeader(23, tmp.length));             // 16-23 are numeric types, right now only 23, jsType Number()
         } else if (typeof val  == "string") {
             tmp = new TextEncoder().encode(val);
-            list.push(this._makeHeader(24, tmp.length));             // 24 = string
+            this.list.push(this._makeHeader(24, tmp.length));             // 24 = string
         } else if (val instanceof Uint8Array) {
-                list.push(this._makeHeader(25, val.length));         // 25 = Uint8Array
-                list.push(val);
+            this.list.push(this._makeHeader(25, val.length));         // 25 = Uint8Array
+            this.list.push(val);
 
 // 32-47 are arrayTypes like [] and {}
         } else if (Array.isArray(val)) {    // we push serial w/o grouping first so decode<test=true> even checks INSIDE lits/obj for validity
             // const tmp2 = new TextEncoder().encode(val.length.toString()); // get numEls
-            list.push(this._makeHeader(32, val.length));                     // 32 = Array[]    // here .length = numEls not bytelength
-            // list.push(encode(val.length));                                   // now push numEls
+            this.list.push(this._makeHeader(32, val.length));  // 32 = Array[]    // here .length = numEls not bytelength
+            // this.list.push(encode(val.length));             // now push numEls
             for (const item of val) {
-                list.push(this.encode(item));                               // now push els
+                this.encode(item);                             // now push els
             }
         } else {                            // only thing really left here is an {} object
-            const keys = Object.keys(val);                                  // get keys
-            list.push(this._makeHeader(33, keys.length));                      // 33 = Object{}  // here .length = numPairs not bytelength
-            // const pairCt = new TextEncoder().encode(keys.length.toString());   // get numPairs
-            // list.push(this._makeHeader(33, pairCt.length));                     // 33 = Object{}
-            // list.push(pairCt);                                                 // push numPairs
-            for (const key of keys) {                                          // push key-then-val groups
-                list.push(this.encode(key));        // encode key-then-val as a pair
-                list.push(this.encode(val[key]));
+            const keys = Object.keys(val);                     // get keys
+            this.list.push(this._makeHeader(33, keys.length)); // 33 = Object{}  // here .length = numPairs not bytelength
+            for (const key of keys) {                          // push key-then-val groups
+                this.encode(key);                              // encode key-then-val as a pair
+                this.encode(val[key]);
             }
         }
         if (tmp) {
-            list.push(tmp);
+            this.list.push(tmp);
         }
-        return this._concat(list);
+        return this._concat(this.list);
     }
+
 
     _makeHeader(type, size) {
         if (size > 0xFFFFFFFF) {
@@ -74,12 +69,13 @@ class DFEncoder {
             hBytes = 4;
         }
         let idx = 1;
-        while(hBytes--) {
+        while(hBytes--) {           // write out bytes in little-endian order
             u8a[idx++] = size & 0xFF;
-            size = size > 8;
+            size = size >> 8;
         }
         return u8a;
     }
+
 
     _concat(uint8aList) {
         const len = uint8aList.reduce((sum, arr) => sum + arr.length, 0);
@@ -149,13 +145,18 @@ class DFDecoder {
         if (sLen == 3) {
             sLen = 4;
         }
-    
-        let bytes = 0;
-        while(sLen-- > 0) {
-            bytes = (bytes << 8) | this.u8a[this.idx++];
-        }
 
-        if (bytes > this.u8a.length - this.idx) {
+        // if (sLen > 1) {
+        //     debugger;
+        // }
+        let bytes = 0, shift = 0;
+        while(sLen-- > 0) {             // read in bytes in little-endian order
+            bytes |= this.u8a[this.idx++] << shift;
+            shift += 8;
+        }
+        bytes >>>= 0;   // un-sign any 4-or-fewer-byte value  (in case bytes somehow became >2billion)
+
+        if (bytes > this.u8a.byteLength - this.idx) {
             throw new Error ("Invalid data, buffer overrun");
         }
         return [dType, bytes];
@@ -163,7 +164,7 @@ class DFDecoder {
 };
 export { DFEncoder, DFDecoder };
 
-// (function() {
+// (function() {  // encode/decode testing of all datatype handlings
 //     function _hexDump(u8a) {
 //         console.log(Array.from(u8a).map(byte => byte.toString(16).padStart(2, '0')).join(' '));
 //     }
