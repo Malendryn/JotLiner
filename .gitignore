@@ -15,6 +15,9 @@ extra/**/*~
 extra/**/.*~
 extra/**/*.bak
 
+# handles lockfiles from libreOffice
+extra/**/.~*
+
 # handle drawio backup and temp files
 extra/**/*.bkp
 extra/**/.*.bkp

@@ -1,6 +1,9 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
+extricate docVer from F?.VERSION and let them live as an entirely standalone concept
+    insodoing, remove FG.VERSION entirely and have it delivered from BG.VERSION during serverConnect
+-----------------------------------------------------------------------------------------------------------------------
 checkout quilljs.com as a textEditor plugin
 -----------------------------------------------------------------------------------------------------------------------
 TODO change the 'onButton' op of DFDialog such that we don't pass 'button', dict, and dict.isSubmit,  but instead 

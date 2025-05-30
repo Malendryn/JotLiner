@@ -50,15 +50,18 @@ process.on('uncaughtException', (err) => {
 });
   
   
-
 async function start() {
     await BF.loadModule("./modules/core/bem_core_Globals.js");      // load globals first, cuz everything lives off globals, and connect it to globalThis.SG
     await BF.loadModule("./modules/core/bem_core_Functions.js");    // load functions next, and connect it to globalThis.SF
+
+    await getConverters();        // see below
 
     await BF.loadModule("./modules/core/bem_core_dbHandler.js");
 
     await BF.loadModule("../client/html/modules/shared/shared_PacketDefs.js");   // load the known SHARED baseline packet definitions
     await BF.loadModule("./modules/core/bem_core_PacketHandlers.js");            // load the serverside handlers for incoming packets
+    await BF.loadModule("./modules/core/bem_core_DocExporter.js");               // export doc into latest streamformat
+    await BF.loadModule("./modules/core/bem_core_DocExploder.js");               // xplode doc based on version
 
     const app = express();
     app.use(express.static(path.join(BG.basePath, 'client/html')));
@@ -95,5 +98,18 @@ async function start() {
 
     // now we just sit back and let websockets handle everything from here on in
 }
-
 await start();
+
+
+import fs from "fs"; //'node:fs/promises'; <-- this works too
+async function getConverters() {
+    const dirPath = path.join(BG.serverPath, "modules", "core", "converters");
+    const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
+  
+    BG.converters = [];
+    for (const file of files) {
+        if (!file.isDirectory()) {
+            BG.converters.push(file.name);  // push both 'dbUpdate_nnnnnn-nnnnnn.js' and 'explode_n.n_doc.js'
+        }
+    }
+}

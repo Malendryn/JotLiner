@@ -1,7 +1,6 @@
 // globalThis.WS = {} must be defined already.  (see index.js or server.js)
 
-import { DFCoder } from "../../../client/html/modules/shared/DFCoder.mjs";   // load the known SHARED baseline packet definitions
-
+import { DFEncoder, DFDecoder } from "../../../client/html/modules/shared/DFCoder.mjs";
 
 export async function init() {                      // load, init, and establish wss before returning
     return new Promise(async (resolve, reject) => {
@@ -26,8 +25,8 @@ export async function init() {                      // load, init, and establish
                 BG.clients.delete(ws);
             });
 
-            ws.on('message', (data) => {                // incoming data (packet)
-                data = data.toString('utf-8');          // apparently 'data' is now ALWAYS a Buffer so we must ALWAYS convert it
+            ws.on('message', (data) => {                // incoming data (packet)  now ALWAYS DFEncoded
+                // data = data.toString('utf-8');          // apparently 'data' is now ALWAYS a Buffer so we must ALWAYS convert it
 
 // start EXAMPLE Broadcast the data to all connected clients !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // wss.clients.forEach((client) => {
@@ -51,16 +50,21 @@ export async function init() {                      // load, init, and establish
 
 
 WS.send = (ws, pkt) => {
-    const stream = JSON.stringify(pkt);
-    const ss = pkt.constructor.name + "|" + stream;
-    ws.send(ss);
+    let enc = new DFEncoder();
+    const stream = enc.encode([pkt.constructor.name, pkt]);
+    ws.send(stream);
 }
 
 
-async function process(ws, data) {
+async function process(ws, buf) {
+    buf = new Uint8Array(buf);
+
+    const dec = new DFDecoder(buf);
+    buf = dec.decode();
+    
     const client = BG.clients.get(ws);
 
-    const pkt = WS.parsePacket(data);
+    const pkt = WS.parsePacket(buf);
     const response = await pkt.process(client);  
     if (response) {
         response.__id = pkt.__id;       // put original id into response packet

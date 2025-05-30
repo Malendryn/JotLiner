@@ -1,5 +1,9 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-29 ------------------------------------------------------------------------------------------------------------
+* renamed subdir 'dbExporters' to 'converters' as I will be moving the document conversion code (1.0 -> 1.1 -> 1.2)
+    code into there as well, and out of the clientside
+* moved all the validation and breakdown procedures to the server to facilitate commonality and to allow the db
+    update procedures to manage all that on the backend.  (also helps in preventing clientside errors )
 2025-05-27 ------------------------------------------------------------------------------------------------------------
 * db conversion underway, 3->4 completed now, reworked table docTree so that parent is now an int reffing back to the 
     recs id instead of the recs uuid, also added 'bump' field

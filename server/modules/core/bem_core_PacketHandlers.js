@@ -2,6 +2,9 @@
 import fs from "fs"; //'node:fs/promises'; <-- this works too
 import path from "path";
 
+import { DFEncoder, DFDecoder } from "../../../client/html/modules/shared/DFCoder.mjs";
+
+//debugger; // only way to break during module load, brkpoints don't cut it!
 function logPkt(name) {
     console.log("pkt=" + name);
 }
@@ -69,7 +72,8 @@ WS.classes.GetDoc.prototype.process = async function(client) { // must use 'func
     this.doc = null;
     const tmp = await client.db.query("SELECT content FROM doc WHERE uuid=?", [this.uuid]);
     if (tmp.length > 0) {
-        this.doc = tmp[0].content;
+        const dec = new DFDecoder(tmp[0].content);
+        this.doc = dec.decode();
     }
     return this;
 }
@@ -165,9 +169,27 @@ WS.classes.DeleteDoc.prototype.process = async function(client) {    // insert n
     this.uuid = ""; // empty packetdata for faster returnPkt
     return this;    // send self back cus client called using .sendWait()
 };
+WS.classes.ValidateDoc.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
+    logPkt("ValidateDoc");
+    if (!client.db) { return BF.fault("Database not selected"); }
+
+    debugger; const doc = this.doc;
+    delete this.doc;           // get rid of immediately to reduce memory
+    this.dict = BF.docExploder(client.db, doc);
+
+    const tmp = await db.query("SELECT id FROM doc WHERE uuid=?", [dict.uuid]);     // include .warn for if uuid already exists
+    dict.warn = tmp.length > 0;       // flag whether this uuid already exists
+
+    return this;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.classes.GetDBList.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
+    logPkt("GetDBList");
+    this.list = await BF.getDBList();
+    return this;
+};
 WS.classes.CreateDB.prototype.process = async function(client) {    // create new db, return null=good, text=errormsg
     logPkt("CreateDB");
     const err = BF.checkDBName(this.text);    // test filename for validity
@@ -245,8 +267,3 @@ debugger; try {
     this.text = null;
     return this;
 }
-WS.classes.GetDBList.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
-    logPkt("GetDBList");
-    this.list = await BF.getDBList();
-    return this;
-};

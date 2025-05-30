@@ -115,29 +115,6 @@ class DBHandler {
         return rows.length > 0;
     }
 
-
-    // iter = async (sql, callback, params = []) => {
-    //     return new Promise((resolve, reject) => {
-    //         this.db.serialize(() => {
-    //             this.db.each(sql, params, async function (err, row) {
-    //                 if (err) {
-    //                     return reject(err);
-    //                 }
-    //                 try {
-    //                     await callback(row);
-    //                 } catch (err) {
-    //                     return reject(err);
-    //                 }
-    //             },
-    //             function (err, count) {
-    //                 debugger; if (err) {
-    //                     return reject(err);
-    //                 }
-    //                 resolve(count);
-    //             });
-    //         });
-    //     });
-    // }
     iter = async (sql, callback, params = []) => {
         return new Promise((resolve, reject) => {
             this.lastAccessed = Date.now();
@@ -188,15 +165,14 @@ BF.openDB = async function(dbName) {
     const db = await new DBHandler();
     await db.open(dbName + ".db");
 
-    const updaterPath = path.join(BG.basePath, "server/modules/core/dbUpdaters");
-    let flist = await fs.promises.readdir(updaterPath, { withFileTypes: true });    // fetch all the dbUpdate_######-######.js files...
-    let files = [];
-    for (const entry of flist) {
-        files.push(entry.name);
-    }
-    files = files.filter(f => f.startsWith('dbUpdate_') && f.endsWith('.js')); // filter for only those named dbUpdate_.....js
-    files = files.sort();                                                            // and finally make sure they're properly ascii sorted lowest to highest
-
+    const updaterPath = path.join(BG.serverPath, "modules/core/converters");
+    // let flist = await fs.promises.readdir(updaterPath, { withFileTypes: true });    // fetch all the dbUpdate_######-######.js files...
+    // let files = [];
+    // for (const entry of flist) {
+    //     files.push(entry.name);
+    // }
+    // files = files.filter(f => f.startsWith('dbUpdate_') && f.endsWith('.js')); // filter for only those named dbUpdate_.....js
+    // files = files.sort();                                                            // and finally make sure they're properly ascii sorted lowest to highest
 
     let curVer = 0;
     if (await db.tableExists("extra")) {        // if 'extra' table exists fetch the dbVersion else leave at 0
@@ -204,18 +180,18 @@ BF.openDB = async function(dbName) {
         curVer = parseInt(curVer[0].value);
     }
 
-    for (let fname of files) {                  // iter through filenames
+    for (let fname of BG.converters) {     // iter through converter filenames
+        if (!fname.startsWith("dbUpdate_")) {
+            continue;
+        }
         let tmp = fname.substring(9,22);   // strip 'dbUpdate_123456-654321.js' down to 123456-654321
         let [before,after] = tmp.split('-');
         before = parseInt(before);
         after = parseInt(after);
-        if (before < curVer) {            // skipover already-done updaters
+        if (before != curVer) {
             continue;
         }
-        if (before != curVer) {
-            throw new Error(`DB update aborted, no updater found to update from version ${curVer}`);
-        }
-        let mod = await BF.loadModule("./modules/core/dbUpdaters/" + fname);    // load this module
+        let mod = await BF.loadModule("./modules/core/converters/" + fname);    // load this module
         await db.run("BEGIN TRANSACTION");                                      // start transaction
         try {
             mod = await mod.updateDb(db);                                               // do the upgdate/upgrade

@@ -54,14 +54,49 @@ export async function init() {
 }
 
 
+BF.cmpVersion = function(first, second) { // return -1 if first < second,  0 if same, 1 if first > second
+    const ea = first.split(".").map(Number);
+    const eb = second.split(".").map(Number);
+    while (ea.length < eb.length) { ea.push(0); }
+    while (eb.length < ea.length) { eb.push(0); }
+    let ct = (ea.length > eb.length) ? ea.length : eb.length;
+    for (let idx = 0; idx < ct; idx++) {
+        if (ea[idx] < eb[idx]) { return -1; }
+        if (ea[idx] > eb[idx]) { return 1;  }
+    }
+    return 0;
+}
+
+
+BF.dump1 = function(u8a) {
+    console.log(Array.from(u8a).map(byte => byte.toString(16).padStart(2, '0')).join(' '));
+}
+
+BF.dump2 = function(u8a) {
+    let ss = "";
+    for (let idx = 0; idx < u8a.byteLength; idx++) {
+        if (idx % 16 == 0) {
+            if (ss) {
+                console.log(ss);
+            }
+            ss = idx.toString(16).padStart(4, '0') + " ";
+        } 
+        const byte = u8a[idx];
+        ss += " " + byte.toString(16).padStart(2, '0') + String.fromCharCode(byte);
+    }
+    if (ss) {
+        console.log(ss);
+    }
+}
+
 BF.checkDBName = function(dbName) {
     if (dbName.length === 0) {    // Basic checks
         return "Database name cannot be empty";
     }
 
-    if (dbName.indexOf(".") != -1) {    // just makes other parsing easier if we don't have to worry about periods in the names
-        return "Database name cannot contain periods";
-    }
+    // if (dbName.indexOf(".") != -1) {    // just makes other parsing easier if we don't have to worry about periods in the names
+    //     return "Database name cannot contain periods";
+    // }
 
     const badChars = /[<>:"/\\|?*\x00-\x1F]/g;  // Generally invalid chars for Windows, linux, mac
     if (badChars.test(dbName)) {
@@ -99,14 +134,10 @@ BF.getDBList = async function() {
     const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
     const list = [];
     for (const file of files) {
-        let parts = file.name.split(".");
-        if (parts.length != 2) {        // skip names like 'dbname.db-jour.db'
+        if (!file.name.endsWith(".db")) {                                   // skip names that don't end in .db
             continue;
         }
-        if (parts[1].toLowerCase() != "db") {        // skip names that don't end in .db
-            continue;
-        }
-        list.push(parts[0]);
+        list.push(file.name.substring(0, file.name.lastIndexOf(".db")));    // strip off the .db ending 
     }
     return list;
 }
