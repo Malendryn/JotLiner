@@ -7,10 +7,8 @@
 
 async function callback(db, rec) {
     let dict = {
-        version: rec.version,   // OVERWRITTEN by exploder (for v1.0 and 1.1 only)
-        // uuid:    rec.uuid,   // ignored for exploding ONLY WHILE UPDATING (IS  populated by exploder)
-        // name:    rec.name,   // ignored for exploding ONLY WHILE UPDATING (NOT populated by exploder)
-        doc:     rec.content,
+        version: rec.version,   // passed in BECAUSE doc-from-dbTable doesnt have header ('@n.n;') in versions 2.0 and above
+        doc:     rec.content,   // raw content straight from dbTable
     };
 
     dict = await BF.docExploder(dict);
@@ -21,17 +19,15 @@ async function callback(db, rec) {
         await db.run("DELETE from docTree where uuid=?", [rec.uuid]);
         return true;
     }
-    delete dict.version;
-    delete dict.uuid;       // with uuid not present, tells DocExporter to NOT include @n.n;
-    delete dict.name;
 
-    const exporter = new BF.DocExporter();
-    let   content = await exporter.export(dict);
+    if (dict.upgraded) {    // if exloder says was upgraded from a prior version, reinsert into database
+        delete dict.uuid;    // with uuid not present, (NOT version, uuid!) tell DocExporter to NOT include @n.n; or uuid or name
+        const exporter = new BF.DocExporter();
+        let   content = await exporter.export(dict);
 
-    if (dict.updated) {
         content = Buffer.from(content, 0, content.byteLength);  // convert Uint8Array to Buffer() cuz sqlite3
         const list = [
-            "2.0",
+            "2.0",      // hardcoded here cuz this is a oneshot upgrade specifically to 2.0
             content,
             rec.id
         ];

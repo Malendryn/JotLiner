@@ -5,9 +5,12 @@
 // ==== FROM bem_core_Globals.js ======================================================================================
 // ==== FROM bem_core_WSockHandler.js =================================================================================
 
+BG.VERSION = "1.2";     // THIS IS SOFTWARE VER ONLY, NOT RELATED TO THE DOCVER!!!!
+BG.DOCVERSION = "2.0"   // THIS IS THE CURRENT/LATEST DOCVER that any/every doc must upgrade to immediately on loading
+
 BG.basePath;                // "file:///<somewhere>"            // use this to pathover to /client
 BG.serverPath;              // "file:///<somewhere>/server"     // where server.js exists
-BG.VERSION = "1.2";   // THIS IS SOFTWARE VER ONLY, NOT RELATED TO THE DOCVER!!!!
+
 /////// BG.db;                       // handle to the opened DBIO handler  (see bem_core_dbHandler.js)
 /////// BG.clients         = [];     // array of connected clients and statuses
 
