@@ -61,7 +61,7 @@ async function start() {
     await BF.loadModule("../client/html/modules/shared/shared_PacketDefs.js");   // load the known SHARED baseline packet definitions
     await BF.loadModule("./modules/core/bem_core_PacketHandlers.js");            // load the serverside handlers for incoming packets
     await BF.loadModule("./modules/core/bem_core_DocExporter.js");               // export doc into latest streamformat
-    await BF.loadModule("./modules/core/bem_core_DocExploder.js");              // validate, upgrade, explode, rebuild doc based on version
+    // await BF.loadModule("./modules/core/bem_core_DocExploder.js");              // validate, upgrade, explode, rebuild doc based on version
 
     const app = express();
     app.use(express.static(path.join(BG.basePath, 'client/html')));
@@ -103,7 +103,7 @@ await start();
 
 import fs from "fs"; //'node:fs/promises'; <-- this works too
 async function getConverters() {
-    const dirPath = path.join(BG.serverPath, "modules", "core", "converters");
+    const dirPath = path.join(BG.serverPath, "modules/converters");
     const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
   
     BG.converters = [];

@@ -45,7 +45,7 @@ BF.docExploder = async function(dict) {
 
     const fname = `explode_${dict.version}_doc.js`;
     if (BG.converters.includes(fname)) {
-        const mod = await BF.loadModule(BG.serverPath + "/modules/core/converters/" + fname);
+        const mod = await BF.loadModule(BG.serverPath + "/modules/converters/" + fname);
         dict = await mod.explode(dict);
     } else {
         delete dict.doc;        // save memory, useless when error

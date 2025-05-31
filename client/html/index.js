@@ -14,12 +14,11 @@ FF.loadModule = async (modulePath) => {
             if ("init" in module) {
                 await module.init();
             }
-            resolve(module);
-            return;
+            return resolve(module);
         } catch (error) {
-            console.log(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
-            alert(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
-            throw(error);
+            console.warn(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
+            // alert(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
+            reject(error);
         }
     });
 };
@@ -41,7 +40,12 @@ window.addEventListener('load', async function() {
     mod = await FF.loadModule("./modules/core/fem_core_DocExtracter.js");   // extracts FG.curDoc into { uuid,name,dchList }
     FG.DocExtracter = mod.DocExtracter
 
-    let  pkt = WS.makePacket("GetDCHList");     // first thing we have to do is get the list of DCH handlers
+    let pkt = WS.makePacket("GetBackendInfo");
+    pkt = await WS.sendWait(pkt);
+    FG.VERSION = pkt.version;
+    FG.DOCVERSION = pkt.docVersion;
+
+    pkt = WS.makePacket("GetDCHList");     // first thing we have to do is get the list of DCH handlers
     pkt = await WS.sendWait(pkt);
 
 // used to load handlers 'as needed' but since I need a list of their names I changed it to load them all here and now
@@ -55,7 +59,7 @@ window.addEventListener('load', async function() {
         }
     }
 
-    await FF.loadModule("./modules/core/fem_core_IndexViewHandler.js"); // handler for the leftside divIndexView
+    await FF.loadModule("./modules/core/fem_core_IndexViewHandler.js");         // handler for the leftside divIndexView
     mod = await FF.loadModule("./modules/core/fem_core_TitlebarHandler.js");  // File/Edit/Help etc... menubar handler, dbselector, etc...
     await mod.initialize();    // select db, load, show, etc etc
 });

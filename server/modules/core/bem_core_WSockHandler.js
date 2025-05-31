@@ -59,8 +59,8 @@ WS.send = (ws, pkt) => {
 async function process(ws, buf) {
     buf = new Uint8Array(buf);
 
-    const dec = new DFDecoder(buf);
-    buf = dec.decode();
+    const decoder = new DFDecoder(buf);
+    buf = decoder.decode();
     
     const client = BG.clients.get(ws);
 

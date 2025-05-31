@@ -1,6 +1,20 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
+TODO now that we moved all the doc validation procedures to the SERVER ... we're considering moving them back to the
+CLIENT because frankly the server doesn't CARE whats in the binary blob!  ONLY the client does!!!
+(the server DOES however care about dbUpgrades, but we can still do that clientside and then just have the client
+save the repaired doc back immediately with autoSave(0))
+
+so basically UNDO almost all of my recent serverside changes reguarding upgrading and move it all back to the client...
+
+
+so now the client needs a list of upgraders so it can try to import them.  which means FF.loadModule MUST fail gracefully!
+so server needs to send us the list of available upgraders too, AND/OR?  the current BG.DOCVERSION ?
+
+(this also fixes the problem of nukng an unconvertable doc and pushes that responsibility back on the user
+    where they can maybe repair it externally and then import it over the existing one?)
+
 -----------------------------------------------------------------------------------------------------------------------
 change GetDoc to return UNDECODED doc,  let the client do the gruntwork here!
 fuckit, let the client CODE the doc before transmitting it too! just put all the grunt on the client!
@@ -9,6 +23,10 @@ fuckit, let the client CODE the doc before transmitting it too! just put all the
 -----------------------------------------------------------------------------------------------------------------------
 we have this complex classbuider for passing back what is nothing more than dicts of data with a name attached
 lets instead just pass a dict and have one field _pktName and there, get rid of ALL that other classmaking crap!
+
+NO NO NO BUT!!!!, keep the class system cuz I really like having automated .prototype.process() handlers hanging off it rather than
+an external decisionmaker function based on packetname -- but lets have another look at it anyways and see if we 
+can improve upon the design?  or at least on the 'howto register' part, cuz that's kinda ugly!
 -----------------------------------------------------------------------------------------------------------------------
 consider making a conscious decision to stop calling things client/server OR to stop calling them backend/frontend,
 (pick one, not toggle between both!)  99% of the code is calling it Back/Front and that would be a massive painful

@@ -5,6 +5,7 @@ import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
+import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";
 
 async function onCtxImport2(file) {     // user has selected file, now ask if they want to change the name
     let docName = file.name;
@@ -23,8 +24,8 @@ async function onCtxImport2(file) {     // user has selected file, now ask if th
     pkt.doc = u8a;
     pkt = await WS.sendWait(pkt);   // returns {ver, uuid, name, doc}  -- this time doc does NOT contain ver, uuid OR name in it
 
-debugger;
-    async function onDlgButton(btnLabel, dict) {
+debugger;//RSRESTART HERE after we move the dbUpgrade stuff OUT of the server and BACK to the client!
+    async function onDlgButton(btnLabel, dict) {        // btn pressed when importing a document
         if (dict.isSubmit) {
             if (dict.docName.length == 0) {                 // validate
                 alert("Document name cannot be empty");
@@ -35,19 +36,9 @@ debugger;
                 alert("Please choose whether to import as child or as beneath.");
                 return false;
             }
-// so how to do this?
-// 1 using the name given go through the 'create new doc' or 'new child doc' procedure
-// 2 call saveDoc() on this but pass it the content?
-// see openDocInfoPopup(asChild) and insertDoc(dict) below as our new/now way to do this!
 
-//xxx            debugger; const abuf = await file.arrayBuffer();
-//xxx            const raw = new Uint8Array(abuf);
-//xxx            const dimp = new FG.DocAttacher();
-//xxx            dict2 = dimp.validate(raw);
-
-//          dict.docname =  ... already present
-debugger;   dict.uuid = "";     // extract from importing doc from {} = DocAttacher.validate(doc)
-            dict.doc = "";      // straight from the imported file
+            debugger;   dict.uuid = "";     // extract from importing doc from {} = DocAttacher.validate(doc)
+            dict.doc     = "";      // straight from the imported file
             dict.asChild = (dict.placement == "child");     // based on the radiobutton
 
             const result = insertDoc(dict);
@@ -229,8 +220,8 @@ async function onCtxDelete() {
 function onIdxContextMenuAction(action) {
     FG.kmStates.modal = false;
     switch (action) {
-        case "newDocAtSame":    {   openDocInfoPopup(false);    break; }
-        case "newDocAsChild":   {   openDocInfoPopup(true);     break; }
+        case "newDocAtSame":    {   openNewDocDialog(false);    break; }
+        case "newDocAsChild":   {   openNewDocDialog(true);     break; }
         case "renameDoc":       {   openDocRenamePopup();       break; }
         case "import":          {   onCtxImport();              break; }
         case "export":          {   onCtxExport();              break; }
@@ -308,33 +299,42 @@ function openDocRenamePopup() {
 }
 
 // insert a new doc AND select/open it
-async function insertDoc(dict) {   // dict={docName, uuid, doc, asChild};  returns true=success, false=fail
-    if (dict.docName.length == 0) {                 // validate
+// dict={docName, ?uuid?, doc(u8a), asChild};  uuid=present if IMPORT, NOT if newDoc
+// returns true=success, false=fail
+async function insertDoc(dict) {
+    debugger; if (dict.docName.length == 0) {                 // validate
         alert("Document name cannot be empty");
         return false;
     }
 
-    let info;
-    if (!FG.curDoc) {                   // setup info for use in pkt.dict.parent below
-        info = { uuid:'', parent:'' };
-    } else {
+    let info = null;
+    if (FG.curDoc) {                    // if doc selected we need its id and parent
         info = FF.getDocInfo(FG.curDoc.uuid);
+    } else {
+        info = { id:0, parent:0 };      // else insert at very END (at server, 0 matches no id so goes at end)
     }
 
-    await FF.newDoc();                // initialize system with an empty document and new uuid
+    if (!dict.uuid) {
+        await FF.newDoc();    // setup NEW FG.curDoc w/empty document and new uuid
+        dict.uuid = FG.curDoc.uuid;
+        let extracter = new FG.DocExtracter();
+        let encoder = new DFEncoder();
+        let tmp = {
+            dchList: await extracter.extract(FG.curDoc.rootDch, false),
+        };
+        dict.doc = encoder.encode(tmp);  // encodes only the {dchlist:[]}, no uuid,name,version
+    }
 
-    let extracter = new FG.DocExtracter();
     let pkt = WS.makePacket("NewDoc")
     pkt.dict = {
-        name:       dict.docName,   // name of doc
-        uuid:       FG.curDoc.uuid, // uuid of doc
-        version:    FG.VERSION,     // version of doc
-        after:      (asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
-        parent:     (asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
-        doc:        await extracter.extract(FG.curDoc.rootDch, false),
+        name:       dict.docName,
+        uuid:       dict.uuid,
+        after:      (dict.asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
+        parent:     (dict.asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
+        doc:        dict.doc,
     }
     pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
-    if (asChild) {
+    if (dict.asChild) {
         FF.setIdxpanded(info.id, true);
     }
     await FF.loadDocTree();         // go fetch and reconstruct index pane
@@ -343,19 +343,17 @@ async function insertDoc(dict) {   // dict={docName, uuid, doc, asChild};  retur
 }
 
 
-function openDocInfoPopup(asChild) {
+function openNewDocDialog(asChild) {
     let dict = {
         "docName": ""
     }
 
-    async function onDlgButton(btnLabel, dict) {
+    async function onDlgButton(btnLabel, dict) {    // on btnPress when inserting new document
         if (dict.isSubmit) {
-            await FF.newDoc();    // setup FG.curDoc w/empty document and new uuid
-
-            debugger; let etractter = new FG.DocExtracter();
-            dict.doc = await extracter.extractt(FG.curDoc.rootDch, false);
-            dict.asChild = asChild;           // taken from funcParam(asChild)
-            dict.uuid = FG.curDoc.uuid;       // steal its uuid and pass that in too
+            delete dict.isSubmit;
+            // dict.uuid    = FG.curDoc.uuid;   // as NEW doc we DONT pass a uuid
+            // dict.doc     = tmp;              // this will also get created inside insertDoc()
+            dict.asChild = asChild;              // taken from funcParam(asChild)
 
             const result = await insertDoc(dict);
             if (!result) {
@@ -679,10 +677,10 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
         return true;
     }
 
-    let tmp = FF.getDocInfo(uuid);      // if uuid !in index, abort!  (should NEVER happen?)
-    if (tmp == null) {
-        return false;
-    }
+    // let tmp = FF.getDocInfo(uuid);      // if uuid !in index, abort!  (should NEVER happen?)
+    // if (tmp == null) {
+    //     return false;
+    // }
 
     await FF.clearDoc();                                // remove any current doc
 
@@ -692,22 +690,38 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
 
     let pkt = WS.makePacket("GetDoc");
     pkt.uuid = uuid;
-    pkt = await WS.sendWait(pkt);
-    // let doc = null;
-    // if (pkt.constructor.name != "Fault") {  // no db open, no doctree available
-    //     doc = new Uint8Array(pkt.doc, 0, pkt.doc.byteLength);      // purely for consistency
-    // }
+    pkt = await WS.sendWait(pkt);       // name not here, name already supplied from "GetDocTree"
 
-    if (pkt.doc == null) {                  // could not load doc, therefore can't set as curDoc
-        console.log("Server:GetDoc " + uuid + " failed");
-        return false;
+    let tmp;
+    if (pkt.ver != FG.DOCVERSION) {     // version upgrade required?
+        pkt.doc = await FG.upgradeDoc(pkt.doc, pkt.ver);
+        if (pkt.doc.error) {
+            alert(pkt.doc.error);
+            return false;
+        }
+        let encoder = new DFEncoder();
+        tmp = {
+            dchList: pkt.doc.dchList,
+        };
+        const pk2 = WS.makePacket("SaveDoc")
+        tmp = encoder.encode(tmp)  // encodes only the {dchlist:[]}, no uuid,name,version
+        pk2.dict = {
+            uuid: uuid,
+            doc: tmp,
+        };
+        await WS.sendWait(pk2)    // save upgraded doc
+        tmp = pkt.doc
+    } else {
+        const decoder = new DFDecoder(pkt.doc);
+        tmp = decoder.decode();
     }
 
+    delete pkt.doc;                         // reduce memory usage
     const imp = new FG.DocAttacher();
 
     FG.curDoc = { 
         uuid:    uuid, 
-        rootDch: await imp.attach(pkt.doc.dchList, null),  // now build-and-attach doc to the system as new root doc!
+        rootDch: await imp.attach(tmp.dchList, null),  // now build-and-attach doc to the system as new root doc!
         dirty:   false,
     };
 
@@ -721,3 +735,38 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
 
 
 
+FG.upgradeDoc = async function(u8aDoc, version=null) {    // take binary stream and optional version and returns {uuid,?name?,{dchList:},error}
+// we HAVE to pull this here-and-now (IF stream has it!) in order to know what 'explode_n.n_doc.js' to load
+//     and if it doesn't have it, then the passed-in dict.version must be present.
+    let dict = { doc:u8aDoc };
+    if (u8aDoc[0] == 64) {    // 64 = '@'     // test for header,  if found extract what we know how to.
+        let tmp = "";
+        for (let idx = 1; idx < 32; idx++) {           // try to extract the @n.n; version from the doc
+            const chr = String.fromCharCode(u8aDoc[idx]);
+            if (chr == ';') {                          // if we havent hit a ';' by 32 bytes, we don't have a ver!
+                ++idx;
+                break;
+            }
+            if (!/^[0-9.]$/.test(chr)) {     // if not digits or '.', this is not a ver!
+                tmp = "";                    // clear out anything gathered thus far
+                break;
+            }
+            tmp += chr;
+        }
+        dict.version = tmp; // change to what the doc says, always, so we can upgrade it below
+    }
+
+    if (!dict.version) {    // no '@n.n;' at start of file, no version passed in from dbRec
+        dict.error = "Unable to parse, stream has no header and no version was supplied";
+        return dict;
+    }
+
+    const fname = `explode_${dict.version}_doc.js`;
+    const mod = await FF.loadModule("/modules/converters/" + fname);
+    dict = await mod.explode(dict);
+    if (dict.error) {
+        dict.error = `Error Upgrading document from v${version}: ${dict.error}`;
+    }
+    return dict;
+}
+        

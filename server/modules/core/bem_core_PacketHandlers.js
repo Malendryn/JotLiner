@@ -6,10 +6,17 @@ import { DFEncoder, DFDecoder } from "../../../client/html/modules/shared/DFCode
 
 //debugger; // only way to break during module load, brkpoints don't cut it!
 function logPkt(name) {
-    console.log("pkt=" + name);
+//    console.log("pkt=" + name);
 }
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.classes.GetBackendInfo.prototype.process = async function(client) {
+    logPkt("GetBackendInfo");
+    this.version = BG.VERSION;
+    this.docVersion = BG.DOCVERSION;
+    return this;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.classes.GetExtra.prototype.process = async function(client) {
     logPkt("GetExtra");
@@ -70,14 +77,14 @@ WS.classes.GetDoc.prototype.process = async function(client) { // must use 'func
     logPkt("GetDoc");
     if (!client.db) { return BF.fault("Database not selected"); }
     this.doc = null;
-    const tmp = await client.db.query("SELECT content FROM doc WHERE uuid=?", [this.uuid]);
+    const tmp = await client.db.query("SELECT version,content FROM doc WHERE uuid=?", [this.uuid]);
     if (tmp.length > 0) {
-        const dec = new DFDecoder(tmp[0].content);
-        this.doc = dec.decode();
+        this.ver = tmp[0].version;
+        this.doc = tmp[0].content;
     }
     return this;    // {uuid:"...", doc:{ dchList:[{children:1, name:"BOX", style:{T,R,B,L}, data:{zX,zY}}]}}
 }
-WS.classes.NewDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
+WS.classes.NewDoc.prototype.process = async function(client) {    // this.dict={name,uuid,after,parent,u8aDoc}
     logPkt("NewDoc");
     if (!client.db) { return BF.fault("Database not selected"); }
     try {
@@ -98,7 +105,7 @@ WS.classes.NewDoc.prototype.process = async function(client) {    // insert new 
             await client.db.run("UPDATE docTree SET listOrder = listOrder + 1 where id=?", [recs[idx].id]);   // increment existing rec's listorder's
         }
 
-        let list = [this.dict.version, this.dict.uuid, this.dict.name, this.dict.doc];
+        let list = [BG.DOCVERSION, this.dict.uuid, this.dict.name, this.dict.doc];
         debugger; this.docId = await client.db.run("INSERT INTO doc (version,uuid,name,content) values (?,?,?,?)", list);     // insert doc
         list = [this.dict.uuid, order, this.dict.parent];
         this.docTreeId = await client.db.run("INSERT INTO docTree (uuid,listOrder,parent) values (?,?,?)", list);   // insert index entry
@@ -111,13 +118,13 @@ WS.classes.NewDoc.prototype.process = async function(client) {    // insert new 
     this.dict = {}; // empty packetdata for faster returnPkt
     return this;    // send self back cus client called using .sendWait() (and we added docId and docTreeId to the class on return)
 };
-WS.classes.SaveDoc.prototype.process = async function(client) {    // insert new doc into db,  return with a GetDocTree packet
+WS.classes.SaveDoc.prototype.process = async function(client) {    // this.dict={uuid, doc(u8a)}
     logPkt("SaveDoc");
     if (!client.db) { return BF.fault("Database not selected"); }
     try {
         await client.db.run("BEGIN TRANSACTION");
-        let list = [this.dict.doc, this.dict.uuid];
-        debugger; await client.db.run("UPDATE doc SET content=? WHERE uuid=?", [list]);               // insert the doc
+        let list = [BG.DOCVERSION, this.dict.doc, this.dict.uuid];
+        await client.db.run("UPDATE doc SET version=?,content=? WHERE uuid=?", [list]);               // insert the doc
         await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
         await client.db.run("ROLLBACK TRANSACTION");
@@ -169,22 +176,22 @@ WS.classes.DeleteDoc.prototype.process = async function(client) {    // insert n
     this.uuid = ""; // empty packetdata for faster returnPkt
     return this;    // send self back cus client called using .sendWait()
 };
-WS.classes.ValidateDoc.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
-    logPkt("ValidateDoc");
-    if (!client.db) { return BF.fault("Database not selected"); }
+// WS.classes.ValidateDoc.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
+//     logPkt("ValidateDoc");
+//     if (!client.db) { return BF.fault("Database not selected"); }
 
-debugger; /*still have to test 2.0*/ this.dict = {           // to keep memory down lets build it straight on the return packet
-        doc: this.doc
-    }
-    delete this.doc;                // get rid of immediately to reduce memory
-    this.dict = await BF.docExploder(this.dict);
-    delete this.dict.upgraded;      // client doesnt care about this so just deleted it here
+// debugger; /*still have to test 2.0*/ this.dict = {           // to keep memory down lets build it straight on the return packet
+//         doc: this.doc
+//     }
+//     delete this.doc;                // get rid of immediately to reduce memory
+//     this.dict = await BF.docExploder(this.dict);
+//     delete this.dict.upgraded;      // client doesnt care about this so just deleted it here
 
-    const tmp = await client.db.query("SELECT id FROM doc WHERE uuid=?", [this.dict.uuid]);     // include .warn for if uuid already exists
-    this.dict.warn = tmp.length > 0;       // flag whether this uuid already exists
+//     const tmp = await client.db.query("SELECT id FROM doc WHERE uuid=?", [this.dict.uuid]);     // include .warn for if uuid already exists
+//     this.dict.warn = tmp.length > 0;       // flag whether this uuid already exists
 
-    return this;
-}
+//     return this;
+// }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

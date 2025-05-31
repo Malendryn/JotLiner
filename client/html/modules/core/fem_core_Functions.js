@@ -57,7 +57,7 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";   // load the known SHARED baseline packet definitions
+import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";
 
 
 FF.shutdown = async (event) => {                       // webpage closing, do final terminations/cleanups

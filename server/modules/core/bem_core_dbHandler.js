@@ -165,7 +165,7 @@ BF.openDB = async function(dbName) {
     const db = await new DBHandler();
     await db.open(dbName + ".db");
 
-    const updaterPath = path.join(BG.serverPath, "modules/core/converters");
+    const updaterPath = path.join(BG.serverPath, "modules/converters");
     // let flist = await fs.promises.readdir(updaterPath, { withFileTypes: true });    // fetch all the dbUpdate_######-######.js files...
     // let files = [];
     // for (const entry of flist) {
@@ -191,7 +191,7 @@ BF.openDB = async function(dbName) {
         if (before != curVer) {
             continue;
         }
-        let mod = await BF.loadModule("./modules/core/converters/" + fname);    // load this module
+        let mod = await BF.loadModule("./modules/converters/" + fname);    // load this module
         await db.run("BEGIN TRANSACTION");                                      // start transaction
         try {
             mod = await mod.updateDb(db);                                               // do the upgdate/upgrade

@@ -56,6 +56,11 @@ WS.registerPacketClass(class Fault extends PacketBASE { // if error thrown, it's
     msg;        // <-- "msg" indicating what the fault was
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.registerPacketClass(class GetBackendInfo extends PacketBASE { // get any element from extra table
+    //  version;    // B-->F current software version (since frontend ONLY loads FROM backend, version is always same!)
+    //  docVersion; // B-->F current highest docversion (that doesn't need a conversion)
+    });
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetExtra extends PacketBASE { // get any element from extra table
     txt;        // --> "key" on the way in
                 // <-- "value" on the way back
@@ -101,13 +106,13 @@ WS.registerPacketClass(class RenameDoc extends PacketBASE {  // Delete a documen
 WS.registerPacketClass(class DeleteDoc extends PacketBASE {   // Delete a document from the system
     uuid;       // -->  uuid of doc to get 
 });
-WS.registerPacketClass(class ValidateDoc extends PacketBASE {  // explode and return (upgrade doc if less-than FG.VERSION) but NOT insert -> db!
-    doc;        // F->B Uint8Array document raw from importDlg (!including @n.n header stuff!)
-                // F<-B deleted
-//     dict;    // B->F dict containing dchList which is the doc broken down,
-//                      uuid original uuid as extracted from the file
-//                      exists ONLY if V2.0 or higher as names werent in 1.0 or 1.1 exports
-});
+// WS.registerPacketClass(class ValidateDoc extends PacketBASE {  // explode and return (upgrade doc if less-than FG.VERSION) but NOT insert -> db!
+//     doc;        // F->B Uint8Array document raw from importDlg (!including @n.n header stuff!)
+//                 // F<-B deleted
+// //     dict;    // B->F dict containing dchList which is the doc broken down,
+// //                      uuid original uuid as extracted from the file
+// //                      exists ONLY if V2.0 or higher as names werent in 1.0 or 1.1 exports
+// });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class CreateDB extends PacketBASE {  // Delete a document from the system
