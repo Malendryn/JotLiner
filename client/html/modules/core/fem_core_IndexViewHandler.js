@@ -14,12 +14,12 @@ async function onCtxImport2(file) {     // user has selected file, now ask if th
     }
     docName = docName.substring(0, docName.length - 6);
 
-debugger;    debugger; const abuf = await file.arrayBuffer();
+    const abuf = await file.arrayBuffer();
     const u8a = new Uint8Array(abuf);
     // const dimp = new FG.DocAttacher();
     // dict2 = dimp.validate(raw);
 
-    debugger; let  pkt = WS.makePacket("ValidateDoc");     // first thing we have to do is validate, separate, and upgrade-if-needed this doc
+    let  pkt = WS.makePacket("ValidateDoc");     // first thing we have to do is validate, separate, and upgrade-if-needed this doc
     pkt.doc = u8a;
     pkt = await WS.sendWait(pkt);   // returns {ver, uuid, name, doc}  -- this time doc does NOT contain ver, uuid OR name in it
 
@@ -162,8 +162,8 @@ async function onCtxImport() {
 
 
 async function onCtxExport() {
-    let exporter = new FG.DocExporter();
-    const bin = await exporter.export(FG.curDoc.rootDch);
+    debugger; let extracter = new FG.DocExtracter();
+    const bin = await extracter.extract(FG.curDoc.rootDch, true);
 
     async function onDlgButton(btnLabel, dict) {
         if (dict.isSubmit) {
@@ -323,7 +323,7 @@ async function insertDoc(dict) {   // dict={docName, uuid, doc, asChild};  retur
 
     await FF.newDoc();                // initialize system with an empty document and new uuid
 
-    let exporter = new FG.DocExporter();
+    let extracter = new FG.DocExtracter();
     let pkt = WS.makePacket("NewDoc")
     pkt.dict = {
         name:       dict.docName,   // name of doc
@@ -331,7 +331,7 @@ async function insertDoc(dict) {   // dict={docName, uuid, doc, asChild};  retur
         version:    FG.VERSION,     // version of doc
         after:      (asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
         parent:     (asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
-        doc:        await exporter.export(FG.curDoc.rootDch),
+        doc:        await extracter.extract(FG.curDoc.rootDch, false),
     }
     pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
     if (asChild) {
@@ -349,13 +349,12 @@ function openDocInfoPopup(asChild) {
     }
 
     async function onDlgButton(btnLabel, dict) {
-        debugger; if (dict.isSubmit) {
-            let exporter = new FG.DocExporter();
-            await FF.newDoc();                // initialize system with an empty document and new uuid
+        if (dict.isSubmit) {
+            await FF.newDoc();    // setup FG.curDoc w/empty document and new uuid
 
-//          dict.docName = <already present in dict>
-            dict.doc = await exporter.export(FG.curDoc.rootDch);
-            dict.asChild = asChild;           // taken from wrapping openDocInfoPopup(asChild)
+            debugger; let etractter = new FG.DocExtracter();
+            dict.doc = await extracter.extractt(FG.curDoc.rootDch, false);
+            dict.asChild = asChild;           // taken from funcParam(asChild)
             dict.uuid = FG.curDoc.uuid;       // steal its uuid and pass that in too
 
             const result = await insertDoc(dict);

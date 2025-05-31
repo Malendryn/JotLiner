@@ -56,6 +56,10 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 ***********************************************************************************************************************/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";   // load the known SHARED baseline packet definitions
+
+
 FF.shutdown = async (event) => {                       // webpage closing, do final terminations/cleanups
 
     if (FG.curDoc && FG.curDoc.dirty) {     // if something's still dirty
@@ -270,13 +274,18 @@ FF.reTimer = function(callback) {
 
 const autoSaveCallback = async function() {
     if (FG.curDoc && FG.curDoc.dirty) {
-        let exporter = new FG.DocExporter();
-        const str = await exporter.export(FG.curDoc.rootDch);
+        let extracter = new FG.DocExtracter();
+        let encoder = new DFEncoder();
+
+        let tmp = {
+            dchList: await extracter.extract(FG.curDoc.rootDch, false),
+        };
+        tmp = encoder.encode(tmp);
+
         let pkt = WS.makePacket("SaveDoc")
-        pkt.dict = {
+        pkt.dict = {                        // NOTE: no version or name, only uuid and content
             uuid:       FG.curDoc.uuid,
-            version:    FG.VERSION,
-            doc:        str,
+            doc:        tmp
         }
         pkt = WS.send(pkt);	        // send to backend, /maybe/ get a response-or-Fault, ?don't care?
     	FG.curDoc.dirty = false;

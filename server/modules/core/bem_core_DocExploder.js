@@ -14,7 +14,7 @@ BF.docExploder = async function(dict) {
     // const dict = {  // does NOT HAVE version cuz its not a stream any more, its now dictData which must always be current
     //     name:    ????,  // undeclared UNLESS stream startswith '@n.n;' then is imported ONLY IF '@n.n;' is 2.0 OR NEWER
     //     uuid:    ????,  // undeclared UNLESS stream startswith '@n.n;' then is imported from stream ALL VERSIONS
-    //     dchList: u8a,   // Uint8Array list[] of dchElements
+    //     dchList: [],    // list[] of dchElements as { style: {L,R,T,B}, data: {zX,zY} }
     //     error:   ????,  // undeclared UNLESS err happened, contains msg of what went wrong
     //     upgraded:????   // undeclared UNLESS doc was upgraded to nextver during validation
     // };

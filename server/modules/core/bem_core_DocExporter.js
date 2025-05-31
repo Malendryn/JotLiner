@@ -15,8 +15,7 @@ const dict = {
 }
 
 const exp = new DocExporter();
-const stream = exp.export(dict);  where dict is:
-
+Uint8Array = exp.export(dict);  where dict is:
 */
 
 import { DFEncoder, DFDecoder } from "../../../client/html/modules/shared/DFCoder.mjs";

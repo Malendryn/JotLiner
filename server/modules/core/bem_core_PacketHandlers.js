@@ -75,7 +75,7 @@ WS.classes.GetDoc.prototype.process = async function(client) { // must use 'func
         const dec = new DFDecoder(tmp[0].content);
         this.doc = dec.decode();
     }
-    return this;
+    return this;    // {uuid:"...", doc:{ dchList:[{children:1, name:"BOX", style:{T,R,B,L}, data:{zX,zY}}]}}
 }
 WS.classes.NewDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
     logPkt("NewDoc");
@@ -116,8 +116,8 @@ WS.classes.SaveDoc.prototype.process = async function(client) {    // insert new
     if (!client.db) { return BF.fault("Database not selected"); }
     try {
         await client.db.run("BEGIN TRANSACTION");
-        let list = [this.dict.version, this.dict.doc, this.dict.uuid];
-        debugger; await client.db.run("UPDATE doc SET version=?,content=? WHERE uuid=?", [list]);               // insert the doc
+        let list = [this.dict.doc, this.dict.uuid];
+        debugger; await client.db.run("UPDATE doc SET content=? WHERE uuid=?", [list]);               // insert the doc
         await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
         await client.db.run("ROLLBACK TRANSACTION");
@@ -173,12 +173,15 @@ WS.classes.ValidateDoc.prototype.process = async function(client) { // must use 
     logPkt("ValidateDoc");
     if (!client.db) { return BF.fault("Database not selected"); }
 
-    debugger; const doc = this.doc;
-    delete this.doc;           // get rid of immediately to reduce memory
-    this.dict = BF.docExploder(client.db, doc);
+debugger; /*still have to test 2.0*/ this.dict = {           // to keep memory down lets build it straight on the return packet
+        doc: this.doc
+    }
+    delete this.doc;                // get rid of immediately to reduce memory
+    this.dict = await BF.docExploder(this.dict);
+    delete this.dict.upgraded;      // client doesnt care about this so just deleted it here
 
-    const tmp = await db.query("SELECT id FROM doc WHERE uuid=?", [dict.uuid]);     // include .warn for if uuid already exists
-    dict.warn = tmp.length > 0;       // flag whether this uuid already exists
+    const tmp = await client.db.query("SELECT id FROM doc WHERE uuid=?", [this.dict.uuid]);     // include .warn for if uuid already exists
+    this.dict.warn = tmp.length > 0;       // flag whether this uuid already exists
 
     return this;
 }

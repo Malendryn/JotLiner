@@ -102,12 +102,11 @@ WS.registerPacketClass(class DeleteDoc extends PacketBASE {   // Delete a docume
     uuid;       // -->  uuid of doc to get 
 });
 WS.registerPacketClass(class ValidateDoc extends PacketBASE {  // explode and return (upgrade doc if less-than FG.VERSION) but NOT insert -> db!
-    doc;        // F->B entire Uint8Array document raw from importDlg (!including @n.n header stuff!)
-                //        uuid,version is extracted at server
-                // B->F validated, updated-to-latest if-needed (WITHOUT the '@n.n; headerstuff, just the raw doc!)
-    name;       // B->F extracted from doc if 1.2+, else null if 1.0/1.1
-    uuid;       // B->F extracted from doc
-    warn;       // B->F true if this uuid already exists in DB
+    doc;        // F->B Uint8Array document raw from importDlg (!including @n.n header stuff!)
+                // F<-B deleted
+//     dict;    // B->F dict containing dchList which is the doc broken down,
+//                      uuid original uuid as extracted from the file
+//                      exists ONLY if V2.0 or higher as names werent in 1.0 or 1.1 exports
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

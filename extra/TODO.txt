@@ -1,6 +1,21 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+change GetDoc to return UNDECODED doc,  let the client do the gruntwork here!
+fuckit, let the client CODE the doc before transmitting it too! just put all the grunt on the client!
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+we have this complex classbuider for passing back what is nothing more than dicts of data with a name attached
+lets instead just pass a dict and have one field _pktName and there, get rid of ALL that other classmaking crap!
+-----------------------------------------------------------------------------------------------------------------------
+consider making a conscious decision to stop calling things client/server OR to stop calling them backend/frontend,
+(pick one, not toggle between both!)  99% of the code is calling it Back/Front and that would be a massive painful
+    change!
+-----------------------------------------------------------------------------------------------------------------------
+consider changing version naming such that N is for dbupdates, N.N is for docversions and N.N.N is for software versions
+-----------------------------------------------------------------------------------------------------------------------
 extricate docVer from F?.VERSION and let them live as an entirely standalone concept
     insodoing, remove FG.VERSION entirely and have it delivered from BG.VERSION during serverConnect
 -----------------------------------------------------------------------------------------------------------------------

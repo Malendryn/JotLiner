@@ -337,9 +337,8 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
         }
         switch (action) {                                     // 'go do' whatever was clicked
             case "export":
-                let exp = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
-                exp = new exp.DocExporter();    //RSNOTE DOES NOT detach! ONLY exports!!!!
-                let str = await exp.export(dch);
+/*RSTODO 2.0*/  debugger; let extracter = new FG.DocExtracter();    //RSNOTE DOES NOT detach! ONLY extracts!!!!
+                let str = await extracter.extract(dch, true);
                 console.log(str);
                 break;
             case "delete":

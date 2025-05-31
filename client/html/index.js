@@ -38,8 +38,8 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_PacketHandlers.js");      // for packets sent from backend that are not expect/wait responses
     mod = await FF.loadModule("./modules/core/fem_core_DocAttacher.js");
     FG.DocAttacher = mod.DocAttacher;
-    mod = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
-    FG.DocExporter = mod.DocExporter
+    mod = await FF.loadModule("./modules/core/fem_core_DocExtracter.js");   // extracts FG.curDoc into { uuid,name,dchList }
+    FG.DocExtracter = mod.DocExtracter
 
     let  pkt = WS.makePacket("GetDCHList");     // first thing we have to do is get the list of DCH handlers
     pkt = await WS.sendWait(pkt);
