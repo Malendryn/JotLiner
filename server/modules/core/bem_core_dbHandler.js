@@ -31,15 +31,15 @@ class DBHandler {
                     this.db.configure('busyTimeout', 5000);  // wait up to 5 seconds before throwing SQLITE_BUSY
                     this.lastAccessed = Date.now();
 
-                    const timeout = 15 * 60 * 1000;     // 15 minutes
-                    this.timeoutId = setInterval(() => {
-                        const now = Date.now();
-                        if (now - this.lastAccessed > timeout) {
-                            console.log("Reopening DB '" + this.dbName + "' due to inactivity...");
-                            this.close();
-                            this.open(this.dbName);     // reopen same db as was opened to begin with
-                        }
-                    }, 60 * 1000); // check every minute
+                    // const timeout = 15 * 60 * 1000;     // 15 minutes
+                    // this.timeoutId = setInterval(() => {
+                    //     const now = Date.now();
+                    //     if (now - this.lastAccessed > timeout) {
+                    //         console.log("Reopening DB '" + this.dbName + "' due to inactivity...");
+                    //         this.close();
+                    //         this.open(this.dbName);     // reopen same db as was opened to begin with
+                    //     }
+                    // }, 60 * 1000); // check every minute
                       
                     resolve();
                     return;

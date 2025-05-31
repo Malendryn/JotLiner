@@ -1,23 +1,26 @@
 
 // explode contents of docstream into a dict (see bem_core_DocExporter.js for dict construction)
+
+// 1.1 differs from 1.0 in that it preserves field datatypes but it still doesnt have 'name' in the header
+
 export async function explode(dict) {  // see bem_core_DocExploder.js for definition of dict
-    debugger; const doc = new TextDecoder().decode(dict.doc);   // doc always is Uint8array,  so for v1.0 we must convert back to textual
+    const doc = new TextDecoder().decode(dict.doc);   // doc always is Uint8array,  so for v1.1 we must convert back to textual
     delete dict.doc;                            // reduce mem usage
 
     let dimp = new DocImporter();
     const dic2 = await dimp.import(doc);
-    dic2.name = "";                             // v1.0 has no name
+    delete dic2.name;                 // v1.1 never has a name
     dic2.upgraded = true;
     return dic2;
 }
 
 
-class DocImporter {   // create and return a DCH from a stream
+class DocImporter {
     dict;
     sr;
 
     async import(str)  {
-        this.dict = {};
+        this.dict = {}
         this.sr = new StringReader(str);
 
         this.sr.readToSem();                   // skipover "@1.0;" as already parsed and proven
@@ -28,8 +31,7 @@ class DocImporter {   // create and return a DCH from a stream
         return this.dict;
     }
 
-
-    async _importNext() {
+    async _importNext(parent) {
         while (true) {
             const cpo = this._readComponent();    // read all vars of next component and break them down into <style> and <data>
             if (cpo == null) {
@@ -96,32 +98,65 @@ class DocImporter {   // create and return a DCH from a stream
 
     readEl() {                      // read "WRD=LEN;DATA", decode base64 if LEN=negative, return [dchName, data]
         let tmp = this.readToSem();     // read ("WRD=LEN" and lose the ';')
+        if (tmp == "") {
+            return null;
+        }        
         tmp = tmp.split('=');           // split ["WRD", "LEN"]
         if (tmp.length != 2) {          // EOFile (or some kinda other illegal junk!)
             return null;
         }
-        const dchName = tmp[0].trim();  // trim offwhitespace around WRD
-        let len = parseInt(tmp[1]);     // integerize "LEN" and test if negative then data=base64 encoded
-        let isBase64 = (len < 0);
-        len = Math.abs(len);            // finally, positivize len
+        const wrd = tmp[0].trim();      // trim off whitespace around WRD
+        let len = parseInt(tmp[1]);     // integerize 'len'
 
-        if (this.idx > this.str.length) {    // test for end of data  (fires when len == 0)        
-            throw new Error("Data stream too short");
+        if (this.idx > this.str.length) {    // test for end of data
+            console.warn(FF.__FILE__(), "readEl() Data stream too short");
+            return null;
         }
 
+        let val;
         const end = Math.min(this.idx + len, this.str.length);
-        let data = this.str.substring(this.idx, end);
-        this.idx = end;                      // works but leaves memory in use while StringReader exists...
-
-        if (isBase64) {
-            data = atob(data);
-            const bytes = new Uint8Array(data.length);
-            for (let idx = 0; idx < data.length; idx++) {
-                bytes[idx] = data.charCodeAt(idx);
+        let dtype = this.str[this.idx];               // peel off first letter as datatype
+        val = this.str.substring(this.idx + 1, end);    // extract the rest
+        this.idx = end;
+        if (/^[a-z]$/.test(dtype)) {  // if is lowercase a-z
+            function decode(base64) {
+                const binaryString = atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes;
             }
-            data = new TextDecoder().decode(bytes);
+            val = decode(val);
+            if (dtype != 'u') {                         // if not expecting a true Uint8Array...
+                val = new TextDecoder().decode(val);    // textify it
+            }
+            dtype = dtype.toUpperCase();    // now everything's decoded, uppercase dtype for testing
         }
-        return [ dchName, data ];
+        switch(dtype) {
+            case '?': {
+                debugger; val = undefined;
+                break; }
+            case '~': {
+                debugger; val = null;
+                break; }
+            case 'B': {
+                debugger; val = ('t') ? true : false;
+                break; }
+            case 'N': {
+                val = Number(val);
+                break; }
+            case 'S': {     // val is alrady a string, nothing done here
+                break; }
+            case 'A': {
+                debugger; val = JSON.parse(val);
+                break; }
+            case 'O': {
+                debugger; val = JSON.parse(val);
+                break; }
+        }
+        return [ wrd, val ];
     }
 
     constructor(str) {
@@ -129,3 +164,5 @@ class DocImporter {   // create and return a DCH from a stream
         this.idx = 0;
     }
 };
+
+

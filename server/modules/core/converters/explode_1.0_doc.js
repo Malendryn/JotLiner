@@ -6,13 +6,13 @@ export async function explode(dict) {  // see bem_core_DocExploder.js for defini
 
     let dimp = new DocImporter();
     const dic2 = await dimp.import(doc);
-    dic2.name = "";                             // v1.0 has no name
+    delete dic2.name;                 // v1.0 never has a name
     dic2.upgraded = true;
     return dic2;
 }
 
 
-class DocImporter {   // create and return a DCH from a stream
+class DocImporter {
     dict;
     sr;
 
