@@ -12,7 +12,7 @@ async function _onCtxImport2_onDlgButton(btnLabel, formData) {        // btn pre
     let result = true;
     const newDocInfo = {};
     if (formData.isSubmit) {
-        if (formData.docName.length == 0) {                 // validate
+        if (formData.docName.length == 0) {
             alert("Document name cannot be empty");
             return false;
         }
@@ -291,7 +291,7 @@ function makeNewDocForm(asChild) {
 function openDocRenamePopup() {
     async function onDlgButton(btnLabel, dict) {
         if (dict.isSubmit) {
-            if (dict.docName.length == 0) {                 // validate
+            if (dict.docName.length == 0) {
                 alert("Document name cannot be empty");
                 return false;
             }
@@ -330,7 +330,7 @@ function openDocRenamePopup() {
 // dict={docName, ?doc(u8a) if import, else null if new, asChild};
 // returns true=success, false=fail
 async function insertDoc(dict) {
-    if (dict.docName.length == 0) {                 // validate
+    if (dict.docName.length == 0) {
         alert("Document name cannot be empty");
         return false;
     }

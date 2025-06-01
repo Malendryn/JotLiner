@@ -22,9 +22,11 @@ WS.classes.GetExtra.prototype.process = async function(client) {
     logPkt("GetExtra");
     this.txt = null;
     if (!client.db) { return BF.fault("Database not selected"); }
-    let tmp = await client.db.query("SELECT value FROM extra WHERE key=?", [this.txt]);
+    let tmp = await client.db.query("SELECT value FROM extra WHERE key=?", [this.key]);
+    delete this.key;
+
     if (tmp.length == 1) {
-        this.txt = tmp[0].value;
+        this.val = tmp[0].value;
     }
     return this;
 }
@@ -176,22 +178,6 @@ WS.classes.DeleteDoc.prototype.process = async function(client) {    // insert n
     this.uuid = ""; // empty packetdata for faster returnPkt
     return this;    // send self back cus client called using .sendWait()
 };
-// WS.classes.ValidateDoc.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
-//     logPkt("ValidateDoc");
-//     if (!client.db) { return BF.fault("Database not selected"); }
-
-// debugger; /*still have to test 2.0*/ this.dict = {           // to keep memory down lets build it straight on the return packet
-//         doc: this.doc
-//     }
-//     delete this.doc;                // get rid of immediately to reduce memory
-//     this.dict = await BF.docExploder(this.dict);
-//     delete this.dict.upgraded;      // client doesnt care about this so just deleted it here
-
-//     const tmp = await client.db.query("SELECT id FROM doc WHERE uuid=?", [this.dict.uuid]);     // include .warn for if uuid already exists
-//     this.dict.warn = tmp.length > 0;       // flag whether this uuid already exists
-
-//     return this;
-// }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,15 +188,16 @@ WS.classes.GetDBList.prototype.process = async function(client) {    // delete /
 };
 WS.classes.CreateDB.prototype.process = async function(client) {    // create new db, return null=good, text=errormsg
     logPkt("CreateDB");
-    const err = BF.checkDBName(this.text);    // test filename for validity
+    const err = BF.checkDBName(this.name);    // test filename for validity
+    delete this.name;
     if (err) {                            // return it if bad
-        this.text = err;
+        this.error = err;
         return this;
     }
 
     let list = await BF.getDBList();                // check if already exists! 
     if (list.includes(this.text)) {
-        this.text = "Database '" + this.text + "' already exists";
+        this.error = "Database '" + this.text + "' already exists";
         return this;
     }
 
@@ -219,9 +206,6 @@ WS.classes.CreateDB.prototype.process = async function(client) {    // create ne
     await BF.attachDB(this.text, client);
 
     BF.onChanged(client.ws, {what:"dbList"});      // tell the world that the dbList changed!
-
-    this.text = null;
-
     return this;
 };
 WS.classes.SelectDB.prototype.process = async function(client) {    // make other db current, return null=good, text=errormsg

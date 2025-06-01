@@ -14,6 +14,9 @@
 * got export to 2.0 fileformat working now too
 * got import and export fully working, though it could bear some more testing just to be sure.
 * added a 'DocFileFormat 2.0.odt' file under the extra/docs dir to explain how the new binary format is interpreted
+* finally merged all changes back into the main branch
+* did a few quick cleanups and a little improvement on the PacketDefs comments at the top of the file
+
 2025-05-29 ------------------------------------------------------------------------------------------------------------
 * renamed subdir 'dbExporters' to 'converters' as I will be moving the document conversion code (1.0 -> 1.1 -> 1.2)
     code into there as well, and out of the clientside

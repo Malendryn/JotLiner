@@ -133,10 +133,10 @@ function onNewDB() {
     async function _onButton(btnLabel, dict) {
         if (dict.isSubmit) {
             let pkt = WS.makePacket("CreateDB");
-            pkt.text = dict.dbName;
+            pkt.name = dict.dbName;
             pkt = await WS.sendWait(pkt)                    // create new db, wait for confirmation
-            if (pkt.text) {
-                alert("Database name error: " + pkt.text);
+            if (pkt.error) {
+                alert("Database name error: " + pkt.error);
                 return false;
             }
 
