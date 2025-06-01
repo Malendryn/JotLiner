@@ -1,4 +1,14 @@
 2025-05- ------------------------------------------------------------------------------------------------------------
+2025-05-31 ------------------------------------------------------------------------------------------------------------
+* many changes occurred on a seperate branch just to handle upgrading all files to the 2.0 format spec, which have 
+    only been documented as commit msgs in git.  They basically detail the process such as it's been reguarding the
+    whole upgrade procedure but has not otherwise changed the effective way in which the software works.
+  To whit, database doc recs now have the version and uuid in seperate fields (as always) but the content field is
+    a purely binary 'dchList' of dch's with the version and uuid no longer part of it.  And while I had originally
+    been working to have a validation process on the serverside for importing exported docfiles (.jldoc files) I 
+    have re-located the import process to the client,  1) to keep the load off the server and 2) so the server
+    effectively has no awareness of the content of the blob.
+
 2025-05-29 ------------------------------------------------------------------------------------------------------------
 * renamed subdir 'dbExporters' to 'converters' as I will be moving the document conversion code (1.0 -> 1.1 -> 1.2)
     code into there as well, and out of the clientside
