@@ -106,7 +106,7 @@ WS.classes.NewDoc.prototype.process = async function(client) {    // this.dict={
         }
 
         let list = [BG.DOCVERSION, this.dict.uuid, this.dict.name, this.dict.doc];
-        debugger; this.docId = await client.db.run("INSERT INTO doc (version,uuid,name,content) values (?,?,?,?)", list);     // insert doc
+        this.docId = await client.db.run("INSERT INTO doc (version,uuid,name,content) values (?,?,?,?)", list);     // insert doc
         list = [this.dict.uuid, order, this.dict.parent];
         this.docTreeId = await client.db.run("INSERT INTO docTree (uuid,listOrder,parent) values (?,?,?)", list);   // insert index entry
         await client.db.run("COMMIT TRANSACTION");

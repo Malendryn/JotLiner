@@ -1,23 +1,7 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
-TODO now that we moved all the doc validation procedures to the SERVER ... we're considering moving them back to the
-CLIENT because frankly the server doesn't CARE whats in the binary blob!  ONLY the client does!!!
-(the server DOES however care about dbUpgrades, but we can still do that clientside and then just have the client
-save the repaired doc back immediately with autoSave(0))
-
-so basically UNDO almost all of my recent serverside changes reguarding upgrading and move it all back to the client...
-
-
-so now the client needs a list of upgraders so it can try to import them.  which means FF.loadModule MUST fail gracefully!
-so server needs to send us the list of available upgraders too, AND/OR?  the current BG.DOCVERSION ?
-
-(this also fixes the problem of nukng an unconvertable doc and pushes that responsibility back on the user
-    where they can maybe repair it externally and then import it over the existing one?)
-
------------------------------------------------------------------------------------------------------------------------
-change GetDoc to return UNDECODED doc,  let the client do the gruntwork here!
-fuckit, let the client CODE the doc before transmitting it too! just put all the grunt on the client!
+test/fix file export import
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
@@ -51,6 +35,9 @@ as it won't be transmitted to the server as an export/import format any more.  (
 exportdata/importdata on the specific dch's, hmmm.. but now going forward how do we want to deal with deltas?)
 
 lets also get rid of the whitespace rule as we're sliding towards binary now
+
+
+in 2.0 we are going to DROP THE UUID from the export, (or at least, ignore it during import!)
 -----------------------------------------------------------------------------------------------------------------------
 so to migrate the database:
 3 -> 4 -> 5  now done, but think about export:

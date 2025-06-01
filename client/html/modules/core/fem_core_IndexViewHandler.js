@@ -7,7 +7,66 @@ import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
 import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";
 
-async function onCtxImport2(file) {     // user has selected file, now ask if they want to change the name
+let _dlgTmp;    // used to exfer exploded file to _onCtxImport2_onDlgButton()  {?name?,{dchList:},error}
+async function _onCtxImport2_onDlgButton(btnLabel, formData) {        // btn pressed in 2nd dialog (child/sibling and rename)
+    let result = true;
+    const newDocInfo = {};
+    if (formData.isSubmit) {
+        if (formData.docName.length == 0) {                 // validate
+            alert("Document name cannot be empty");
+            return false;
+        }
+        if (!_dlgTmp.insertAtEnd && !formData.placement) {
+            alert("Please choose whether to import as child or as beneath.");
+            return false;
+        }
+
+        newDocInfo.docName = formData.docName;
+
+        let encoder = new DFEncoder();
+        let tmp = {
+            dchList: _dlgTmp.dchList,
+        };
+        _dlgTmp = undefined;             // clear this from memory now!
+        newDocInfo.doc = encoder.encode(tmp);  // encodes only the {dchlist:[]}, no uuid,name,version
+
+        newDocInfo.asChild = (formData.placement == "child");     // based on the radiobutton
+        result = await insertDoc(newDocInfo);   // result=true=done+closeDialog false=error occurred
+        if (!result) {
+            alert("Something went wrong with import...!");  // RSTODO should NEVER!!! but still we need better error management
+        }
+    }
+    FG.kmStates.modal = false;
+    _dlgTmp = undefined;            // clear this from memory here AND above (above=so its not around during the whole insertDoc() op)
+    return true;
+}
+function _makeCtxImport2_form(name) {
+    let form = `<form><p><h2>Import document from file</h2></p>`;
+    if (name) {
+form += `
+    <p><h3>Choose where to import document</h3></p>
+    <div id="radioGroup">
+        <label>
+            <input type="radio" name="placement" value="child">
+            As child of <b>${name}</b>
+        </label>
+        <br>
+        <label>
+            <input type="radio" name="placement" value="sibling">
+            Beneath <b>${name}</b>
+        </label>
+    </div>
+    <br>`;
+    }
+form += `
+    <label>Named:</label>&nbsp;<input type="text" name="docName">
+    <br><br><br>
+</form>`;
+    return form;
+}
+
+
+async function onCtxImport2(file) {     // user has selected file, now exlode it and asChild/asSibling and what to name it
     let docName = file.name;
     if (!docName.endsWith(".jldoc")) {
         alert("Filename must end with .jldoc");     // we only enforce it so we can chop it off with impunity
@@ -17,66 +76,25 @@ async function onCtxImport2(file) {     // user has selected file, now ask if th
 
     const abuf = await file.arrayBuffer();
     const u8a = new Uint8Array(abuf);
-    // const dimp = new FG.DocAttacher();
-    // dict2 = dimp.validate(raw);
 
-    let  pkt = WS.makePacket("ValidateDoc");     // first thing we have to do is validate, separate, and upgrade-if-needed this doc
-    pkt.doc = u8a;
-    pkt = await WS.sendWait(pkt);   // returns {ver, uuid, name, doc}  -- this time doc does NOT contain ver, uuid OR name in it
+    _dlgTmp = await FF.upgradeDoc(u8a);     // upgrade from file, (dont yet know version so can't pass it in)
 
-debugger;//RSRESTART HERE after we move the dbUpgrade stuff OUT of the server and BACK to the client!
-    async function onDlgButton(btnLabel, dict) {        // btn pressed when importing a document
-        if (dict.isSubmit) {
-            if (dict.docName.length == 0) {                 // validate
-                alert("Document name cannot be empty");
-                return false;
-            }
-
-            if (!dict.placement) {
-                alert("Please choose whether to import as child or as beneath.");
-                return false;
-            }
-
-            debugger;   dict.uuid = "";     // extract from importing doc from {} = DocAttacher.validate(doc)
-            dict.doc     = "";      // straight from the imported file
-            dict.asChild = (dict.placement == "child");     // based on the radiobutton
-
-            const result = insertDoc(dict);
-            if (!result) {
-                return false;
-            }
-        }
-        FG.kmStates.modal = false;
-        return true;
-    }
-
-    const info = FF.getDocInfo(FG.curDoc.uuid); // get info about doc to insert this one as child of or beneath
-    const form = `
-<form>
-    <p><h3>Choose where to import document</h3></p>
-    <div id="radioGroup">
-        <label>
-            <input type="radio" name="placement" value="child">
-            As child of <b>${info.name}</b>
-        </label>
-        <br>
-        <label>
-            <input type="radio" name="placement" value="sibling">
-            Or beneath <b>${info.name}</b>
-        </label>
-    </div>
-    <br>
-    <label>Named:</label>&nbsp;<input type="text" name="docName">
-    <br>
-</form>`;
-
-    let dict = {
+    const formFields = {
         "docName": docName
     }
 
+    let name = "";
+    if (FG.curDoc) {
+        const info = FF.getDocInfo(FG.curDoc.uuid); // get info about current doc to insert this one as child of or beneath
+        name = info.name;
+    }
+    if (!name) {
+        _dlgTmp.insertAtEnd = true;
+    }
+
     FG.kmStates.modal = true;
-    let dlg = new DFDialog({ onButton: onDlgButton });
-    dlg.open({form:form, fields:dict, buttons: {"Cancel": false, "Import": true}});
+    let dlg = new DFDialog({ onButton: _onCtxImport2_onDlgButton });
+    dlg.open({form:_makeCtxImport2_form(name), fields:formFields, buttons: {"Cancel": false, "Import": true}});
 }
 async function onCtxImport() {
     let dlg;
@@ -299,10 +317,10 @@ function openDocRenamePopup() {
 }
 
 // insert a new doc AND select/open it
-// dict={docName, ?uuid?, doc(u8a), asChild};  uuid=present if IMPORT, NOT if newDoc
+// dict={docName, ?doc(u8a) if import, else null if new, asChild};
 // returns true=success, false=fail
 async function insertDoc(dict) {
-    debugger; if (dict.docName.length == 0) {                 // validate
+    if (dict.docName.length == 0) {                 // validate
         alert("Document name cannot be empty");
         return false;
     }
@@ -314,9 +332,9 @@ async function insertDoc(dict) {
         info = { id:0, parent:0 };      // else insert at very END (at server, 0 matches no id so goes at end)
     }
 
-    if (!dict.uuid) {
-        await FF.newDoc();    // setup NEW FG.curDoc w/empty document and new uuid
-        dict.uuid = FG.curDoc.uuid;
+    await FF.newDoc();    // setup NEW FG.curDoc w/empty document and new uuid (we always need that new uuid here)
+    dict.uuid = FG.curDoc.uuid;
+    if (!dict.doc) {        // if present, is u8a file import block, else make u8a from FF.newDoc() we just called
         let extracter = new FG.DocExtracter();
         let encoder = new DFEncoder();
         let tmp = {
@@ -672,7 +690,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 
 
 FF.loadDoc = async function(uuid, force=false) {                    // returns T/F if doc loaded. (sets curDoc.uuid and .rootDch if True)
-    if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded (RSTODO may need to change when we intro 'bump')
+    if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded
         // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=true");
         return true;
     }
@@ -694,7 +712,7 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
 
     let tmp;
     if (pkt.ver != FG.DOCVERSION) {     // version upgrade required?
-        pkt.doc = await FG.upgradeDoc(pkt.doc, pkt.ver);
+        pkt.doc = await FF.upgradeDoc(pkt.doc, pkt.ver);
         if (pkt.doc.error) {
             alert(pkt.doc.error);
             return false;
@@ -735,7 +753,7 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
 
 
 
-FG.upgradeDoc = async function(u8aDoc, version=null) {    // take binary stream and optional version and returns {uuid,?name?,{dchList:},error}
+FF.upgradeDoc = async function(u8aDoc, version=null) {    // take binary stream and optional version and returns {uuid,?name?,{dchList:},error}
 // we HAVE to pull this here-and-now (IF stream has it!) in order to know what 'explode_n.n_doc.js' to load
 //     and if it doesn't have it, then the passed-in dict.version must be present.
     let dict = { doc:u8aDoc };
