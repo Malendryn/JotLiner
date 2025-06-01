@@ -171,7 +171,7 @@ async function onCtxImport() {
 
 async function _onCtxExport_onDlgButton(btnLabel, dict) {
     let result = false;
-    debugger; if (dict.isSubmit) {
+    if (dict.isSubmit) {
         const blob = new Blob([_dlgTmp], { type: "application/octet-stream" });
         const url = URL.createObjectURL(blob);
 

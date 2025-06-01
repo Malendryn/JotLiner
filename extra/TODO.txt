@@ -3,12 +3,14 @@ Review the licenses and licensed files to make sure everything's in place as it 
 -----------------------------------------------------------------------------------------------------------------------
 checkout quilljs.com as a textEditor plugin
 -----------------------------------------------------------------------------------------------------------------------
+change the encode/decode format to use Maps instead of dicts? so that the leftside can be other-than-strings?  
+   (this will start to reach outside the capabilities of other languages so maybe we better not)
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 test/fix file export-then-import of 2.0 (1.0 and 1.1 now works)
-I think the export to file will keep the same header as 1.0 and 1.1 such as @n.n;\nuu-i-d\nfile-name\n  with BRK being
-'\n'in large part for human readability of at leastthat much,  (head -n 3 <file> would make this very easy to see) 
-followed by the raw binary Uint8Array data exactly as it is in table:doc.content
+export 2.0 now works
+
+as @n.n;\nuu-i-d\nfile-name\nDCHLIST_AS_Uint8Array
 
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

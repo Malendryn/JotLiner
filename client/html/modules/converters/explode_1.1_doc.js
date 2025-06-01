@@ -23,7 +23,7 @@ class DocImporter {
         try {
             this.sr = new StringReader(str);
 
-            this.sr.readToSem();                   // skipover "@1.0;" as already parsed and proven
+            this.sr.readToSem();                   // skipover "@1.1;" as already parsed and proven
             this.dict.uuid = this.sr.readToSem();  // read uuid
 
             this.dict.dchList = [];

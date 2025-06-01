@@ -68,27 +68,6 @@ BF.cmpVersion = function(first, second) { // return -1 if first < second,  0 if 
 }
 
 
-BF.dump1 = function(u8a) {
-    console.log(Array.from(u8a).map(byte => byte.toString(16).padStart(2, '0')).join(' '));
-}
-
-BF.dump2 = function(u8a) {
-    let ss = "";
-    for (let idx = 0; idx < u8a.byteLength; idx++) {
-        if (idx % 16 == 0) {
-            if (ss) {
-                console.log(ss);
-            }
-            ss = idx.toString(16).padStart(4, '0') + " ";
-        } 
-        const byte = u8a[idx];
-        ss += " " + byte.toString(16).padStart(2, '0') + String.fromCharCode(byte);
-    }
-    if (ss) {
-        console.log(ss);
-    }
-}
-
 BF.checkDBName = function(dbName) {
     if (dbName.length === 0) {    // Basic checks
         return "Database name cannot be empty";
@@ -174,6 +153,27 @@ BF.detachDB = async function(client) {
                 }
             }
         }
+    }
+}
+
+BF.dump1 = function(u8a) {
+    console.log(Array.from(u8a).map(byte => byte.toString(16).padStart(2, '0')).join(' '));
+}
+
+BF.dump2 = function(u8a) {
+    let ss = "";
+    for (let idx = 0; idx < u8a.byteLength; idx++) {
+        if (idx % 16 == 0) {
+            if (ss) {
+                console.log(ss);
+            }
+            ss = idx.toString(16).padStart(4, '0') + " ";
+        } 
+        const byte = u8a[idx];
+        ss += " " + byte.toString(16).padStart(2, '0') + String.fromCharCode(byte);
+    }
+    if (ss) {
+        console.log(ss);
     }
 }
 

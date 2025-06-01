@@ -111,13 +111,6 @@ function onDBSelectorChanged(evt) {
     FF.selectDB();
 }
 
-FF.showLS = function() {
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        const value = localStorage.getItem(key);
-        console.log(`${key}: ${value}`);
-    }
-}
 function onMainMenuCallback(action) {
     switch (action) {
         case "newInstance": { onNewInstance(); break; }

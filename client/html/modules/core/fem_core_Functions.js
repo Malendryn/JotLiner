@@ -316,3 +316,32 @@ FF.waitDirty = async function() {
     });
 }
 
+FF.showLS = function() {
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        console.log(`${key}: ${value}`);
+    }
+}
+
+FF.dump1 = function(u8a) {
+    console.log(Array.from(u8a).map(byte => byte.toString(16).padStart(2, '0')).join(' '));
+}
+
+FF.dump2 = function(u8a) {
+    let ss = "";
+    for (let idx = 0; idx < u8a.byteLength; idx++) {
+        if (idx % 16 == 0) {
+            if (ss) {
+                console.log(ss);
+            }
+            ss = idx.toString(16).padStart(4, '0') + " ";
+        } 
+        const byte = u8a[idx];
+        ss += " " + byte.toString(16).padStart(2, '0') + ':' + String.fromCharCode(byte);
+    }
+    if (ss) {
+        console.log(ss);
+    }
+}
+

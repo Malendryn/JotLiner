@@ -19,10 +19,6 @@ WS.makePacket = function(name)  {
 
 WS.parsePacket = function(pair) {         // decode ["className", pktData{} into actual packet
     let [name,dict] = pair;
-    // const idx = stream.indexOf('|');
-    // const name = stream.substring(0, idx);
-    // const tmp = stream.substring(idx + 1);
-    // const dict = JSON.parse(tmp);
     const pkt = new WS.classes[name]();   // create new packet WITHOUT incrementing __id
     Object.assign(pkt, dict);               // copy all stream's dictEls onto packet
     return pkt;

@@ -1,5 +1,8 @@
-2025-05- ------------------------------------------------------------------------------------------------------------
-2025-05-31 ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-01 ------------------------------------------------------------------------------------------------------------
 * many changes occurred on a seperate branch just to handle upgrading all files to the 2.0 format spec, which have 
     only been documented as commit msgs in git.  They basically detail the process such as it's been reguarding the
     whole upgrade procedure but has not otherwise changed the effective way in which the software works.
@@ -8,7 +11,9 @@
     been working to have a validation process on the serverside for importing exported docfiles (.jldoc files) I 
     have re-located the import process to the client,  1) to keep the load off the server and 2) so the server
     effectively has no awareness of the content of the blob.
-
+* got export to 2.0 fileformat working now too
+* got import and export fully working, though it could bear some more testing just to be sure.
+* added a 'DocFileFormat 2.0.odt' file under the extra/docs dir to explain how the new binary format is interpreted
 2025-05-29 ------------------------------------------------------------------------------------------------------------
 * renamed subdir 'dbExporters' to 'converters' as I will be moving the document conversion code (1.0 -> 1.1 -> 1.2)
     code into there as well, and out of the clientside

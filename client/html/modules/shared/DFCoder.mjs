@@ -96,7 +96,7 @@ class DFDecoder {
         this.idx = 0;
     }
 
-    decode() {
+    decode() {  // decode ONE AND ONLY ONE 'value',  repeated calls to this will decode more if more is available
         let [dType,len] = this._parseHeader();
         let val;
         if (dType < 16) {       // 0-15 = types with no datalen
