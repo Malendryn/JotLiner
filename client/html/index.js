@@ -1,9 +1,10 @@
 
 globalThis.FG  = {}; // global 'Frontend Globals' variables   (see fem_core_Globals.js for details)
 globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Functions.js for details)
-globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Shared.js for details)
+// globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Shared.js for details)
 globalThis.DCH = {}; // DocumentComponentHandler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
 globalThis.WS  = {}; // WebSocket and Packet transmit/receive CLASSES, funcs, etc
+globalThis.LS  = {}; // see fem_core_LocalStore.js
 
 WS.wssPort = 3000;      // must match port in server/server.js
 
@@ -31,6 +32,7 @@ window.addEventListener('load', async function() {
     let mod;
     await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate basics of FG
     await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate basics of FF
+    await FF.loadModule("./modules/core/fem_core_LocalStore.js");          // attaches globally as 'LS' 'localStorage' class (for consistency)
     await FF.loadModule("./modules/core/fem_core_DocViewHandler.js");      // handle all the docview and Alt+Shift stuff
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");

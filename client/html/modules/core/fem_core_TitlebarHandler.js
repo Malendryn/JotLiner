@@ -31,41 +31,28 @@ export async function initialize() {    // called from index.js
 
 
 FF.updateDBSelector = async function() {
-    FG.curDBName = localStorage.getItem("curDBName") || "";
     let sel = document.getElementById("dbSelector");
     sel.innerHTML = "";
 
+    
     let opt, pkt = WS.makePacket("GetDBList");
     pkt = await WS.sendWait(pkt);
 
-    for (let idx = localStorage.length - 1; idx >= 0; idx--) {  // delete any stale localStorage refs for deleted db's
-        const key = localStorage.key(idx);
-        if (key.startsWith("curJLDI:")) {
-        // if (key.startsWith("curDBDoc:")) {
-            const wrd = key.split(":")[1];      // split out and capture the dbName from the key
-            if (!pkt.list.includes(wrd))  {     // this database is no longer available...
-                localStorage.removeItem(key);   // ...so remove the localStorage memory of it
-            }
-        }
-    }
-
-    if (pkt.list.includes(FG.curDBName) == false) {  // clear 'current db' if not exists
-        FG.curDBName = "";
-        localStorage.removeItem("curDBName");        // remove name from localstorage
-    }
+    LS.purgeMissing(pkt.list);      // get rid of any storages for db's no longer on the server
+    FG.curDbName = LS.curDb;
 
 // now build the dropdown
-    if (!FG.curDBName) {                      // stick in an option that no db is selected
+    if (!FG.curDbName) {                      // stick in an option that no db is selected
         opt = document.createElement("option");
         opt.text = "No DB Selected";
         opt.disabled = true;
         opt.selected = true;
         sel.appendChild(opt);
     }
-    for (const name of pkt.list) {            // list all available db's and select the one matching FG.curDBName
+    for (const name of pkt.list) {            // list all available db's and select the one matching FG.curDbName
         opt = document.createElement("option");
         opt.text = name;
-        if (name == FG.curDBName) {
+        if (name == FG.curDbName) {
             opt.selected = true;
         }
         sel.appendChild(opt);
@@ -75,18 +62,15 @@ FF.updateDBSelector = async function() {
 
 
 FF.selectDB = async function() {
-    FG.curDBName = localStorage.getItem("curDBName") || ""; // this is the name of db switching TO, not FROM
+    FG.curDbName = LS.curDb; // this is the name of db switching TO, not FROM
 
-console.log(FF.__FILE__(), "FF.selectDB() used to await FF.clearDoc(),  do we still need to?");
-//    await FF.clearDoc(); 
-
-    if (FG.curDBName) {
+    if (FG.curDbName) {
         let pkt = WS.makePacket("SelectDB");            // tell server, waitfor failMsg or null=good
-        pkt.text = FG.curDBName;
+        pkt.text = FG.curDbName;
         pkt = await WS.sendWait(pkt);
         if (pkt.text) {
-            localStorage.removeItem("curDBName");       // something went wrong,  'forget' current DB and popup the msg
-            FG.curDBName = "";
+            LS.curDb = "";              // something went wrong,  'forget' current DB and popup the msg
+            FG.curDbName = LS.curDb;
             alert(pkt.text);
             FF.updateDBSelector();      // to clean out the missing db(s)
         }
@@ -94,10 +78,11 @@ console.log(FF.__FILE__(), "FF.selectDB() used to await FF.clearDoc(),  do we st
 
     await FF.clearDoc();    // clear current doc from memory (fixes issue with FF.selectAndLoadDoc erasing localStorage."curDBDoc:<dbName>")
 
+    FF.setSizerPos(LS.sliderPos);
+
     await FF.loadDocTree();                             // load-and-show docTree for that db
 
-    const uuid = FF.getJLDI("curDoc") || "";
-    // const uuid = localStorage.getItem("curDBDoc:" + FG.curDBName) || "";
+    const uuid = LS.curDoc;
     await FF.selectAndLoadDoc(uuid);
 }
 
@@ -107,7 +92,7 @@ function onDBSelectorChanged(evt) {
     if (dbName == "No DB Selected") {
         dbName = "";
     }
-    localStorage.setItem("curDBName", dbName);
+    LS.curDb = dbName;
     FF.selectDB();
 }
 
@@ -140,8 +125,8 @@ function onNewDB() {
                 return false;
             }
 
-            localStorage.setItem("curDBName", dict.dbName) || "";   // set the new dbname
-            await FF.updateDBSelector();                            // re-fetch the dblist and select new db
+            debugger; LS.curDb = dict.dbName;               // set the new dbname
+            await FF.updateDBSelector();                    // re-fetch the dblist and select new db
             return true;
         }
         return true;        // close dlg on any button

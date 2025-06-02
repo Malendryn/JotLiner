@@ -13,22 +13,22 @@ class DCH_BASE {   // base class of all document components
 static pluginName  = "Unnamed Plugin";  // PLUGIN supplied; the plugin's name as shown in menus and command modes
 static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName is hovered over in menus (skipped if null)
 
-       srcUrl      = "";   // SYSTEM supplied; (do not change!) relative url to module's subdir (so can access own icons, etc...)
+    srcUrl      = "";      // SYSTEM supplied; (do not change!) relative url to module's subdir (so can access own icons, etc...)
 
 ////////// vars extending classes MUST provide on their own!  /////////////////////////////////////////////////////////
-    hasToolbar = false;     // true = create this.toolbar' @ construction
+    hasToolbar = false;    // true = create this.toolbar' @ construction
 
 // *** these next few are where inheriting classes add their own html elements.  these should never be modified in any other way. ***
-    host    = null;    // ownedBy BASE. an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
-    toolbar = null;    // ownedBy BASE. if hasToolbar: an 'absolute' <div> where child classes add 'icons and toolbar stuff' to
-                     // for listeners, use this.addDCHListener() & this.removeDCHListener...()  so dch can autoremove when destroying
+    host    = null;        // ownedBy BASE. an 'absolute' <div> where child classes add visual elements (like <textarea> etc)
+    toolbar = null;        // ownedBy BASE. if hasToolbar: an 'absolute' <div> where child classes add 'icons and toolbar stuff' to
+                           // for listeners, use this.addDCHListener() & this.removeDCHListener...()  so dch can autoremove when destroying
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // child-CAN-IMPLEMENT functions -------------------------------------------------------------------------------------
 // ****NOTE it is CRITICAL that these functions fully complete their ops before returning (EG must be async/await)
     async construct()      {}   // called by static create() after this.host created and saved styles applied
-                                  // if data != null, it contains a {} of data to be put on 'this' as properties
-                                  // in here is where to add your own <el>s and listeners to .host, etc..
+                                   // if data != null, it contains a {} of data to be put on 'this' as properties
+                                   // in here is where to add your own <el>s and listeners to .host, etc..
     async destruct()       {}   // called immediately before removing all listeners and html, and destroying object
     async importData(data) {}   // data = key-value pairs to populate this component with. NOTE: Calls Object.assign if NOT overridden
     async exportData()     {}   // RETURNS:  an object of key-value pairs to be preserved/exported

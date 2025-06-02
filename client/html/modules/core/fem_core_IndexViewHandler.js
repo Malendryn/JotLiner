@@ -474,7 +474,7 @@ async function showDocTree() { // build <UL> to display in left index pane
     let ul = document.getElementById("divIndexViewUL");
     ul.innerHTML = "";                                      // blow out any prior menus
 
-    let opened = FF.getJLDI("idxpanded") || [];  // JLDI = JotLiner Doc Info, 'index expanded' list
+    let opened = LS.openIndexes;
 
     let nuOpened = [];
     for (let idx = 0; idx < FG.docTree.length; idx++) {
@@ -510,7 +510,7 @@ async function showDocTree() { // build <UL> to display in left index pane
             }
         }
     } // end for
-    FF.setJLDI("idxpanded", nuOpened);
+    LS.openIndexes = nuOpened;
 }
 
 
@@ -569,8 +569,7 @@ function onClickULItem(evt) {
 async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
     evt.preventDefault();
     if (!FG.kmStates.modal) {
-        FF.setJLDI("curDoc", undefined);
-        // localStorage.removeItem("curDBDoc:" + FG.curDBName);
+        debugger; LS.curDoc = null;
         await FF.selectAndLoadDoc('');
     }
 }
@@ -691,8 +690,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     if (FG.curDoc) {                                    // if we had a doc currently selected
         if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
             await FF.clearDoc();                        // nuke it!
-            FF.setJLDI("curDoc", undefined);
-            // localStorage.removeItem("curDBDoc:" + FG.curDBName);  // delete our memory of it too
+            debugger; LS.curDoc = null;
         }
     }
     showDocTree();
@@ -753,10 +751,7 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
         dirty:   false,
     };
 
-    FF.setJLDI("curDoc", uuid);
-    // localStorage.setItem("curDBDoc:" + FG.curDBName, uuid); // set uuid as currently selected/loaded doc
-
-    // console.log(FF.__FILE__(), "FF.loadDoc curDoc=", FG.curDoc);
+    LS.curDoc = uuid;
 
     return true;
 }

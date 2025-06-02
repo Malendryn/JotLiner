@@ -6,21 +6,21 @@ checkout quilljs.com as a textEditor plugin
 change the encode/decode format to use Maps instead of dicts? so that the leftside can be other-than-strings?  
    (this will start to reach outside the capabilities of other languages so maybe we better not)
 -----------------------------------------------------------------------------------------------------------------------
+remove 'open new instance' from menu (its a browser, just rightclick and duplicate)
 -----------------------------------------------------------------------------------------------------------------------
-test/fix file export-then-import of 2.0 (1.0 and 1.1 now works)
-export 2.0 now works
+change set/getJLDI to setStore getStore and make it more 'defined'
+    each 'store' is based on current db (FG.curDbName)
+    in each store is {
+        idxpanded:[n]   // list of opened index <selects. (by recId)
+        curDoc:uu-i-d;
+    }
+    dbname:
 
-as @n.n;\nuu-i-d\nfile-name\nDCHLIST_AS_Uint8Array
-
+-----------------------------------------------------------------------------------------------------------------------
+with the new LocalStore class we can get rid of FG.curDbName (now LS.curDb)  and maybe a few other refs that are now in 
+    LocalStore  (EG: search for LS.curdoc as there are places that have const uuid=LS.curDoc)
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------
-we have this complex classbuider for passing back what is nothing more than dicts of data with a name attached
-lets instead just pass a dict and have one field _pktName and there, get rid of ALL that other classmaking crap!
-
-NO NO NO BUT!!!!, keep the class system cuz I really like having automated .prototype.process() handlers hanging off it rather than
-an external decisionmaker function based on packetname -- but lets have another look at it anyways and see if we 
-can improve upon the design?  or at least on the 'howto register' part, cuz that's kinda ugly!
 -----------------------------------------------------------------------------------------------------------------------
 consider making a conscious decision to stop calling things client/server OR to stop calling them backend/frontend,
 (pick one, not toggle between both!)  99% of the code is calling it Back/Front and that would be a massive painful
@@ -28,27 +28,8 @@ consider making a conscious decision to stop calling things client/server OR to 
 -----------------------------------------------------------------------------------------------------------------------
 consider changing version naming such that N is for dbupdates, N.N is for docversions and N.N.N is for software versions
 -----------------------------------------------------------------------------------------------------------------------
+We need an import/export database now too
 -----------------------------------------------------------------------------------------------------------------------
-in 2.0 we are going to DROP THE UUID from the export, (or at least, ignore it during import!)
------------------------------------------------------------------------------------------------------------------------
-so to migrate the database:
-3 -> 4 -> 5  now done, but think about export:
-
-upcoming comment for CHANGELOG.txt:
-    
-* as a subpart of the 4->5 conversion we're adding the doc name to the doc export functions.  so at the head of the export
-   instead of just @1.1;uu-i-d;  we'll have @1.1;uu-i-d;This is my \;test\; doc;  (introducing escaped charcodes now too)
-
-
-
-we must make sure it's all valid text and maybe doesn't use semicolons?  (either
-that or we need to start supporting escaped semicolons!)
-
-I thought about b64encoding it but it would be nice to see the docname in a text editor!
-
-maybe we should focus on export/import first so we understand the logic better?
-
-=============================when updating the docFileFormat don't forget to do both import and export!===============
 
 5->6
 *) add 'bump' to every table
@@ -76,18 +57,17 @@ B) once we do this, go repair the "HOWTO create a plugin.odt" file too
 Come up with a simple WS packet for plugins to use,  something that can create/delete tables in the DB so that they
 never have to modify the server or client .js in order to add features to the serverside
 -----------------------------------------------------------------------------------------------------------------------
-creating a simple painter plugin as an example,  howto/what to change/what to do.
-I don't have an 'auto .css' loader so I have to add that.  
-    rules:  its name must mach the plugin so for ./TPAINT/dch_TPAINT.js we have dch_TPAINT.css
-        this needs to be tracked so that it is removed from <head> when doc is cleared OR the last dch_<module> of this
-        type is deleted from the module
-
------------------------------------------------------------------------------------------------------------------------
 WHAT IF FOR allowing plugins to have DB recs of their own, we simply had them pass us a dict, and we created a table
 for them based on that dict. (which must also include a vernum perhaps AND an id field)  and then they could upgrade
 by passing us a new dict with a new vernum and we parsed it and figured out what needed to be done to migrate from
 that old format to the new one.  (which may be easier by creating a whole new table in a 
 one-time-only pull-from-old,writeto-new,nuke-old)
+
+if we did this I think  we'll keep to an 'extra' tabletype where they can just insert key/values BUT we'd actuall have
+a few more fields like uuid (to keep their values linked to their document) and someOtherKey that is explicit to their
+plugin (cuz multiple plugins per dch)  and in that way we isolate their specific content to their specific plugin
+and just ask them to use a 'pathing' style of keying like registry keys like one/two/three/data = foo
+
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 minor quirk in that when rightpane is useless (no doc selected) alt+shift shouldn't do ANYthing at all.  (right now

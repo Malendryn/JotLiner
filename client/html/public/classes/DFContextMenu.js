@@ -36,7 +36,7 @@ Basic usage:
 */
 
 class DFContextMenu {
-//  constructor(dict={styles:[]})
+//  constructor(dict={styles:[]})  see bottom of class
 
     async open(entries, callback, locX, locY) {
         for (let idx = 0; idx < this._styles.length; idx++) {

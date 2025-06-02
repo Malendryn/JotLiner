@@ -2,6 +2,9 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
+* got rid of set/getJLDI() and replaced with a new LocalStore class that encapsulates the job much better now
+* now remembers slider position based on current db selected
+
 2025-06-01 ------------------------------------------------------------------------------------------------------------
 * many changes occurred on a seperate branch just to handle upgrading all files to the 2.0 format spec, which have 
     only been documented as commit msgs in git.  They basically detail the process such as it's been reguarding the

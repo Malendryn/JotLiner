@@ -120,6 +120,8 @@ Functions within the class:
 */
 
 class DFDialog {
+//  constructor(opts = {})   see bottom of class
+
 // functions callable after new  (stubbed here for clarity, defined in detail below)
     async open(html, data, buttons = null) {}
     async close() {}
@@ -129,13 +131,6 @@ class DFDialog {
     async postRun() {}
     async onButton(label, dict) { return true; }
           onClose() {}
-
-    constructor(opts = {}) {
-        if (opts.preRun)   { this.preRun   = opts.preRun;   }
-        if (opts.postRun)  { this.postRun  = opts.postRun;  }
-        if (opts.onButton) { this.onButton = opts.onButton; }
-        if (opts.onClose)  { this.onClose  = opts.onClose;  }
-    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal values and functions, beyond this point is for the class itself
@@ -390,6 +385,13 @@ class DFDialog {
             }
         }
     };
+
+    constructor(opts = {}) {
+        if (opts.preRun)   { this.preRun   = opts.preRun;   }
+        if (opts.postRun)  { this.postRun  = opts.postRun;  }
+        if (opts.onButton) { this.onButton = opts.onButton; }
+        if (opts.onClose)  { this.onClose  = opts.onClose;  }
+    }
 };
 export { DFDialog };
 

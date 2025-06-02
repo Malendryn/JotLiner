@@ -1044,32 +1044,31 @@ function testInDocView(evt) {
     FG.kmStates.inDocView = evt.clientX >= rect.left && evt.clientX <= rect.right
              && evt.clientY >= rect.top && evt.clientY <= rect.bottom;
 }
+
+
+FF.setSizerPos = function(pos) {
+    if (pos > 48 && pos < 1200 ) {       // prevent overshrinking/expanding 
+        const elL = document.getElementById("divIndexView");
+        const elM = document.getElementById("divIndexDocSizer");
+        const elR = document.getElementById("divDocView");
+        let elMBox = elM.getBoundingClientRect();
+        elL.style.width = (pos) + "px";                 // set width of divIndexView
+        elM.style.left  = (pos) + "px";                 // set left  of divIndexDocSizer
+        elR.style.left  = (pos + elMBox.width) + "px";  // set left  of divDocView
+    }
+}
+
+
 function onTkmMouseMove(evt) {
     testInDocView(evt);
     if (sizerStartPos) {                //check/move dragging sizerBar BEFORE checking inDocView
         const m = sizerStartPos;
         const deltaX = (evt.screenX - m.startX);
-        const deltaY = (evt.screenY - m.startY);
-        const tmp = m.dragBarLeft + deltaX;
-        if (tmp > 48 && tmp < 1200 ) {       // prevent overshrinking/expanding 
-            const elL = document.getElementById("divIndexView");
-            const elM = document.getElementById("divIndexDocSizer");
-            const elR = document.getElementById("divDocView");
-
-            elR.style.left  = (m.dragBarLeft + m.dragBarWidth + deltaX) + "px";  // set left  of divDocView
-            elM.style.left  = (m.dragBarLeft + deltaX) + "px";                   // set left  of divIndexDocSizer
-            elL.style.width = (m.dragBarLeft + deltaX) + "px";                   // set width of divIndexView
-        }
-        // evt.stopPropagation();
-        // evt.preventDefault();
+        FF.setSizerPos(m.dragBarLeft + deltaX);
         return;
     }
     
     const docDiv = document.getElementById("divDocView");
-    // if (!FG.kmStates.modal) {
-    //     console.log(FF.__FILE__(), "onTkmMouseMOve inDocView=", docDiv.contains(evt.target));
-    //     setKMState({ "inDocView": docDiv.contains(evt.target) });
-    // }
     if (!FG.kmStates.inDocView) {
         return;
     }
@@ -1083,6 +1082,10 @@ function onTkmMouseUp(evt) {
     if (sizerStartPos) {
         const el = document.getElementById("divIndexDocSizer");
         el.style.cursor = "";
+
+        const m = sizerStartPos;
+        const deltaX = (evt.screenX - m.startX);
+        LS.sliderPos = m.dragBarLeft + deltaX;          // store the posn before nulling
         sizerStartPos = null;
     } else {
         const states = {};
