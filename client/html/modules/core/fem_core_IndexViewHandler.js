@@ -569,7 +569,7 @@ function onClickULItem(evt) {
 async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
     evt.preventDefault();
     if (!FG.kmStates.modal) {
-        debugger; LS.curDoc = null;
+        LS.curDoc = null;
         await FF.selectAndLoadDoc('');
     }
 }

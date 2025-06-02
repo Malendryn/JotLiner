@@ -1,11 +1,21 @@
 import { DFMenuBar } from "/public/classes/DFContextMenu.js";
 import { DFDialog } from "/public/classes/DFDialog.js";
 
-let _mmHandle;
+
+export async function initialize() {    // called from index.js
+    let mBar = new DFMenuBar();                                // install the menubar
+    let el = document.getElementById("mainMenuBar");
+    await mBar.open(el, mainMenu, onMainMenuCallback);
+
+    let sel = document.getElementById("dbSelector");
+    sel.addEventListener("change", onDBSelectorChanged)
+
+    FF.updateDBSelector();      // get available dbs from server, populate dbDropdown in titlebar, fireup FF.selectDB() workhorse!
+}
+
 
 const mainMenu = {
     File: [
-        { label: "Open new instance",      action: "newInstance", tip: "Open another copy of this program in a new window" },
         { label: "Create new database",    action: "newDB",       tip: "Create a new database" },
         { label: "Import database",        action: "importDB",    tip: "Import an exported database under a new name" },
         { label: "Export database",        action: "exportDB",    tip: "Export current database to a file" },
@@ -17,17 +27,6 @@ const mainMenu = {
         { label: "License",      action: "license",  tip: "Show information about the AGPL3 license" },
     ]
 };
-
-export async function initialize() {    // called from index.js
-    _mmHandle = new DFMenuBar();                                // install the menubar
-    let el = document.getElementById("mainMenuBar");
-    await _mmHandle.open(el, mainMenu, onMainMenuCallback);
-
-    let sel = document.getElementById("dbSelector");
-    sel.addEventListener("change", onDBSelectorChanged)
-
-    FF.updateDBSelector();      // get available dbs from server, populate dbDropdown in titlebar, fireup FF.selectDB() workhorse!
-}
 
 
 FF.updateDBSelector = async function() {

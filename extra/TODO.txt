@@ -3,19 +3,7 @@ Review the licenses and licensed files to make sure everything's in place as it 
 -----------------------------------------------------------------------------------------------------------------------
 checkout quilljs.com as a textEditor plugin
 -----------------------------------------------------------------------------------------------------------------------
-change the encode/decode format to use Maps instead of dicts? so that the leftside can be other-than-strings?  
-   (this will start to reach outside the capabilities of other languages so maybe we better not)
------------------------------------------------------------------------------------------------------------------------
-remove 'open new instance' from menu (its a browser, just rightclick and duplicate)
------------------------------------------------------------------------------------------------------------------------
-change set/getJLDI to setStore getStore and make it more 'defined'
-    each 'store' is based on current db (FG.curDbName)
-    in each store is {
-        idxpanded:[n]   // list of opened index <selects. (by recId)
-        curDoc:uu-i-d;
-    }
-    dbname:
-
+add copy/paste  (see cherrytree about https)
 -----------------------------------------------------------------------------------------------------------------------
 with the new LocalStore class we can get rid of FG.curDbName (now LS.curDb)  and maybe a few other refs that are now in 
     LocalStore  (EG: search for LS.curdoc as there are places that have const uuid=LS.curDoc)
