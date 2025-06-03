@@ -1,6 +1,9 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-03 ------------------------------------------------------------------------------------------------------------
+* experimented with fleshing out both a CK4 and CK5 editor plugin.  Ran into problems with CK4 that will probably
+    eliminate that one as a possibility but only just started testing with CK5
+
 2025-06-02 ------------------------------------------------------------------------------------------------------------
 * got rid of set/getJLDI() and replaced with a new LocalStore class that encapsulates the job much better now
 * now remembers slider position based on current db selected

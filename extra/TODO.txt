@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
-checkout quilljs.com as a textEditor plugin
+PLUGIN:  Shopping list!   one of the few 'phone-capable' plugins
 -----------------------------------------------------------------------------------------------------------------------
 add copy/paste  (see cherrytree about https)
 -----------------------------------------------------------------------------------------------------------------------
@@ -15,8 +15,6 @@ consider making a conscious decision to stop calling things client/server OR to 
     change!
 -----------------------------------------------------------------------------------------------------------------------
 consider changing version naming such that N is for dbupdates, N.N is for docversions and N.N.N is for software versions
------------------------------------------------------------------------------------------------------------------------
-We need an import/export database now too
 -----------------------------------------------------------------------------------------------------------------------
 
 5->6
@@ -60,8 +58,6 @@ and just ask them to use a 'pathing' style of keying like registry keys like one
 -----------------------------------------------------------------------------------------------------------------------
 minor quirk in that when rightpane is useless (no doc selected) alt+shift shouldn't do ANYthing at all.  (right now
 it's taking over the titlebar/toolbar)
------------------------------------------------------------------------------------------------------------------------
-the position of the seperator dragbar between index and doc views needs to be recorded in localStorage on a per-database level
 -----------------------------------------------------------------------------------------------------------------------
 Would it make sense to put autoSave into DCH_BASE?  if we did we could make the default timeout different per-plugin!
 -----------------------------------------------------------------------------------------------------------------------

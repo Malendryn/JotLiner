@@ -25,6 +25,16 @@ FF.loadModule = async (modulePath) => {
 };
 
 
+function __onError(message, source, lineno, colno, error) {
+    debugger;
+}
+window.onerror = __onError;
+
+function __onUnhandledRejection(err) {
+    debugger;
+}
+window.onunhandledrejection = __onUnhandledRejection;
+
 window.addEventListener('load', async function() {
     let el = this.document.getElementById("divIndexDocSizer");
     el._dchMouseOp = "idx<>doc";
@@ -50,20 +60,19 @@ window.addEventListener('load', async function() {
     pkt = WS.makePacket("GetDCHList");     // first thing we have to do is get the list of DCH handlers
     pkt = await WS.sendWait(pkt);
 
-    for (const dchName of pkt.list) {   // let system know about the dch's available, (hotloaded inside DCH_BASE)
-        DCH[dchName] = null;
+// NO!  This way will not give me access to the static vars I need for the menu options and tooltips    
+    // for (const dchName of pkt.list) {   // let system know about the dch's available, (hotloaded inside DCH_BASE)
+    //     DCH[dchName] = null;
+    // }
+// YES!  This way gives me access to the static vars I need for the menu options and tooltips    
+    for (const dchName of pkt.list) {                       // DONT use pkt.list.forEach() here cuz 'await' won't work inside loop
+        const path = "./modules/DocComponentHandlers/" + dchName;
+        if (!DCH.hasOwnProperty(dchName)) {                 // load the module(plugin) if not already loaded
+            let mod = await FF.loadModule(path + "/dch_" + dchName + ".js")
+            let dch = mod.DCH;                              // get class out of module, discard module
+            DCH[dchName] = { dchClass:dch, srcUrl:path } ;
+        }
     }
-
-// // used to load handlers 'as needed' but since I need a list of their names I changed it to load them all here and now
-// // RSTODO consider adding a packet to simply fetch modulenames    
-//     for (const dchName of pkt.list) {                       // DONT use pkt.list.forEach() here cuz 'await' won't work inside loop
-//         const path = "./modules/DocComponentHandlers/" + dchName;
-//         if (!DCH.hasOwnProperty(dchName)) {                 // load the module(plugin) if not already loaded
-//             let mod = await FF.loadModule(path + "/dch_" + dchName + ".js")
-//             let dch = mod.DCH;                              // get class out of module, discard module
-//             DCH[dchName] = { dchClass:dch, srcUrl:path } ;
-//         }
-//     }
 
     await FF.loadModule("./modules/core/fem_core_IndexViewHandler.js");         // handler for the leftside divIndexView
     mod = await FF.loadModule("./modules/core/fem_core_TitlebarHandler.js");  // File/Edit/Help etc... menubar handler, dbselector, etc...

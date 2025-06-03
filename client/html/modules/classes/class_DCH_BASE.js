@@ -77,11 +77,12 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
         }
         let dch;
         try {
-            if (DCH[dchName] == null) {         // hotload dch first time it's used
-                const path = "./modules/DocComponentHandlers/" + dchName ;
-                const mod = await FF.loadModule(path + "/dch_" + dchName + ".js");
-                DCH[dchName] = { dchClass:mod.DCH, srcUrl:path };
-            }
+// NO!  Loading modules must happen in index.js.  HERE I lose access to static vars for the menu options and tooltips 
+            // if (DCH[dchName] == null) {         // hotload dch first time it's used
+            //     const path = "./modules/DocComponentHandlers/" + dchName ;
+            //     const mod = await FF.loadModule(path + "/dch_" + dchName + ".js");
+            //     DCH[dchName] = { dchClass:mod.DCH, srcUrl:path };
+            // }
 
             dch = new DCH[dchName].dchClass();        // create handler, do nothing else!
         } catch (err) {

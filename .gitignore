@@ -9,6 +9,11 @@ server/db/*.db
 !server/db/example.db
 !server/db/Getting\ Started.db
 
+# symlinks to plugins that live in other repo's outside this local clone
+# (since they are symlinks git sees files not subdirs so we don't put / at end)
+client/html/modules/DocComponentHandlers/CK4
+client/html/modules/DocComponentHandlers/CK5
+
 # extra stuff
 # handles .cherrytree.ctb~ etc
 extra/**/*~

@@ -1,7 +1,8 @@
 -----------------------------------------------------------------------------------------------------------------------
-when import to 1.1 finished, remove parseInt( in dch.BOX.js line 31)
+problem,  I moved the plugin loader into DCH_BASE again, but didn't realize that by doing so I've lost the access to the 
+static vars
+I guess I shouldn't be concerned because even a plugin like CK4 only took 768K
 -----------------------------------------------------------------------------------------------------------------------
-when painting, then change doc too quick (< 1 second) painting doesnt autosave.  is this true for other plugins too?
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 when client fails connection to server, it does not actually reconnect (though it does say 'reconnecting...')
