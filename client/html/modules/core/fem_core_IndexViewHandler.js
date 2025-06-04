@@ -5,7 +5,7 @@ import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
-import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";
+import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 
 let _dlgTmp;    // used to exfer exploded file to _onCtxImport2_onDlgButton()  {?name?,{dchList:},error}
 async function _onCtxImport2_onDlgButton(btnLabel, formData) {        // btn pressed in 2nd dialog (child/sibling and rename)

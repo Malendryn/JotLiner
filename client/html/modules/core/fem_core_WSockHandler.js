@@ -1,6 +1,6 @@
 // globalThis.WS = {} is defined already.  (see index.js or server.js)
 
-import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";
+import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 
 WS.__waitList = {};  // dict of packetId: [TimeInserted, callback]
 

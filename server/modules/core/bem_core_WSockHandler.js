@@ -1,6 +1,6 @@
 // globalThis.WS = {} must be defined already.  (see index.js or server.js)
 
-import { DFEncoder, DFDecoder } from "../../../client/html/modules/shared/DFCoder.mjs";
+import { DFEncoder, DFDecoder } from "../../../client/html/public/classes/DFCoder.mjs";
 
 export async function init() {                      // load, init, and establish wss before returning
     return new Promise(async (resolve, reject) => {

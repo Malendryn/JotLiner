@@ -1,4 +1,21 @@
 -----------------------------------------------------------------------------------------------------------------------
+id = addStyle()  use hash to see if its already inserted  (only hash the innerHTML of <style> cuz we're adding tags like
+    data-dchId="" data-dchHash="" data-dchCt="33" data-dchHId="")
+
+    dchId is what was returned
+    dchHash is the hash of its innerHTML (after trimming)
+    dchCt is the # of times it was added (prevents duplication)
+    dchHId = 'hidden' id specific to this plugin/popup etc so that when we kill the plugin/popup we can remove ALL 
+    styles added by this unit safely
+
+    maybe better to just use data-dchHId and remove dchCt entirely so that if this is a list[] we just repeatedly add
+    the same hid and just delete them all when nuking the plugin
+
+    
+
+adds to shadow if a shadowplugin or to <head> if a nonshadowplugin
+
+-----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
 PLUGIN:  Shopping list!   one of the few 'phone-capable' plugins

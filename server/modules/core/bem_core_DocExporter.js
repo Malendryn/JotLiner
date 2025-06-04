@@ -18,7 +18,7 @@ const exp = new DocExporter();
 Uint8Array = exp.export(dict);  where dict is:
 */
 
-import { DFEncoder, DFDecoder } from "../../../client/html/modules/shared/DFCoder.mjs";
+import { DFEncoder, DFDecoder } from "../../../client/html/public/classes/DFCoder.mjs";
 
 BF.DocExporter = class DocExporter {
     async export(dict) {

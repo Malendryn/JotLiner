@@ -1,7 +1,7 @@
 
 // explode contents of docstream into a dict (see bem_core_DocExporter.js for dict construction)
 
-import { DFEncoder,DFDecoder } from "/modules/shared/DFCoder.mjs";
+import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 
 
 export async function explode(dict) {  // see bem_core_DocExploder.js for definition of dict

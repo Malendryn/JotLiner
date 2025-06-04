@@ -19,7 +19,7 @@ const dict = {
 
 */
 
-import { DFEncoder, DFDecoder } from "../shared/DFCoder.mjs";
+import { DFEncoder, DFDecoder } from "/public/classes/DFCoder.mjs";
 
 export class DocExporter {
     async export(dict) {

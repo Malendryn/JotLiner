@@ -1,0 +1,3 @@
+x = new class {
+    
+}

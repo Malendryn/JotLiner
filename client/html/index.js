@@ -52,6 +52,8 @@ window.addEventListener('load', async function() {
     mod = await FF.loadModule("./modules/core/fem_core_DocExtracter.js");   // extracts FG.curDoc into { uuid,name,dchList }
     FG.DocExtracter = mod.DocExtracter
 
+    await FF.loadModule("./public/classes/DFSingleFire.js");      // for packets sent from backend that are not expect/wait responses
+
     let pkt = WS.makePacket("GetBackendInfo");
     pkt = await WS.sendWait(pkt);
     FG.VERSION = pkt.version;

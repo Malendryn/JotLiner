@@ -3,6 +3,8 @@
 2025-06-03 ------------------------------------------------------------------------------------------------------------
 * experimented with fleshing out both a CK4 and CK5 editor plugin.  Ran into problems with CK4 that will probably
     eliminate that one as a possibility but only just started testing with CK5
+* added new class 'DFSingleFire.js' intended to supercede DFTracker.js as a more generic way to 'oneshot' function
+    calls like addEventListener and removeEventlistener, but allso addStyle/removeStyle etc etc...
 
 2025-06-02 ------------------------------------------------------------------------------------------------------------
 * got rid of set/getJLDI() and replaced with a new LocalStore class that encapsulates the job much better now

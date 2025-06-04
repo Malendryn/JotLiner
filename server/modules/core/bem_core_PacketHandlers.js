@@ -2,7 +2,7 @@
 import fs from "fs"; //'node:fs/promises'; <-- this works too
 import path from "path";
 
-import { DFEncoder, DFDecoder } from "../../../client/html/modules/shared/DFCoder.mjs";
+import { DFEncoder, DFDecoder } from "../../../client/html/public/classes/DFCoder.mjs";
 
 //debugger; // only way to break during module load, brkpoints don't cut it!
 function logPkt(name) {
