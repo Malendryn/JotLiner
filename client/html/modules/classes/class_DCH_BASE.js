@@ -38,7 +38,9 @@ static menuTooltip = null; // PLUGIN supplied;  tooltip to show when pluginName 
     onMove()    {}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // baseclass helper properties and functions for convenience ----------------------------------------------------------
-    tracker  = new DFListenerTracker(); // see below under 'listener add/remove functions'
+    constructor() {     // RSTODO move all the other 'on class' defines into here, supposedly it's 'the right way'
+        this.tracker  = new DFListenerTracker(); // see below under 'listener add/remove functions'
+    }
 
     async loadStyle(str) {} // loads a "<style></style>" text block or a .css file if str is a URL string and places it at
                             // the very top of the this.host <div>

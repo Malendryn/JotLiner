@@ -1,5 +1,10 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-04 ------------------------------------------------------------------------------------------------------------
+* added "sourceMaps" and "resolveSourceMapLocation" into launch.json (local change only but refed here for my own note)
+    to resolve a problem with CK5 loading from the weblink and complaining about vanilla-colorful math.js.map missing
+* added new classes DFStyleTracker.js and DFListenerTracker.js that now use DFSingleFire.js to control 'perform once'
+    operations like loading a stylesheet or adding an eventlistener with the same parameters
+    
 2025-06-03 ------------------------------------------------------------------------------------------------------------
 * experimented with fleshing out both a CK4 and CK5 editor plugin.  Ran into problems with CK4 that will probably
     eliminate that one as a possibility but only just started testing with CK5

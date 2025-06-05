@@ -7,10 +7,11 @@
  *
  * This program is distributed WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
+*/
+/*
 usage:
     const tracker = new DFListenerTracker();
-    const id = tracker.add(button, "click", onClick);
+    const id = tracker.add(buttonEl, "click", onClick, true);
     tracker.remove(id);
     tracker.removeAll();
 
@@ -38,6 +39,44 @@ usage:
     
 */
 
+import { DFSingleFire } from "./DFSingleFire.js"
+
+export class DFListenerTracker {
+    constructor() {
+         this.sf = new DFSingleFire();
+    }
+
+    async add(el, type, cb, opts = false) {
+        const dict = { el, type, cb, opts };
+        return await this.sf.add(dict, this._add, this._remove);
+    }
+
+    async _add(payload) {
+        const el = payload.el;
+        const type = payload.type;
+        const cb = payload.cb;
+        const opts = payload.opts;
+        el.addEventListener(type, cb, opts);
+    }
+
+    async remove(id) {
+        return await this.sf.remove(id);
+    }
+
+    async _remove(payload) {
+        const el = payload.el;
+        const type = payload.type;
+        const cb = payload.cb;
+        const opts = payload.opts;
+        el.removeEventListener(type, cb, opts);
+    }
+
+    async removeAll() {
+        await this.sf.removeAll();
+    }
+}
+
+/*
 class DFListenerTracker {
     add(el, type, cb, opts = false) {
         const idx = this._findListener(el, type, cb, opts);  // Find if this exact listener already exists
@@ -96,3 +135,4 @@ class DFListenerTracker {
     }
 }
 export { DFListenerTracker };
+/**/
