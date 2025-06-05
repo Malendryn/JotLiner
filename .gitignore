@@ -33,6 +33,10 @@ package-lock.json
 .vscode/
 code.code-workspace
 
+# dont git these as users should create their own.  (shouldnt even BE in this subdir in fact!)
+server/localhost.key.pem
+server/localhost.cert.pem
+
 # Logs
 logs
 *.log

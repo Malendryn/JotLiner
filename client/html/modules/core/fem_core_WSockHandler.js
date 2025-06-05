@@ -7,7 +7,15 @@ WS.__waitList = {};  // dict of packetId: [TimeInserted, callback]
 
 export async function init() {          // load, init, and establish connection to client before returning (RSTODO RSFIX could fail if remote!)
     return new Promise((resolve, reject) => {
-        const wsUrl = "ws://localhost:" + WS.wssPort;
+        let wsProtocol = "ws";
+        let wsHost     = location.host;
+
+
+        if (location.protocol == "https:") {
+            wsProtocol = "wss";
+        }
+        const wsUrl = wsProtocol + "://" + wsHost + "/" + WS.wssPort;
+
         console.log("WebSocket connecting to ", wsUrl, "...");
         
         WS.ws = new WebSocket(wsUrl);               // Connect to the same port as the Express server  RSTODO RSFIX retry if fail

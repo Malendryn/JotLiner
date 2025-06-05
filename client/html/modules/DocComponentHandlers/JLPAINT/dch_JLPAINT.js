@@ -13,13 +13,12 @@ const html = `
     <button id="saveCanvas">Save as PNG</button>
   </div>`;
 
-  import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+  import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
 
-  class DCH_JLPAINT extends DCH_BASE {
-    static pluginName  = "Simple Painter Plugin";
-    static menuTooltip = "A basic painting node for learning how to make your own plugins";
-
-    hasToolbar = true;  // without this the class would have no toolbar!
+  class DCH_JLPAINT extends DCH_ShadowBASE {
+    static pluginName    = "Simple Painter Plugin";
+    static pluginTooltip = "A basic painting node for learning how to make your own plugins";
+    static hasToolbar    = true;  // without this the class would have no toolbar!
 
     canvas;         // handle to <canvas> DOMelement
     ctx;            // handle to canvas 2dContext
@@ -132,4 +131,4 @@ const html = `
         this.oldcvH = this.canvas.height;
     }
 };
-export { DCH_JLPAINT as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH
+export { DCH_JLPAINT as DCH };      // always export 'as DCH' so DCH_<type>BASE can load-on-the-fly and attach to globalThis.DCH

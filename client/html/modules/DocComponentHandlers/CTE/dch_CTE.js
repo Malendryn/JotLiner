@@ -4,15 +4,15 @@
 
 //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
 
-import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
 
-class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
-    hasToolbar = true;
-
-    el;                     // becomes childof this.host and is a "div" that is "contexteditable"  (see construct())
+class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
 
     static pluginName    = "RichText CTE Editor";
-    static menuTooltip = "A RichText-like editor built using a contenteditable <div>";
+    static pluginTooltip = "A RichText-like editor built using a contenteditable <div>";
+    static hasToolbar    = true;
+
+    el;                     // becomes childof this.host and is a "div" that is "contexteditable"  (see construct())
 
     states = {              // RSTODO current state of buttons based on where cursor is
         "bold": false,
@@ -99,4 +99,4 @@ class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor
         FF.autoSave();
     }
 };
-export { DCH_CTE as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH
+export { DCH_CTE as DCH };      // always export 'as DCH' so DCH_<type>BASE can load-on-the-fly and attach to globalThis.DCH

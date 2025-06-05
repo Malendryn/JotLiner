@@ -81,7 +81,7 @@ FF.selectDB = async function() {
 
     await FF.loadDocTree();                             // load-and-show docTree for that db
 
-    const uuid = LS.curDoc;
+    const uuid = (LS.curDoc && LS.curDoc) || "";
     await FF.selectAndLoadDoc(uuid);
 }
 

@@ -1,19 +1,18 @@
 
-import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
 
-class DCH_TXA extends DCH_BASE {
+class DCH_TXA extends DCH_ShadowBASE {
     el;                 // becomes childof this.host and is a "textarea"  (see construct())
 
     static pluginName    = "<textarea> node";
-    static menuTooltip = "A basic <textarea> node for simple and quick text entry";
+    static pluginTooltip = "A basic <textarea> node for simple and quick text entry";
+    static hasToolbar    = false;
 
     async construct() {
         this.el = document.createElement("textarea");
+//        this.el.classList.add("AAA=el.TXA");
         this.el.style.position = "absolute";
-        this.el.style.left = "0px";
-        this.el.style.top = "0px";
-        this.el.style.right = "0px";
-        this.el.style.bottom = "0px";
+        this.el.style.inset = "0px";
         this.el.style.resize = "none";                      // turn off the textarea's resizer drag-gadget at lowerright corner
         this.el.style.backgroundColor = "lightGreen";
         this.host.appendChild(this.el);
@@ -34,4 +33,4 @@ class DCH_TXA extends DCH_BASE {
         FF.autoSave();
     }
 };
-export { DCH_TXA as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH
+export { DCH_TXA as DCH };      // always export 'as DCH' so DCH_<type>BASE can load-on-the-fly and attach to globalThis.DCH

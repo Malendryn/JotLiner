@@ -1,10 +1,31 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-05 ------------------------------------------------------------------------------------------------------------
+* renamed DCH_BASE to DCH_ShadowBASE as I work towards making a compatible DCH_LightBASE as well, but for now it's just
+    a simple rename
+* privatized .host and .toolbar in DCH_ShadowBASE as I prepare to shadow-dom the toolbar too (and construct the tree
+    so it has a faux <head> area too)
+* got DCH_ShadowBase reworked so there is now a <div> for styles followed by a <div> for body, also applies to the new
+    shadowed toolbar.
+* the rootlevel 'dchToolbarBasics.css' is loaded into all dch.#toolbars upon creation.  (unsure about this though)
+* privatized a few values so they can't be overridden (eg: .host is now a setter/getter for .#host)
+
 2025-06-04 ------------------------------------------------------------------------------------------------------------
 * added "sourceMaps" and "resolveSourceMapLocation" into launch.json (local change only but refed here for my own note)
     to resolve a problem with CK5 loading from the weblink and complaining about vanilla-colorful math.js.map missing
 * added new classes DFStyleTracker.js and DFListenerTracker.js that now use DFSingleFire.js to control 'perform once'
     operations like loading a stylesheet or adding an eventlistener with the same parameters
-    
+* started testing on another machine pointing back to this one and immediate fail due to crypto.randomUUID() so converted
+    the software to use https, using a local key+cert .pem file (so browser warns but thats still fine for home testing)
+    Still works with just http if .pem files are missing, but will not work anywhere but localhost without them
+    (see comment at top of server.js on how to create the key and cert files for yourself)
+
 2025-06-03 ------------------------------------------------------------------------------------------------------------
 * experimented with fleshing out both a CK4 and CK5 editor plugin.  Ran into problems with CK4 that will probably
     eliminate that one as a possibility but only just started testing with CK5

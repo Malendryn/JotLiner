@@ -1,7 +1,7 @@
 import { DFContextMenu } from "/public/classes/DFContextMenu.js";
 import { DFDialog }      from "/public/classes/DFDialog.js";
 
-import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
 
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
@@ -263,7 +263,7 @@ FF.newDoc = async () => {
     await FF.clearDoc();
     
     // then create a new doc by adding a single BOX handler as the docRoot
-    const dch = await DCH_BASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel DOC object
+    const dch = await DCH_ShadowBASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel DOC object
     dch.__sysDiv.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.__sysDiv.style.top/bottom/etc during exportDoc()
     dch.__sysDiv.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
     dch.__sysDiv.style.right  = "0px";
@@ -690,7 +690,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     if (FG.curDoc) {                                    // if we had a doc currently selected
         if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
             await FF.clearDoc();                        // nuke it!
-            debugger; LS.curDoc = null;
+            LS.curDoc = null;
         }
     }
     showDocTree();

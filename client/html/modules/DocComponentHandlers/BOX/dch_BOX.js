@@ -1,11 +1,12 @@
 
-import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
 
-class DCH_BOX extends DCH_BASE {
+class DCH_BOX extends DCH_ShadowBASE {
     __children = [];      // changing to [] to allow children
 
     static pluginName    = "Infinite Box";
-    static menuTooltip = "A rectangle that other plugins can exist inside of";
+    static pluginTooltip = "A rectangle that other plugins can exist inside of";
+    static hasToolbar    = false;
 
     zX = 0;            // how far ALL children are shifted to give the appearance of infinite canvas
     zY = 0;
@@ -54,4 +55,4 @@ class DCH_BOX extends DCH_BASE {
         }
      }
 };
-export { DCH_BOX as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH
+export { DCH_BOX as DCH };      // always export 'as DCH' so DCH_ShadowBASE can load-on-the-fly and attach to globalThis.DCH

@@ -7,7 +7,7 @@
 // X.attach(str, div);      // attach the component (and all its children) to <div> (and div's handler)
 // X.detach(div);           // detach component(and all its children) from <div> and return exportable str
 
-import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
 
 export class DocAttacher {   // create and return a DCH from a stream
     rootDch;
@@ -34,7 +34,7 @@ export class DocAttacher {   // create and return a DCH from a stream
             return null;                        
         }
         const dchEntry = this.dchList[this.dchLIdx++];
-        const dch = await DCH_BASE.create(dchEntry.name, parent, dchEntry.style);  // create handler, assign parent, create <div>, set style
+        const dch = await DCH_ShadowBASE.create(dchEntry.name, parent, dchEntry.style);  // create handler, assign parent, create <div>, set style
         if (!dch) {
             return;
         }

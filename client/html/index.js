@@ -8,6 +8,11 @@ globalThis.LS  = {}; // see fem_core_LocalStore.js
 
 WS.wssPort = 3000;      // must match port in server/server.js
 
+/* to create key and cert files do the following:  (replace 192.168.10.10 to your machine's IP address)
+openssl req -x509 -newkey rsa:2048 -nodes -keyout localhost.key.pem -out localhost.cert.pem -days 365 \
+  -subj "/CN=192.168.10.10" \
+  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:192.168.10.10"
+*/
 FF.loadModule = async (modulePath) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -62,8 +67,8 @@ window.addEventListener('load', async function() {
     pkt = WS.makePacket("GetDCHList");     // first thing we have to do is get the list of DCH handlers
     pkt = await WS.sendWait(pkt);
 
-// NO!  This way will not give me access to the static vars I need for the menu options and tooltips    
-    // for (const dchName of pkt.list) {   // let system know about the dch's available, (hotloaded inside DCH_BASE)
+// NO! Do not do this! This way will not give me access to the static vars I need for the menu options and tooltips    
+    // for (const dchName of pkt.list) {   // let system know about the dch's available, (hotloaded inside DCH_<type>BASE)
     //     DCH[dchName] = null;
     // }
 // YES!  This way gives me access to the static vars I need for the menu options and tooltips    

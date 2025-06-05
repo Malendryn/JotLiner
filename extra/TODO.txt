@@ -1,26 +1,39 @@
 -----------------------------------------------------------------------------------------------------------------------
-id = addStyle()  use hash to see if its already inserted  (only hash the innerHTML of <style> cuz we're adding tags like
-    data-dchId="" data-dchHash="" data-dchCt="33" data-dchHId="")
+splitting DHC_BASE into 2, one that is DCH_SHADOWBASE and one that is DCH_LIGHTBASE
 
-    dchId is what was returned
-    dchHash is the hash of its innerHTML (after trimming)
-    dchCt is the # of times it was added (prevents duplication)
-    dchHId = 'hidden' id specific to this plugin/popup etc so that when we kill the plugin/popup we can remove ALL 
-    styles added by this unit safely
+DCH_ShadowBASE is now largely complete with shadows and <divStyle><divBody> els too, still todo:
+rework loadStyle so it tracks/deletes styles (current loadStyle just adds, no tracking at all!)
 
-    maybe better to just use data-dchHId and remove dchCt entirely so that if this is a list[] we just repeatedly add
-    the same hid and just delete them all when nuking the plugin
+add a setToolbarHeight value (or maybe a setter/getter?)
 
-    
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+#######################################################################################################################
+#######################################################################################################################
+the DFStyleTracker may need more work done to it (else moved globally!) cuz multiple plugins with their own trackers
+will not 'see' other tracker's add/removes
 
-adds to shadow if a shadowplugin or to <head> if a nonshadowplugin
+this will get a little awkward as 
+1 we globallly only want one <style> no matter how many times a TXA is added,  
+2 but the TXA el is different from one TXA to another so it will key differently and insert <style> multiple times
 
+so how to fix this?
+the payloads ahve to match but we still need a privatizer per-TXA so when we removeAll it only removes from the TXA that
+added it
+
+
+we may have to NOT removeall and use count-of-idsAdded so we faux our own removeAll and only remove as many times
+as we inserted (per id)
+
+(this only matters for NONshadow doms as shadow doms are entirely selfcontained and completely nuked on destroy())
+#######################################################################################################################
+#######################################################################################################################
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 -----------------------------------------------------------------------------------------------------------------------
 PLUGIN:  Shopping list!   one of the few 'phone-capable' plugins
 -----------------------------------------------------------------------------------------------------------------------
-add copy/paste  (see cherrytree about https)
+add copy/paste  (see cherrytree "cut/copy/paste and HTTPS")
 -----------------------------------------------------------------------------------------------------------------------
 with the new LocalStore class we can get rid of FG.curDbName (now LS.curDb)  and maybe a few other refs that are now in 
     LocalStore  (EG: search for LS.curdoc as there are places that have const uuid=LS.curDoc)
@@ -76,7 +89,7 @@ and just ask them to use a 'pathing' style of keying like registry keys like one
 minor quirk in that when rightpane is useless (no doc selected) alt+shift shouldn't do ANYthing at all.  (right now
 it's taking over the titlebar/toolbar)
 -----------------------------------------------------------------------------------------------------------------------
-Would it make sense to put autoSave into DCH_BASE?  if we did we could make the default timeout different per-plugin!
+Would it make sense to put autoSave into DCH_<type>BASE?  if we did we could make the default timeout different per-plugin!
 -----------------------------------------------------------------------------------------------------------------------
 Would it make sense to break every 'doc' down into per-plugin records in the DB?  It would make for much shorter and 
 quicker push-pulls and collaboration read-writes!  (This would also allow each plugin to handle their own undo-redo without

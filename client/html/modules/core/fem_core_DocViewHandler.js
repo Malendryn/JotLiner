@@ -1,6 +1,6 @@
 // DocViewHandler = Toplevel Keyboard and Mouse Event Handlers
 
-import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
+import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
 
 let el = document.getElementById("divDocView");
 // el.addEventListener("focus",       onTkmDocViewFocus, true);                                           // listen for 'leaving browser' specifically
@@ -306,7 +306,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
         for (const key in DCH) {    // add all the addable dch's to the menuEntries
             const dchClass = DCH[key].dchClass;
             if (dchClass.pluginName !== null) {   
-                entries.push({ action:"insert_" + key, label:"Insert new " + dchClass.pluginName, tip:dchClass.menuTooltip});
+                entries.push({ action:"insert_" + key, label:"Insert new " + dchClass.pluginName, tip:dchClass.pluginTooltip});
             }
         }
     }
@@ -331,7 +331,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
             let dchName = action.substr(7);
 console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
             const style = {L:startX, T:startY, W:100, H:100};
-            const nuDch = await DCH_BASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
+            const nuDch = await DCH_ShadowBASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
             dch.__children.push(nuDch);
             FF.autoSave();          // autosave after 5 secs
         }
@@ -887,11 +887,9 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
             if (dch) {
                 const div = document.getElementById("divToolbar");
                 for (const child of div.children) {
-                    child.style.display="none";         // hide all toolbars then...
+                    dch.hideToolbar();         // hide all toolbars then...
                 }
-                if (dch.hasToolbar) {
-                    dch.toolbar.style.display = "block";                    
-                }
+                dch.showToolbar();
             }
         }
     }

@@ -120,7 +120,7 @@ html,body {
 }
 
 
-.shadowBox.disabled {
+.shadowWrapper.disabled {
     pointer-events: none;   
     opacity:0.5;
 }
