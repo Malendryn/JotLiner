@@ -6,7 +6,7 @@ import { DFEncoder, DFDecoder } from "../../../client/html/public/classes/DFCode
 
 //debugger; // only way to break during module load, brkpoints don't cut it!
 function logPkt(name) {
-//    console.log("pkt=" + name);
+    console.log("pkt=" + name);
 }
 
 

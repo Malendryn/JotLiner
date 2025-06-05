@@ -1,11 +1,11 @@
 import express from 'express';
 import http from 'http';
-import https from 'https';
 // import { WebSocketServer } from 'ws';
 import path from 'path';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import fs from "fs"; //'node:fs/promises'; <-- this works too
 
 /*
 to gen ssl (.pem) files for https do the following:
@@ -65,32 +65,17 @@ async function start() {
         res.status(500).send(req.path + " not found");
     });
 
-    let key,cert;
-    try {
-        key  = fs.readFileSync("./localhost.key.pem");
-        cert = fs.readFileSync("./localhost.cert.pem");
-    } catch (err) {}
-    
-    let msg;
-    if (key && cert) {
-        WS.httpServer = https.createServer({ key:key, cert:cert }, app);
-        msg = `Server listening at https://localhost:${WS.wssPort}`
-    } else {
-        WS.httpServer = http.createServer(app);
-        msg = `Server listening at http://localhost:${WS.wssPort}`
-    }
-
-    WS.httpServer.listen(WS.wssPort, '0.0.0.0', () => {  // bind to 0.0.0.0 so localhost AND 192.168.n.n work (for all local ip clients)
-        console.log(msg);
+    WS.httpServer = http.createServer(app);
+    WS.httpServer.listen(WS.wssPort, () => {
+        console.log(`Server listening at http://localhost:${WS.wssPort}`);
     });
-
+    
     await BF.loadModule("./modules/core/bem_core_WSockHandler.js");
 
     // now we just sit back and let websockets handle everything from here on in
 }
 
 
-import fs from "fs"; //'node:fs/promises'; <-- this works too
 async function getConverters() {
     const dirPath = path.join(BG.serverPath, "modules/converters");
     const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
@@ -136,4 +121,5 @@ process.on('uncaughtException', (err) => {
 });
   
   
+
 await start();
