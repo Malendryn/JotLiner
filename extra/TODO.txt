@@ -1,39 +1,9 @@
------------------------------------------------------------------------------------------------------------------------
-splitting DHC_BASE into 2, one that is DCH_SHADOWBASE and one that is DCH_LIGHTBASE
 
-DCH_ShadowBASE is now largely complete with shadows and <divStyle><divBody> els too, still todo:
-rework loadStyle so it tracks/deletes styles (current loadStyle just adds, no tracking at all!)
-
-add a setToolbarHeight value (or maybe a setter/getter?)
-
------------------------------------------------------------------------------------------------------------------------
-when dragging a CTE the shadow around it is 4px too short in height/width.  I suspect it's because I have a border=2px
-on that dch,  gotta fix that
------------------------------------------------------------------------------------------------------------------------
-#######################################################################################################################
-#######################################################################################################################
-the DFStyleTracker may need more work done to it (else moved globally!) cuz multiple plugins with their own trackers
-will not 'see' other tracker's add/removes
-
-this will get a little awkward as 
-1 we globallly only want one <style> no matter how many times a TXA is added,  
-2 but the TXA el is different from one TXA to another so it will key differently and insert <style> multiple times
-
-so how to fix this?
-the payloads ahve to match but we still need a privatizer per-TXA so when we removeAll it only removes from the TXA that
-added it
-
-
-we may have to NOT removeall and use count-of-idsAdded so we faux our own removeAll and only remove as many times
-as we inserted (per id)
-
-(this only matters for NONshadow doms as shadow doms are entirely selfcontained and completely nuked on destroy())
-#######################################################################################################################
-#######################################################################################################################
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
+don't forget that when we add the Colorpikr to license it appropriately!
 -----------------------------------------------------------------------------------------------------------------------
-PLUGIN:  Shopping list!   one of the few 'phone-capable' plugins
+PLUGIN:  Shopping list!   one of the few 'phone-capable' plugins  (the problem is without a server on the phone...)
 -----------------------------------------------------------------------------------------------------------------------
 add copy/paste  (see cherrytree "cut/copy/paste and HTTPS")
 -----------------------------------------------------------------------------------------------------------------------
@@ -46,10 +16,8 @@ consider making a conscious decision to stop calling things client/server OR to 
 (pick one, not toggle between both!)  99% of the code is calling it Back/Front and that would be a massive painful
     change!
 -----------------------------------------------------------------------------------------------------------------------
-consider changing version naming such that N is for dbupdates, N.N is for docversions and N.N.N is for software versions
 -----------------------------------------------------------------------------------------------------------------------
-
-5->6
+dbver 5->6
 *) add 'bump' to every table
 *) add new 'dch' table
 *) go through each doc table and yank it apart, putting all the dch elements into the dch table
@@ -59,74 +27,47 @@ REMEMBER NOW WHEN DELETING FROM table:doc WE ALSO HAVE TO DELETE ALL ITS KIDS IN
 
 so now also when editing a loaded dch we need to know its recid even though this is something that never needed to happen
 before.
-
 -----------------------------------------------------------------------------------------------------------------------
-change these two:
-    {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
-    {action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"},
-to a single one, and in the dialog add a checkmark 'as childof' instead  (see onCtxImport() for its radiobuttons on this)
-
-.... so that it now matches the 'import' dialog style
------------------------------------------------------------------------------------------------------------------------
-A) consider on the menu for inserting plugins to add them as a submenu and not use the phrase "Insert New" in such a way 
-     that makes plugins named "My Plugin" seem awkwared, (Insert New My Plugin just doesn't read well! )
-B) once we do this, go repair the "HOWTO create a plugin.odt" file too
-
-Come up with a simple WS packet for plugins to use,  something that can create/delete tables in the DB so that they
-never have to modify the server or client .js in order to add features to the serverside
------------------------------------------------------------------------------------------------------------------------
-WHAT IF FOR allowing plugins to have DB recs of their own, we simply had them pass us a dict, and we created a table
-for them based on that dict. (which must also include a vernum perhaps AND an id field)  and then they could upgrade
-by passing us a new dict with a new vernum and we parsed it and figured out what needed to be done to migrate from
-that old format to the new one.  (which may be easier by creating a whole new table in a 
-one-time-only pull-from-old,writeto-new,nuke-old)
-
-if we did this I think  we'll keep to an 'extra' tabletype where they can just insert key/values BUT we'd actuall have
-a few more fields like uuid (to keep their values linked to their document) and someOtherKey that is explicit to their
-plugin (cuz multiple plugins per dch)  and in that way we isolate their specific content to their specific plugin
-and just ask them to use a 'pathing' style of keying like registry keys like one/two/three/data = foo
-
------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------
-minor quirk in that when rightpane is useless (no doc selected) alt+shift shouldn't do ANYthing at all.  (right now
-it's taking over the titlebar/toolbar)
------------------------------------------------------------------------------------------------------------------------
-Would it make sense to put autoSave into DCH_<type>BASE?  if we did we could make the default timeout different per-plugin!
+rework contextmenus:
+index contextmenu
+    change these two:
+        {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
+        {action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"},
+    to a single one, and in the dialog add a checkmark 'as childof' instead  (see onCtxImport() for its radiobuttons on this)
+    .... so that it now matches the 'import' dialog style
+docview contextmenu
+    A) consider on the menu for inserting plugins to add them as a submenu and not use the phrase "Insert New" in such a way 
+        that makes plugins named "My Plugin" seem awkwared, (Insert New My Plugin just doesn't read well! )
+    B) once we do this, go repair the "HOWTO create a plugin.odt" file too
 -----------------------------------------------------------------------------------------------------------------------
 Would it make sense to break every 'doc' down into per-plugin records in the DB?  It would make for much shorter and 
 quicker push-pulls and collaboration read-writes!  (This would also allow each plugin to handle their own undo-redo without
 affecting other plugins)
 -----------------------------------------------------------------------------------------------------------------------
-change 'properties' to 'Layout, anchors and depth'
-    add zX/zY properties to the box DCH
-    add depth inc/dec/back/front buttons somewhere (with numerics such as depth="5 of 10" ...
-    )
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+Would it make sense to put autoSave into DCH_<type>BASE?  if we did we could make the default timeout different per-plugin!
+-----------------------------------------------------------------------------------------------------------------------
+changes to "Layout, anchors and depth" dialog
+    * add zX/zY properties to the 'layout, anchors and depth' dialog
+        * in add a 'zero x/y' button to the infinity offset
+    * add depth inc/dec/back/front buttons somewhere (with numerics such as depth="5 of 10" ...
+    * add a 'fill parent' button that sets TBLR to '0px' and WH to '' (transform: already accts for zX/Y)
+    * add a 'fill to next object' button that fills the open area until it runs into other objects
+    * click+drag 'accelerators' in the properties window that fast-move coords kindalike blender does
+-----------------------------------------------------------------------------------------------------------------------
 add a new 'properties' menuOption that's dch-specific
     for most divs allow 
         backgroundcolor (including alpha)  -- (default to 'transparent' for things like textArea so that setting this in dch properties works)
         borderType (1px red dashed)
         font, 
 for fonts we should include our own ONLY so as to maintain compatibility across browsers/os's/installs
-
------------------------------------------------------------------------------------------------------------------------
-we used to load dch modules as-needed and not before.  we should go back to doing that again (to keep memory use down)
-    in index.js we already fetch all modulepaths, we can just insert them into DCH[dchName] as null and loadAsNeeded
 -----------------------------------------------------------------------------------------------------------------------
 make docTree dragdrop work properly!  (reordering of doctree documents)
     move docs (dragdrop, in/out depth too)
 -----------------------------------------------------------------------------------------------------------------------
-track state of expanded index pane entries
-        we need this per-client methinks so not something to track in the db
------------------------------------------------------------------------------------------------------------------------
-we can now create and select db's, but we can't delete them yet
------------------------------------------------------------------------------------------------------------------------
-allow changing of dch 'depth' / overlap
------------------------------------------------------------------------------------------------------------------------
-click+drag 'accelerators' in the properties window that fast-move coords kindalike blender does
------------------------------------------------------------------------------------------------------------------------
-in properties add a 'fill parent' button that sets TBLR to '0px' and WH to '' (transform: already accts for zX/Y)
------------------------------------------------------------------------------------------------------------------------
-in properties add a 'zero x/y' button to the infinity offset
+we can now create and select db's, but we can't delete them yet  (when we do, force them to be empty?)
 -----------------------------------------------------------------------------------------------------------------------
 in properties popup for DCH_BOX we want to show 'infinite Pan offset' and let user edit it (in the properties popup!)
 -----------------------------------------------------------------------------------------------------------------------
@@ -142,29 +83,30 @@ PRE-GITHUB Todos
         we will use Pickr (see TEST_Pickr.html)  but we want a local copy so no src="https://..."
             remember how to handle the MIT licence on it properly!
 * add more 'demo' dch's like 
-    SSH spreadsheet, 
+    SSHT spreadsheet, 
     IMG pic(gif/jpg/png) although technically CTE does this
     IDEF0 IDEF0 (also named like this to show that names are not restricted to 3 characters!)
     DWG (drawing program)
     CODE codeblock (monospaced, linenumbered)
     MDN Markdown (Github compatible)
 -----------------------------------------------------------------------------------------------------------------------
-don't forget that when we add the Colorpikr to license it appropriately!
------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 TODO
 * I kinda like the little icon cherrytree puts in front of the index entries, but maybe instead we just make a little box
-    that you can set the color of?  or maybe color the entire entry?
+    that you can set the color of?  or maybe (and/or) color the entire entry?
 
-* ?UNDO?  (possibly not needed as CTE for example already does this)
+* ?UNDO?  Plugins will have to handle their own as I have no idea what they're doing and while I could track every 
+    mousemove and keyclick, I can't know how to undo what that did inside a plugin.   I CAN undo what happens to the 
+    main software and dch placement/sizing etc,  so we'll have to work on THAT undo
 
 * we should consider timestamping the ‘send-expect’ed packet in the queue (we do, actually) and maybe once a sec check 
     for ‘dead’ packets (we don't do, yet)  maybe even adding a ‘timeoutLength’ option too
     and also a way to cancel-expect so at least on the client side we can say ‘try again’ sooner so we don't end up 
     with two responses
-
-* store dragbar location in userLocalStore (loaded question, store zX/Y in localStorage or in the doc???)
-* store which indexEntrys are expanded in userLocalStore
+-----------------------------------------------------------------------------------------------------------------------
+Come up with a simple WS packet for plugins to use,  something that can create/delete tables in the DB so that they
+never have to modify the server or client .js in order to add features to the serverside
+(do we really need something like this?  lets worry about this later or until we do)
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
@@ -176,6 +118,7 @@ add using cmdCombo+arrowkeys to move the boxes one pixel at a time
     problem with this is as I have to remain hovering over the object to move, but that's not really a biggie is it?
         of course if you shift the box away from the mouse you'll have issues...
 -----------------------------------------------------------------------------------------------------------------------
+#######################################################################################################################
 TODO: consider requestAnimationFrame()  (We haven't needed it ... yet!)
 
 when dragging DCH_BOX children, the mouse activity is entirely delta-from-prior-movement based, and this can get
@@ -191,9 +134,6 @@ howabout array.push(requestAnimationFrame(callbacK)) and then in callback delete
 processing, and then also before calling array.push(...) iterate through the array and cancelAnimationFrame() 
 on any id's still present (and empty the array too)
 
-SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- 
-SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- 
-SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- SO DO THIS: --- 
 const frameArray = [];
 function scheduleFrame(data) {
     for (let idx = 0; idx < frameArray.length; idx++) {   // cancel all non-processed frames
@@ -209,3 +149,16 @@ function scheduleFrame(data) {
 }
 
 scheduleFrame("test");
+#######################################################################################################################
+-----------------------------------------------------------------------------------------------------------------------
+#######################################################################################################################
+#######################################################################################################################
+When we get around toa DCH_LightBASE (which we aren't going to worry about until we need it) we need to do the following:
+* remove all the attachShadow and remove the extra divs relevant to it
+* remove the <div>s in place for <style> blocks
+
+add a DFStyleTracker that uses a GLOBAL adder for <head>-based styles, and add a LOCAL DFStyleTracker that adds and
+removes from the global one so that when we removeAll on the local one, all it does is decrement the global one.
+#######################################################################################################################
+#######################################################################################################################
+-----------------------------------------------------------------------------------------------------------------------

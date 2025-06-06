@@ -90,7 +90,7 @@ class DCH_ShadowBASE {   // base class of all document components
         dch.#srcUrl = DCH[dchName].srcUrl;
         dch.#parentEl = parent;
         dch.__sysDiv = document.createElement("div");       // create div
-dch.__sysDiv.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__sysDiv id=" + (_debugIdCounter++).toString();
+addDbgId(dch.__sysDiv, "_dbg_" + dch.constructor.name + ".__sysDiv id=" + (_debugIdCounter++).toString());
 // dch.__sysDiv.dataset._dbgid = (_debugIdCounter++).toString();
         // dch.__sysDiv.tabIndex = -1;                         // doing this makes the .__sysDiv focussable but not tabbable
         dch.__sysDiv._dchHandler = dch;                     // ptr to let me work with it from any child
@@ -113,13 +113,13 @@ dch.__sysDiv.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__sysDiv id=" +
             dch.__hostStyle = document.createElement("div");       // this is now where all child elements get appended to
             dch.__sysDiv.appendChild(dch.__hostStyle);
             dch.#host = document.createElement("div");       // this is now where all child elements get appended to
-dch.#host.dataset._dbgid = "_dbg_" + dch.constructor.name + ".host id=" + (_debugIdCounter++).toString();
+addDbgId(dch.#host, "_dbg_" + dch.constructor.name + ".host id=" + (_debugIdCounter++).toString());
 // dch.#host.dataset._dbgid = (_debugIdCounter++).toString();
             dch.#host.style.position = "absolute";
             dch.__sysDiv.appendChild(dch.#host);
         } else {                                // if it's NOT a BOX, give it a shadowDom in .__host, THEN give it a .host!
             dch.__host = document.createElement("div");     // create a 'faux host' to put the shadow DOM in
-dch.__host.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__host(ForShadow) id=" + (_debugIdCounter++).toString();
+addDbgId(dch.__host, "_dbg_" + dch.constructor.name + ".__host(ForShadow) id=" + (_debugIdCounter++).toString());
 // dch.__sysDiv.dataset._dbgid = (_debugIdCounter++).toString();
             dch.__host.classList.add("shadowWrapper__host");         // see index.css
             dch.__host.style.position = "absolute";
@@ -140,10 +140,12 @@ dch.__host.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__host(ForShadow)
 //     }
 // </style>
 // `;
-            dch.__hostStyle = document.createElement("div");       // this is now where all child elements get appended to
+            dch.__hostStyle = document.createElement("div");   // this is now where all child elements get appended to
+            dch.__hostStyle.style.display = "none";            // hide this div
+addDbgId(dch.__hostStyle, "_dbg_" + dch.constructor.name + ".host(InShadow) id=" + (_debugIdCounter++).toString());
             dch.__hostShadow.appendChild(dch.__hostStyle);
             dch.#host = document.createElement("div")          // this is now where all child elements get appended to
-dch.#host.dataset._dbgid = "_dbg_" + dch.constructor.name + ".host(InShadow) id=" + (_debugIdCounter++).toString();
+addDbgId(dch.#host, "_dbg_" + dch.constructor.name + ".host(InShadow) id=" + (_debugIdCounter++).toString());
 // dch.#host.dataset._dbgid = (_debugIdCounter++).toString();
             dch.#host.style.width = "100%";
             dch.#host.style.height = "100%";                   // make sure host always fills parent completely
@@ -167,7 +169,7 @@ dch.#host.dataset._dbgid = "_dbg_" + dch.constructor.name + ".host(InShadow) id=
             let toolbarDiv = document.getElementById("divToolbar");
             dch.__toolWrap = document.createElement("div"); // we NEED this cuz a shadowDiv has no .style for us to .display="none"
             dch.__toolWrap._dchHandler = dch;
-dch.__toolWrap.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__toolWrap id=" + (_debugIdCounter++).toString();
+addDbgId(dch.__toolWrap, "_dbg_" + dch.constructor.name + ".__toolWrap id=" + (_debugIdCounter++).toString());
             dch.__toolWrap.classList.add("shadowWrapper__host");      // see index.css
             dch.__toolWrap.style.position = "absolute";
             dch.__toolWrap.style.inset = "0px";
@@ -190,7 +192,7 @@ dch.__toolWrap.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__toolWrap id
             dch.__toolStyle = document.createElement("div");       // this is now where all child elements get appended to
             dch.__toolShadow.appendChild(dch.__toolStyle);
             dch.#toolbar = document.createElement("div");
-dch.#toolbar.dataset._dbgid = "_dbg_" + dch.constructor.name + ".toolbar(InShadow) id=" + (_debugIdCounter++).toString();
+addDbgId(dch.#toolbar, "_dbg_" + dch.constructor.name + ".toolbar(InShadow) id=" + (_debugIdCounter++).toString());
             dch.#toolbar._dchHandler = dch;                      // same for the toolbar
             dch.#toolbar._dchMouseOp = "dchToolBtn";
             dch.#toolbar.style.position = "absolute";
@@ -216,7 +218,7 @@ dch.#toolbar.dataset._dbgid = "_dbg_" + dch.constructor.name + ".toolbar(InShado
         this.tracker.removeAll();
         await this.destruct();
         this.__sysDiv.remove();                                     // remove our dch toplevel div
-        if (this.__toolWrap) {                                    // if we had a toolbar, remove its toplevel div
+        if (this.hasToolbar) {                                      // if we had a toolbar, remove its toplevel div
             this.__toolWrap.remove();
         }
         if (this.#parentEl) {                                       // if not at topmost dch, remove us from our parents children
@@ -239,7 +241,7 @@ dch.#toolbar.dataset._dbgid = "_dbg_" + dch.constructor.name + ".toolbar(InShado
 
         if (which.host) {
             let el = document.createElement("style");
-el.dataset._dbgid = "_dbg_" + this.constructor.name + ".host.style(InShadow) id=" + (_debugIdCounter++).toString();
+addDbgId(el, "_dbg_" + this.constructor.name + ".host.style(InShadow) id=" + (_debugIdCounter++).toString());
             // dch.#host.dataset._dbgid = (_debugIdCounter++).toString();
             el.textContent = str;
             this.__hostStyle.appendChild(el);
@@ -247,7 +249,7 @@ el.dataset._dbgid = "_dbg_" + this.constructor.name + ".host.style(InShadow) id=
 
         if (which.toolbar) {
             let el = document.createElement("style");
-el.dataset._dbgid = "_dbg_" + this.constructor.name + ".__toolShadow.style(InShadow) id=" + (_debugIdCounter++).toString();
+addDbgId(el, "_dbg_" + this.constructor.name + ".__toolShadow.style(InShadow) id=" + (_debugIdCounter++).toString());
             // dch.#host.dataset._dbgid = (_debugIdCounter++).toString();
             el.textContent = str;
             this.__toolStyle.appendChild(el);
@@ -321,3 +323,8 @@ el.dataset._dbgid = "_dbg_" + this.constructor.name + ".__toolShadow.style(InSha
 export { DCH_ShadowBASE };
 
 let _debugIdCounter = 0;    // for debug purposes
+
+
+function addDbgId(el, str) {
+    el.dataset._dbgid = str;
+}

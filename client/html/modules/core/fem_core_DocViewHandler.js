@@ -783,30 +783,32 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
             FG.kmStates.dch = null;                 // unset any selected dch;
         }
     } else {
-        let el = document.getElementById("__tmpKBModeTitlebar");
-        if (!el) {
-            el = document.createElement("div");
-            el.id = "__tmpKBModeTitlebar";
-            el.style.position = "absolute";
-            el.style.width = "100%";
-            el.style.height = "100%";
-            el.style.backgroundColor = "white";
-            let tBar = document.getElementById("divTitlebar");
-            tBar.appendChild(el);
+        if (FG.curDoc) {    // prevent titlebar being taken over when there's not even a selected doc
+            let el = document.getElementById("__tmpKBModeTitlebar");
+            if (!el) {
+                el = document.createElement("div");
+                el.id = "__tmpKBModeTitlebar";
+                el.style.position = "absolute";
+                el.style.width = "100%";
+                el.style.height = "100%";
+                el.style.backgroundColor = "white";
+                let tBar = document.getElementById("divTitlebar");
+                tBar.appendChild(el);
+            }
+            el = document.getElementById("__tmpKBModeToolbar");
+            if (!el) {
+                el = document.createElement("div");    
+                el.id = "__tmpKBModeToolbar";
+                el.style.position = "absolute";
+                el.style.width = "100%";
+                el.style.height = "100%";
+                el.style.backgroundColor = "white";
+                let tBar = document.getElementById("divToolbar");
+                tBar.appendChild(el);
+            }
+            setKBModeTitlebarText(FG.kmStates.dch);
+            setKBModeToolbarText(FG.kmStates.dch);
         }
-        el = document.getElementById("__tmpKBModeToolbar");
-        if (!el) {
-            el = document.createElement("div");    
-            el.id = "__tmpKBModeToolbar";
-            el.style.position = "absolute";
-            el.style.width = "100%";
-            el.style.height = "100%";
-            el.style.backgroundColor = "white";
-            let tBar = document.getElementById("divToolbar");
-            tBar.appendChild(el);
-        }
-        setKBModeTitlebarText(FG.kmStates.dch);
-        setKBModeToolbarText(FG.kmStates.dch);
     }
 }
 

@@ -5,7 +5,12 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-06 ------------------------------------------------------------------------------------------------------------
+* added a new call setToolbarHeight(n) to change the height of the toolbar from the default(30) to whatever the plugin
+    needs.  (added a pluginHeight = n; as an optional setting at the top of the class as well)
+* fixed an oversizing issue with the CTE plugin
+* fixed minor quirk in that when no doc selected, alt+shift took over the title/toolbar areas
+
 2025-06-05 ------------------------------------------------------------------------------------------------------------
 * renamed DCH_BASE to DCH_ShadowBASE as I work towards making a compatible DCH_LightBASE as well, but for now it's just
     a simple rename
@@ -15,9 +20,6 @@
     shadowed toolbar.
 * the rootlevel 'dchToolbarBasics.css' is loaded into all dch.#toolbars upon creation.  (unsure about this though)
 * privatized a few values so they can't be overridden (eg: .host is now a setter/getter for .#host)
-
-* added a new call setToolbarHeight(n) to change the height of the toolbar from the default(30) to whatever the plugin
-    needs.  (added a pluginHeight = n; as an optional setting at the top of the class as well)
 
 2025-06-04 ------------------------------------------------------------------------------------------------------------
 * added "sourceMaps" and "resolveSourceMapLocation" into launch.json (local change only but refed here for my own note)
