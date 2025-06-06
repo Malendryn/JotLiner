@@ -5,7 +5,7 @@ canvas {
     height:100%;
 }
 .controls {
-    margin: 10px;
+    /* padding: 10px; */
 }
 .controls > * {
     margin-right: 10px;

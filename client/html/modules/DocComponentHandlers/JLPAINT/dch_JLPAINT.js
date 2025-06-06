@@ -40,9 +40,9 @@ const html = `
         this.oldcvW = this.host.clientWidth;    // onResize needs these set first
         this.oldcvH = this.host.clientHeight;
         this.onResize();            // kickoff initial canvas sizing
-        this.colorPicker = document.getElementById('colorPicker');
-        this.brushSize = document.getElementById('brushSize');
-        this.painting = false;
+        this.colorPicker = this.toolbar.querySelector('#colorPicker');  // in a shadow dom; ...
+        this.brushSize   = this.toolbar.querySelector('#brushSize');
+        this.painting    = false;
 
         this.tracker.add(this.canvas, 'mousedown', this.startPainting);  // this.tracker automatically removes these when the plugin is destroyed
         this.tracker.add(this.canvas, 'mouseup',   this.stopPainting);
@@ -90,7 +90,8 @@ const html = `
             return;
         }
 
-        const rect = this.canvas.getBoundingClientRect();
+        try {
+            const rect = this.canvas.getBoundingClientRect();
         const x = evt.clientX - rect.left;
         const y = evt.clientY - rect.top;
 
@@ -102,6 +103,9 @@ const html = `
         this.ctx.stroke();
         this.ctx.beginPath();
         this.ctx.moveTo(x, y);
+        } catch(err) {
+            debugger;
+        }
     }
 
     clearCanvas = () => {

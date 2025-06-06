@@ -44,8 +44,8 @@ class DCH_ShadowBASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // baseclass helper properties and functions for convenience ----------------------------------------------------------
 
-    async loadStyle(str) {} // loads a "<style></style>" text block or a .css file if str is a URL string and places it at
-                            // the very top of the this.host <div>
+    async loadStyle(str, which) {} // loads a "<style></style>" text block or URL to a .css file and places it at
+                                   // at 'which', a dict {toolbar:true,host:false} where either missing assumes false
 
     showToolbar() {}
     hideToolbar() {}
@@ -114,13 +114,11 @@ addDbgId(dch.__sysDiv, "_dbg_" + dch.constructor.name + ".__sysDiv id=" + (_debu
             dch.__sysDiv.appendChild(dch.__hostStyle);
             dch.#host = document.createElement("div");       // this is now where all child elements get appended to
 addDbgId(dch.#host, "_dbg_" + dch.constructor.name + ".host id=" + (_debugIdCounter++).toString());
-// dch.#host.dataset._dbgid = (_debugIdCounter++).toString();
             dch.#host.style.position = "absolute";
             dch.__sysDiv.appendChild(dch.#host);
         } else {                                // if it's NOT a BOX, give it a shadowDom in .__host, THEN give it a .host!
             dch.__host = document.createElement("div");     // create a 'faux host' to put the shadow DOM in
 addDbgId(dch.__host, "_dbg_" + dch.constructor.name + ".__host(ForShadow) id=" + (_debugIdCounter++).toString());
-// dch.__sysDiv.dataset._dbgid = (_debugIdCounter++).toString();
             dch.__host.classList.add("shadowWrapper__host");         // see index.css
             dch.__host.style.position = "absolute";
             dch.__host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
@@ -140,13 +138,12 @@ addDbgId(dch.__host, "_dbg_" + dch.constructor.name + ".__host(ForShadow) id=" +
 //     }
 // </style>
 // `;
-            dch.__hostStyle = document.createElement("div");   // this is now where all child elements get appended to
+            dch.__hostStyle = document.createElement("div");   // this is now where all style elements get appended to
             dch.__hostStyle.style.display = "none";            // hide this div
-addDbgId(dch.__hostStyle, "_dbg_" + dch.constructor.name + ".host(InShadow) id=" + (_debugIdCounter++).toString());
+addDbgId(dch.__hostStyle, "_dbg_" + dch.constructor.name + ".__hostStyle(InShadow) id=" + (_debugIdCounter++).toString());
             dch.__hostShadow.appendChild(dch.__hostStyle);
             dch.#host = document.createElement("div")          // this is now where all child elements get appended to
-addDbgId(dch.#host, "_dbg_" + dch.constructor.name + ".host(InShadow) id=" + (_debugIdCounter++).toString());
-// dch.#host.dataset._dbgid = (_debugIdCounter++).toString();
+addDbgId(dch.#host, "_dbg_" + dch.constructor.name + ".#host(InShadow) id=" + (_debugIdCounter++).toString());
             dch.#host.style.width = "100%";
             dch.#host.style.height = "100%";                   // make sure host always fills parent completely
             dch.#host = dch.__hostShadow.appendChild(dch.#host);    // give it its first element as it has none to start with
@@ -190,17 +187,20 @@ addDbgId(dch.__toolWrap, "_dbg_" + dch.constructor.name + ".__toolWrap id=" + (_
 // </style>
 // `;
             dch.__toolStyle = document.createElement("div");       // this is now where all child elements get appended to
+addDbgId(dch.__toolStyle, "_dbg_" + dch.constructor.name + ".__toolStyle(InShadow) id=" + (_debugIdCounter++).toString());
+            dch.__toolStyle.style.display = "none";                // hide this div
             dch.__toolShadow.appendChild(dch.__toolStyle);
             dch.#toolbar = document.createElement("div");
-addDbgId(dch.#toolbar, "_dbg_" + dch.constructor.name + ".toolbar(InShadow) id=" + (_debugIdCounter++).toString());
+addDbgId(dch.#toolbar, "_dbg_" + dch.constructor.name + ".#toolbar(InShadow) id=" + (_debugIdCounter++).toString());
             dch.#toolbar._dchHandler = dch;                      // same for the toolbar
             dch.#toolbar._dchMouseOp = "dchToolBtn";
             dch.#toolbar.style.position = "absolute";
             dch.#toolbar.style.inset = "0px 0px 0px 0px";       // top, right, bottom, left
+            dch.#toolbar.style.boxSizing = "border-box";
             dch.#toolbar.style.backgroundColor = "rgb(155, 253, 161)";
             
             dch.__toolShadow.appendChild(dch.#toolbar);            // add useraccessable #toolbar as child of __toolbar
-            dch.loadStyle("../../../dchToolbarBasics.css", {toolbar:true});
+//            dch.loadStyle("../../../dchToolbarBasics.css", {toolbar:true});   // NO LONGER!  now up to plugin! 
         }
         
         await dch.construct();
@@ -227,7 +227,7 @@ addDbgId(dch.#toolbar, "_dbg_" + dch.constructor.name + ".toolbar(InShadow) id="
         }
     }
 
-    async loadStyle(str, which = {host:true,toolbar:true}) {
+    async loadStyle(str, which={}) {
         const isBlock = /^\s*<style[\s>][\s\S]*<\/style>\s*$/i.test(str.trim()); //true if valid  "<style></style>"  else false=assume filepath
         if (!isBlock) {
             const cssPath = this.srcUrl + "/" + str;        // else go load it!

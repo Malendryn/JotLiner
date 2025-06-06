@@ -1,7 +1,4 @@
-/* added to all toolbars as a basic setup
-*/
-
-.dchButton {
+.button {
     /* Basic button styling (optional) */
     /* padding: 10px; */
     /* border: none; */
@@ -12,20 +9,26 @@
     cursor: pointer;
     display: inline-block;
     background-color: white;
-  }
+}
 
-  .dchButton:hover img {
+.button:hover img {
     filter: brightness(110%); /* Slightly brighter on hover (released) */
     filter: contrast(110%);
-  }
+}
 
-  .dchButton:active img {
+.button:active img {
     filter: brightness(90%); /* Slightly darker on active (pressed) */
     filter: contrast(90%);
     background-color: lightgrey;
-  }
-  .dchButton img {
+}
+.button img {
     width: 24px;
     height: 24px;
     filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
-  }
+}
+
+/* turn off 'show border when this has focus' */
+/* .CTE[contenteditable]:focus {
+   outline: none;
+} */
+ 

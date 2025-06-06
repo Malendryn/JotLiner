@@ -11,7 +11,7 @@ class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true"
     static pluginName    = "RichText CTE Editor";
     static pluginTooltip = "A RichText-like editor built using a contenteditable <div>";
            hasToolbar    = true;
-           toolbarHeight = 99;
+           toolbarHeight = 30;
 
     el;                     // becomes childof this.host and is a "div" that is "contexteditable"  (see construct())
 
@@ -23,7 +23,8 @@ class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true"
     }; 
 
     async construct() {
-        await this.loadStyle("CTE.css");                // add some <style> to the beginning of this.host
+        await this.loadStyle("./dch_CTE_toolbar.css", {toolbar:true});    // add some <style> to the beginning of this.host
+        await this.loadStyle("./dch_CTE_host.css", {host:true});          // add some <style> to the beginning of this.host
         this.el = document.createElement("div");        // create a div inside .host and make it contenteditable
         this.el.classList.add("CTE");                   // use the above-loaded .css class
         this.el.setAttribute("contenteditable", "true");
@@ -35,7 +36,7 @@ class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true"
 // create the icons for the toolbar and attach them to this._tbar
         let btn, img;
         btn = document.createElement("button");         // create a dchToolbarButton for Bold, Italic, and Underline
-        btn.className = "dchButton";
+        btn.className = "button";
         this.toolbar.appendChild(btn);                // add it to the toolbar
         img = document.createElement("img");            // create a 24x24px img to put on button
         img.src = this.srcUrl + "/icons/bold-96.png";    //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
@@ -43,7 +44,7 @@ class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true"
         this.tracker.add(btn, "click", this.onToolBtnBold.bind(this));
 
         btn = document.createElement("button");
-        btn.className = "dchButton";
+        btn.className = "button";
         this.toolbar.appendChild(btn);
         img = document.createElement("img");
         img.src = this.srcUrl + "/icons/italic-52.png";
@@ -51,7 +52,7 @@ class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true"
         this.tracker.add(btn, "click", this.onToolBtnItalic.bind(this));
 
         btn = document.createElement("button");
-        btn.className = "dchButton";
+        btn.className = "button";
         this.toolbar.appendChild(btn);
         img = document.createElement("img");
         img.src = this.srcUrl + "/icons/underline-64.png";
@@ -59,7 +60,7 @@ class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true"
         this.tracker.add(btn, "click", this.onToolBtnUnderline.bind(this));
 
         btn = document.createElement("button");
-        btn.className = "dchButton";
+        btn.className = "button";
         this.toolbar.appendChild(btn);
         img = document.createElement("img");
         img.src = this.srcUrl + "/icons/strikethrough-64.png";

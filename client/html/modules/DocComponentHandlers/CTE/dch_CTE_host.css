@@ -9,9 +9,3 @@
     word-wrap  : break-word;     /* auto-break very large words if needed */
     box-sizing : border-box;     /* w/o if parent=100px, border+padding+width:100% = 1+2+100+2+1,  with = 1+2+94+2+1 */
 }
-
-/* turn off 'show border when this has focus' */
-/* .CTE[contenteditable]:focus {
-   outline: none;
-} */
- 

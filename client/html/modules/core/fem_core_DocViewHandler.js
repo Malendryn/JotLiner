@@ -1181,7 +1181,11 @@ FF.getBoxAroundDch = function(dch) {
     if (dch) {                                     // !!DO!! allow them to select/move the docroot! 
         let el = dch.__sysDiv;
         while (FF.getDchName(dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
-            dch = dch.__parent;
+            try {
+                dch = dch.__parent;
+            } catch (err) {
+                debugger;
+            }
         }
     }
     return dch;

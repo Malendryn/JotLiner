@@ -10,6 +10,8 @@
     needs.  (added a pluginHeight = n; as an optional setting at the top of the class as well)
 * fixed an oversizing issue with the CTE plugin
 * fixed minor quirk in that when no doc selected, alt+shift took over the title/toolbar areas
+* cleaned up a few minor things.  Reworked some plugins slightly to be more shadow-compatible too
+* removed rootlevel dchToolbarBasics.css and now expect the plugins to handle their own toolbar <style> by themselves
 
 2025-06-05 ------------------------------------------------------------------------------------------------------------
 * renamed DCH_BASE to DCH_ShadowBASE as I work towards making a compatible DCH_LightBASE as well, but for now it's just
