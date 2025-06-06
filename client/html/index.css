@@ -46,7 +46,7 @@ html,body {
 #divToolbar {
     position: absolute;
     top: 24px;
-    height: 30px;
+    height: 30px;   /* this sets the /default/ toolbar height across the entire app */
     width: 100%;
     background-color: rgb(173, 207, 230);
 }
@@ -120,7 +120,7 @@ html,body {
 }
 
 
-.shadowWrapper.disabled {
+.shadowWrapper__host.disabled {
     pointer-events: none;   
     opacity:0.5;
 }

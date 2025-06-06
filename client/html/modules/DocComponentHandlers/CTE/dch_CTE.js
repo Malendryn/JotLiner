@@ -10,7 +10,8 @@ class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true"
 
     static pluginName    = "RichText CTE Editor";
     static pluginTooltip = "A RichText-like editor built using a contenteditable <div>";
-    static hasToolbar    = true;
+           hasToolbar    = true;
+           toolbarHeight = 99;
 
     el;                     // becomes childof this.host and is a "div" that is "contexteditable"  (see construct())
 

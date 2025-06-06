@@ -6,7 +6,7 @@ class DCH_TXA extends DCH_ShadowBASE {
 
     static pluginName    = "<textarea> node";
     static pluginTooltip = "A basic <textarea> node for simple and quick text entry";
-    static hasToolbar    = false;
+           hasToolbar    = false;
 
     async construct() {
         this.el = document.createElement("textarea");

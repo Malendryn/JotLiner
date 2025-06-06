@@ -8,11 +8,11 @@ import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
 class DCH_ShadowBASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// plugin-makers MUST override these following variables with their own values
-    static pluginName    = "Unnamed Plugin";   // PLUGIN supplied; the plugin's name as shown in menus and command modes
-    static pluginTooltip = "No tooltip given"; // PLUGIN supplied;  tooltip to show when pluginName is hovered over in menus (skipped if null)
-    static hasToolbar    = undefined;          // supply plugin with a 'this.toolbar' during construction
-
+// PLUGIN SUPPLIED PROPERTIES: plugin-makers MUST override these following variables with their own values
+    static pluginName    = "Unnamed Plugin";   // The plugin's name as shown in menus and command modes
+    static pluginTooltip = "No tooltip given"; // Shown when pluginName is hovered over in menus
+           hasToolbar    = undefined;          // Supply plugin with a 'this.toolbar' during construction
+           toolbarHeight = undefined;          // (OPTIONAL) set height when plugin is active (default=index.css #divToolbar.height)
 /* *** these next few are 'get-only' properties that are BaseClass-supplied 'HTML relevant' accessors and functions
 
     srcUrl  = "./pathTo/this/plugin"  // relative path to this plugin (so plugin can access related content)
@@ -49,6 +49,8 @@ class DCH_ShadowBASE {   // base class of all document components
 
     showToolbar() {}
     hideToolbar() {}
+    setToolbarHeight(px) {}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create/destroy and other helper functions on baseclass (do not override!)-------------------------------------------
     //  async create('box', parent=null, style=null)  // create new DocComponentHandler of type 'dchName'
@@ -81,6 +83,10 @@ class DCH_ShadowBASE {   // base class of all document components
             console.warn("Failed to create plugin '" + dchName + "', reason: " + err.message);
             return null;
         }
+        if (typeof dch.hasToolbar != "boolean") {
+            throw new Error(`${this.constructor.name} must set static property 'hasToolbar' to true or false`);
+        }
+
         dch.#srcUrl = DCH[dchName].srcUrl;
         dch.#parentEl = parent;
         dch.__sysDiv = document.createElement("div");       // create div
@@ -115,13 +121,13 @@ dch.#host.dataset._dbgid = "_dbg_" + dch.constructor.name + ".host id=" + (_debu
             dch.__host = document.createElement("div");     // create a 'faux host' to put the shadow DOM in
 dch.__host.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__host(ForShadow) id=" + (_debugIdCounter++).toString();
 // dch.__sysDiv.dataset._dbgid = (_debugIdCounter++).toString();
-            dch.__host.classList.add("shadowWrapper");         // see index.css
+            dch.__host.classList.add("shadowWrapper__host");         // see index.css
             dch.__host.style.position = "absolute";
             dch.__host.style.inset = "0px";           // make sure this div stays sized to the __sysDiv
             dch.__sysDiv.appendChild(dch.__host);
             dch.__hostShadow = dch.__host.attachShadow({ mode: "open" });
 //invalid   dch.__hostShadow.classList.add("AAA__hostShadow");
-// AAAA            dch.__hostShadow.innerHTML = `
+// /*AAAA*/            dch.__hostShadow.innerHTML = `
 // <style>
 //     :host {
 //         display: block;
@@ -157,11 +163,12 @@ dch.#host.dataset._dbgid = "_dbg_" + dch.constructor.name + ".host(InShadow) id=
                 }
             }
         }
-        if (dch.#toolbar === null) { // if was upgraded from undefined (see constructor())
+        if (dch.hasToolbar) {
             let toolbarDiv = document.getElementById("divToolbar");
             dch.__toolWrap = document.createElement("div"); // we NEED this cuz a shadowDiv has no .style for us to .display="none"
+            dch.__toolWrap._dchHandler = dch;
 dch.__toolWrap.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__toolWrap id=" + (_debugIdCounter++).toString();
-            dch.__toolWrap.classList.add("shadowWrapper");      // see index.css
+            dch.__toolWrap.classList.add("shadowWrapper__host");      // see index.css
             dch.__toolWrap.style.position = "absolute";
             dch.__toolWrap.style.inset = "0px";
             dch.__toolWrap.style.display = "none";              // do not display it at creation time!
@@ -180,8 +187,6 @@ dch.__toolWrap.dataset._dbgid = "_dbg_" + dch.constructor.name + ".__toolWrap id
 //     }
 // </style>
 // `;
-
-
             dch.__toolStyle = document.createElement("div");       // this is now where all child elements get appended to
             dch.__toolShadow.appendChild(dch.__toolStyle);
             dch.#toolbar = document.createElement("div");
@@ -193,7 +198,7 @@ dch.#toolbar.dataset._dbgid = "_dbg_" + dch.constructor.name + ".toolbar(InShado
             dch.#toolbar.style.backgroundColor = "rgb(155, 253, 161)";
             
             dch.__toolShadow.appendChild(dch.#toolbar);            // add useraccessable #toolbar as child of __toolbar
-            dch.loadStyle("/dchToolbarBasics.css", {toolbar:true,fromRoot:true});
+            dch.loadStyle("../../../dchToolbarBasics.css", {toolbar:true});
         }
         
         await dch.construct();
@@ -210,25 +215,20 @@ dch.#toolbar.dataset._dbgid = "_dbg_" + dch.constructor.name + ".toolbar(InShado
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
         this.tracker.removeAll();
         await this.destruct();
-        this.__sysDiv.remove();
-        if (this.#toolbar) {
-            this.#toolbar.remove();
+        this.__sysDiv.remove();                                     // remove our dch toplevel div
+        if (this.__toolWrap) {                                    // if we had a toolbar, remove its toplevel div
+            this.__toolWrap.remove();
         }
-        if (this.#parentEl) {                                  // if not at topmost dch
+        if (this.#parentEl) {                                       // if not at topmost dch, remove us from our parents children
             const idx = this.#parentEl.__children.indexOf(this);
             this.#parentEl.__children.splice(idx, 1);
         }
     }
 
-    async loadStyle(str, which = {host:true,toolbar:true, fromRoot:false}) {
+    async loadStyle(str, which = {host:true,toolbar:true}) {
         const isBlock = /^\s*<style[\s>][\s\S]*<\/style>\s*$/i.test(str.trim()); //true if valid  "<style></style>"  else false=assume filepath
         if (!isBlock) {
-            let cssPath;
-            if (which.fromRoot) {
-                cssPath = str;
-            } else {
-                cssPath = this.srcUrl + "/" + str;        // else go load it!
-            } 
+            const cssPath = this.srcUrl + "/" + str;        // else go load it!
             const response = await fetch(cssPath);
             if (!response.ok) {
                 console.warn("Failed to load requested css file '" + str + "'");
@@ -255,14 +255,28 @@ el.dataset._dbgid = "_dbg_" + this.constructor.name + ".__toolShadow.style(InSha
     }
 
     showToolbar() {
-        if (this.__toolWrap) {
+        if (this.hasToolbar) {
             this.__toolWrap.style.display = "";
+            if (this.toolbarHeight !== undefined) {
+                this.setToolbarHeight(this.toolbarHeight);
+            }
         }
     }
     hideToolbar() {
-        if (this.__toolWrap) {
+        if (this.hasToolbar) {
             this.__toolWrap.style.display = "none";
+            this.setToolbarHeight(FG.toolbarHeight);
         }
+    }
+
+    setToolbarHeight(px) {
+        // let el = document.getElementById("divTitlebar");
+        // let top = el.getBoundingClientRect().height;
+        let el = document.getElementById("divToolbar");
+        let rect = el.getBoundingClientRect();
+        el.style.height = px + "px";
+        el = document.getElementById("divMainView");
+        el.style.top = (rect.top + px) + "px";
     }
 
     constructor() {     // RSTODO move all the other 'on class' defines into here, supposedly it's 'the right way'
@@ -271,11 +285,6 @@ el.dataset._dbgid = "_dbg_" + this.constructor.name + ".__toolShadow.style(InSha
         }
         if (this.constructor.pluginTooltip == DCH_ShadowBASE.pluginTooltip) {
             throw new Error(`${this.constructor.name} must override static property 'pluginName'`);
-        }
-        if (typeof this.constructor.hasToolbar != "boolean") {
-            throw new Error(`${this.constructor.name} must set static property 'hasToolbar' to true or false`);
-        } else if (this.constructor.hasToolbar) {
-            this.#toolbar = null;    // upgrade from 'undefined' to 'null' (see create())
         }
         this.tracker  = new DFListenerTracker(); // see below under 'listener add/remove functions'
     }

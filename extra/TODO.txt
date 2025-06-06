@@ -7,6 +7,8 @@ rework loadStyle so it tracks/deletes styles (current loadStyle just adds, no tr
 add a setToolbarHeight value (or maybe a setter/getter?)
 
 -----------------------------------------------------------------------------------------------------------------------
+when dragging a CTE the shadow around it is 4px too short in height/width.  I suspect it's because I have a border=2px
+on that dch,  gotta fix that
 -----------------------------------------------------------------------------------------------------------------------
 #######################################################################################################################
 #######################################################################################################################

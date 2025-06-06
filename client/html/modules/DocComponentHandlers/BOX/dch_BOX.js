@@ -6,7 +6,7 @@ class DCH_BOX extends DCH_ShadowBASE {
 
     static pluginName    = "Infinite Box";
     static pluginTooltip = "A rectangle that other plugins can exist inside of";
-    static hasToolbar    = false;
+           hasToolbar    = false;
 
     zX = 0;            // how far ALL children are shifted to give the appearance of infinite canvas
     zY = 0;

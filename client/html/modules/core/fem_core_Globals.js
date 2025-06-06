@@ -11,6 +11,8 @@ FG.baseURL       = window.location.origin;  // EG: "http://localhost:3000"
 
 FG.ws            = null;     // WebSocket connector to localServer      (see fem_core_WSockHandler.js)
 
+FG.toolbarHeight = 0;        // pulled from index.css: #divToolbar.height at index.js: window.addEventListener('load',
+
 FG.docTree       = [];       // [{id,uuid,name,listOrder,parent,li}[,...]] ordered list of .dia "docTree" table
                                 // note that li is not from the db but is added during showDocTree()
 

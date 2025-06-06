@@ -720,7 +720,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
         setKBModeToolbarText(FG.kmStates.dch);
     }
 }
-function doDchOpMode2(orig) { // only called when FG.kmStates == 1
+function doDchOpMode2(orig) { // only called when FG.kmStates == 2
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
@@ -759,33 +759,6 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 1
     setKBModeTitlebarText(dch);
     setKBModeToolbarText(dch);
 }
-
-
-// function disableAllShadowHosts(yesno) { // if yes, disable(prevent pointer events) the shadowRoot rect and give it 0.5 alpha, else enable it
-//     console.log(FF.__FILE__(),"disableAllShadowHosts:  is this obsolete?");
-//     return;
-//     function findAllShadowHosts(root) {
-//         const found = [];
-//         const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null, false);
-//         while (walker.nextNode()) {
-//             const el = walker.currentNode;
-//             if (el.shadowRoot) {          // if this is a shadow DOM root node
-//                 found.push(el);
-//             }
-//         }
-//         return found;
-//     }
-//     const div = document.getElementById("divDocView");
-//     let found = findAllShadowHosts(div);
-//     for (let idx = 0; idx < found.length; idx++) {
-//         const el = found[idx];
-//         if (yesno) {
-//             el.classList.add("disabled");
-//         } else {
-//             el.classList.remove("disabled");
-//         }
-//     }
-// }
 
 
 function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the __tmpKBModeTitlebar/Toolbar
@@ -883,11 +856,15 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
         doDchOpMode2(orig);
     } else {
         if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != orig.btnLeft) {       // show toolbar for dch, hide all others
+            if (FG.curDoc) {
+                FG.curDoc.rootDch.setToolbarHeight(FG.toolbarHeight);               // reset default toolbar height
+            }
             const dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
             if (dch) {
                 const div = document.getElementById("divToolbar");
                 for (const child of div.children) {
-                    dch.hideToolbar();         // hide all toolbars then...
+                    const tmpDch = child._dchHandler;
+                    tmpDch.hideToolbar();         // hide all toolbars then...
                 }
                 dch.showToolbar();
             }
@@ -952,9 +929,7 @@ function setKMState(states) {
 
 // if mouse moved from inside to outside (or vica/versa) the scope of divDocView
     if (FG.kmStates.inDocView != FG.kmPrior.inDocView) {   
-    // if ("inDocView" in states && states.inDocView == false && states.inDocView != FG.kmPrior.inDocView) {   
         clearAllButtons(false);                  // false to prevent recursive calling of setKMState()
-        console.log("FEFWE1")
     }
     // debugStates(states);
 
@@ -1206,15 +1181,6 @@ FF.getBoxAroundDch = function(dch) {
         while (FF.getDchName(dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
             dch = dch.__parent;
         }
-        //     let el = dch.__sysDiv;
-        //     while (true) {
-        //         el = el.parentNode;
-        //         if (el._dchMouseOp == "dchComponent") {
-        //             dch = el._dchHandler;
-        //             break;
-        //         }
-        //     }
-        // }
     }
     return dch;
 }

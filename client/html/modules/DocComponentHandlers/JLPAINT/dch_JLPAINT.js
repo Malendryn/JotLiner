@@ -18,7 +18,7 @@ const html = `
   class DCH_JLPAINT extends DCH_ShadowBASE {
     static pluginName    = "Simple Painter Plugin";
     static pluginTooltip = "A basic painting node for learning how to make your own plugins";
-    static hasToolbar    = true;  // without this the class would have no toolbar!
+           hasToolbar    = true;  // without this the class would have no toolbar!
 
     canvas;         // handle to <canvas> DOMelement
     ctx;            // handle to canvas 2dContext
@@ -48,9 +48,9 @@ const html = `
         this.tracker.add(this.canvas, 'mouseup',   this.stopPainting);
         this.tracker.add(this.canvas, 'mouseout',  this.stopPainting);
         this.tracker.add(this.canvas, 'mousemove', this.draw);
-        let el = document.getElementById("clearCanvas");
+        let el = this.toolbar.querySelector("#clearCanvas");    // in a shadow dom; can't use document.getElementById("clearCanvas");
         this.tracker.add(el, 'click', this.clearCanvas);
-        el = document.getElementById("saveCanvas");
+        el = this.toolbar.querySelector("#saveCanvas");         // document.getElementById("saveCanvas");
         this.tracker.add(el, 'click', this.saveCanvas);
     }
     

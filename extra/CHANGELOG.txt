@@ -16,6 +16,9 @@
 * the rootlevel 'dchToolbarBasics.css' is loaded into all dch.#toolbars upon creation.  (unsure about this though)
 * privatized a few values so they can't be overridden (eg: .host is now a setter/getter for .#host)
 
+* added a new call setToolbarHeight(n) to change the height of the toolbar from the default(30) to whatever the plugin
+    needs.  (added a pluginHeight = n; as an optional setting at the top of the class as well)
+
 2025-06-04 ------------------------------------------------------------------------------------------------------------
 * added "sourceMaps" and "resolveSourceMapLocation" into launch.json (local change only but refed here for my own note)
     to resolve a problem with CK5 loading from the weblink and complaining about vanilla-colorful math.js.map missing

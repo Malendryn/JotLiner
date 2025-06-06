@@ -41,12 +41,16 @@ function __onUnhandledRejection(err) {
 window.onunhandledrejection = __onUnhandledRejection;
 
 window.addEventListener('load', async function() {
-    let el = this.document.getElementById("divIndexDocSizer");
+    await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate basics of FG
+    await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate basics of FF
+
+    let el;
+    el = this.document.getElementById("divToolbar");
+    FG.toolbarHeight = el.getBoundingClientRect().height;
+    el = this.document.getElementById("divIndexDocSizer");
     el._dchMouseOp = "idx<>doc";
 
     let mod;
-    await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate basics of FG
-    await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate basics of FF
     await FF.loadModule("./modules/core/fem_core_LocalStore.js");          // attaches globally as 'LS' 'localStorage' class (for consistency)
     await FF.loadModule("./modules/core/fem_core_DocViewHandler.js");      // handle all the docview and Alt+Shift stuff
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
