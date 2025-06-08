@@ -228,6 +228,9 @@ addDbgId(dch.#toolbar, "_dbg_" + dch.constructor.name + ".#toolbar(InShadow) id=
     }
 
     async loadStyle(str, which={}) {
+        if (Object.keys(which).length == 0) {
+            throw new Error("loadStyle missing destination parameter");
+        }
         const isBlock = /^\s*<style[\s>][\s\S]*<\/style>\s*$/i.test(str.trim()); //true if valid  "<style></style>"  else false=assume filepath
         if (!isBlock) {
             const cssPath = this.srcUrl + "/" + str;        // else go load it!

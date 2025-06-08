@@ -28,7 +28,7 @@ const html = `
     oldcvW;oldcvH;  // 'old canvas Width/Height
 
     async construct() {
-        this.loadStyle("dch_JLPAINT.css");        // Load in our companion .css file
+        this.loadStyle("dch_JLPAINT.css", {toolbar:true});        // Load in our companion .css file
 
         this.toolbar.innerHTML = html;
         this.canvas = document.createElement("canvas");    // Create our painting canvas and add it to .host

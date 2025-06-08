@@ -14,7 +14,7 @@ export class DocAttacher {   // create and return a DCH from a stream
     dchList;
     dchLIdx;
     dict = {
-        version: FG.VERSION,   // 1.2, etc  
+        version: FG.VERSION,   // 0.1.2, etc  
         uuid: "",              // "12345678-1234-1234-1234-123456789abc" if a full doc, else empty string if just a component part
 //        name: "",            // ONLY PRESENT IF V1.2 or later full name as shown in indexPane
 //        error: ""            // ONLY PRESENT IF ERROR OCCURRED!

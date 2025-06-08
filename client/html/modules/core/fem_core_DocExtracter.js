@@ -1,4 +1,11 @@
 
+/* extract the contents of a living dch AND its children into a dict as:
+dict = {
+    style:    {L:0,W:0,R:0,T:0,B:0,H:0},  // exactly FOUR of these six values ONLY
+    name:     "dchName",
+    children: [...]  // if this dch has children, extract them all as enries in this list
+}
+*/
 export class DocExtracter {
     dchList;
     async extract(dch) {

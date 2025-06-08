@@ -4,8 +4,8 @@
 // FG.baseURL   = "";       // for backend this is __filename, for frontend this is 'http://site:port'
 // FG.__dirname   
 // ==== FROM fem_core_WSockHandler ====================================================================================
-// FG.VERSION       = "n.n"; now fed from server at connectTime
-// FG.DOCVERSION    = "n.n"; now fed from server at connectTime
+// FG.VERSION       = "n.n.n"; now fed from server at connectTime
+// FG.DOCVERSION    = "n.n";   now fed from server at connectTime
 
 FG.baseURL       = window.location.origin;  // EG: "http://localhost:3000"
 

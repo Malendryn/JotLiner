@@ -718,6 +718,7 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
     pkt.uuid = uuid;
     pkt = await WS.sendWait(pkt);       // name not here, name already supplied from "GetDocTree"
 
+    let success = true;
     let tmp;
     if (pkt.ver != FG.DOCVERSION) {     // version upgrade required?
         pkt.doc = await FF.upgradeDoc(pkt.doc, pkt.ver);
@@ -739,17 +740,29 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
         tmp = pkt.doc
     } else {
         const decoder = new DFDecoder(pkt.doc);
-        tmp = decoder.decode();
+        try {
+            tmp = decoder.decode();
+        }
+        catch(err) {
+            alert("Import error: " + err.message);
+            success = false;
+            await FF.newDoc();          // create new empty doc to replace the broken one
+            FG.curDoc.uuid = uuid;      // but use the same uuid
+            FG.curDoc.dirty = true;
+            FF.autoSave();
+        }
     }
 
     delete pkt.doc;                         // reduce memory usage
-    const imp = new FG.DocAttacher();
+    if (success) {
+        const imp = new FG.DocAttacher();
 
-    FG.curDoc = { 
-        uuid:    uuid, 
-        rootDch: await imp.attach(tmp.dchList, null),  // now build-and-attach doc to the system as new root doc!
-        dirty:   false,
-    };
+        FG.curDoc = { 
+            uuid:    uuid, 
+            rootDch: await imp.attach(tmp.dchList, null),  // now build-and-attach doc to the system as new root doc!
+            dirty:   false,
+        };
+    }
 
     LS.curDoc = uuid;
 

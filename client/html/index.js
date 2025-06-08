@@ -68,6 +68,9 @@ window.addEventListener('load', async function() {
     FG.VERSION = pkt.version;
     FG.DOCVERSION = pkt.docVersion;
 
+    el = this.document.getElementById("__tbm3");
+    el.innerHTML = `Project: JotLiner &nbsp; &nbsp; v${FG.VERSION}`;
+
     pkt = WS.makePacket("GetDCHList");     // first thing we have to do is get the list of DCH handlers
     pkt = await WS.sendWait(pkt);
 

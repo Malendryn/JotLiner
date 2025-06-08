@@ -97,6 +97,9 @@ class DFDecoder {
     }
 
     decode() {  // decode ONE AND ONLY ONE value,  repeated calls to this will decode more if more is available
+// if (this.idx == 257) {
+// debugger;
+// }
         let [dType,len] = this._parseHeader();
         let val;
         if (dType < 16) {       // 0-15 = types with no datalen
@@ -136,7 +139,6 @@ class DFDecoder {
         }
         throw new Error("unknown datatype '0x" + dType.charCodeAt(0).toString(16).padStart(2, '0') + "'");
     }
-
 
     _parseHeader() {
         const tmp = this.u8a[this.idx++];
