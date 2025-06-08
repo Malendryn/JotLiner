@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 don't forget that when we add the Colorpikr to license it appropriately!
+Tiptap uses MIT license which I think is fine for my AGPLV3 use
 -----------------------------------------------------------------------------------------------------------------------
 PLUGIN:  Shopping list!   one of the few 'phone-capable' plugins  (the problem is without a server on the phone...)
 -----------------------------------------------------------------------------------------------------------------------

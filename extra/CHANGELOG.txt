@@ -4,7 +4,23 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-08 ------------------------------------------------------------------------------------------------------------
+* began upgrade of db from 6 to 7, this will be another big change where we extract individual dch's (plugins) from
+    the single table:doc.content into table:dch records and track them via the new table:doc.dchList column.
+* have the upgrade from 6 to 7 working wherein it adds the columns and tables as needed, and extracts the 
+    table:doc.content into the table:dch records AND builds the table:doc.dchList as well. (and sets bump=0 on all recs)
+WARN: the old data still exists in .content until we finish migrating over, and then we will add a 7 to 8 dbUpgrade 
+    that removes the table:doc.content column, but not until we're entirely happy with the upgrade! 
+TODO: make the rest of the software use these new changes! 
+* 'reworked' the main software version# so was: 1.2,  now: 0.1.2
+* added version# to titlebar display
+
+* RE-rework .. dch table is now dchData and houses ONLY the dch's name (BOX,etc..) and exported data, NOT style
+* doc now has 'meta' instead of dchList which contains style & children info (everything needed to create the dch's
+    even before the content is present so we can start lazyloading and not so much async/await'ing!)
+    also storing this as JSON rather than binary as its easier to debug, but dchData table is still binary
+* dbUpdate_000006-000007 now does this conversion, but the rest of the system still uses old 'content' column for now
+
 2025-06-06 ------------------------------------------------------------------------------------------------------------
 * added a new call setToolbarHeight(n) to change the height of the toolbar from the default(30) to whatever the plugin
     needs.  (added a pluginHeight = n; as an optional setting at the top of the class as well)

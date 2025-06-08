@@ -143,7 +143,7 @@ class DBHandler {
                             return;
                         }
     
-                        const cont = await callback(this.db, row);
+                        const cont = await callback(this, row);
                         if (!cont) {
                             return resolve();
                         }
