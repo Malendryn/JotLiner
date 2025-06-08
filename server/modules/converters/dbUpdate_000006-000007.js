@@ -73,6 +73,7 @@ async function iterCallback(db, rec) {
 
 async function updateDb(db) { 
 if (1) {
+    await db.run("ALTER TABLE doc DROP COLUMN ver;");
     await db.run("ALTER TABLE doc ADD COLUMN meta TEXT NOT NULL DEFAULT '';");
     await db.run("ALTER TABLE doc ADD COLUMN bump INTEGER NOT NULL DEFAULT 0;");
     
