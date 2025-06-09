@@ -1,58 +1,66 @@
-// ALL this does is load a SINGLE DocComponent, and populates it based on its type
-// it DOES NOT assign parentage! That is in the purvue of the components themselves (particularly the type=negative ones)
+/*
+ALL this does is load a SINGLE DocComponent, and populates it based on its type
+it DOES NOT assign parentage! That is in the purvue of the components themselves (particularly the type=negative ones)
 
-// reads data from a string(stream) and parses it out into a component in a few different ways.
-// typical use 
-// X = new DocImpExp();     // create the importer-exporter
-// X.attach(str, div);      // attach the component (and all its children) to <div> (and div's handler)
-// X.detach(div);           // detach component(and all its children) from <div> and return exportable str
+reads data from a string(stream) and parses it out into a component in a few different ways.
+typical use 
+X = new DocAttacher();
+X.attach(meta, parent, clone);      // attach the component (and all its children) to <div> (and div's handler)
+    clone:  bool  default:false; true=clone meta's dchData recs and use those instead  (allows us to do copy/paste)
+*/
 
-import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
+import { DCW_ShadowRect } from "/modules/core/fem_core_DCW_ShadowRect.js";
 
 export class DocAttacher {   // create and return a DCH from a stream
-    rootDch;
     dchList;
     dchLIdx;
-    dict = {
-        version: FG.VERSION,   // 0.1.2, etc  
-        uuid: "",              // "12345678-1234-1234-1234-123456789abc" if a full doc, else empty string if just a component part
-//        name: "",            // ONLY PRESENT IF V1.2 or later full name as shown in indexPane
-//        error: ""            // ONLY PRESENT IF ERROR OCCURRED!
-    }
 
-    async attach(dchList, parent)  {        // attach as child of parent.__sysDiv  (or to "divDocView" if parent=null)
+    rootDch;
+    meta;
+    keys;
+    idx;
+    async attach(meta, parentDch, clone=false)  {
+        this.meta = meta;
+        this.keys = Object.keys(meta);
+        this.idx = 0;
         this.rootDch = null;
-        this.dchList = dchList;
-        this.dchLIdx = 0;
-        await this._importNext(parent);   // if a parent was passed, add this as child
+
+        await this._attachNext(parentDch);
         return this.rootDch;
     }
 
 
-    async _importNext(parent) {
-        if (this.dchLIdx > this.dchList.length) {       // if end of dchEls
-            return null;                        
+    async _attachNext(parentDch) {
+        if (this.idx > this.keys.length) {      // no more recs to process 
+            return null;
         }
-        const dchEntry = this.dchList[this.dchLIdx++];
-        const dch = await DCH_ShadowBASE.create(dchEntry.name, parent, dchEntry.style);  // create handler, assign parent, create <div>, set style
-        if (!dch) {
-            return;
-        }
+        const key = parseInt(this.keys[this.idx++]);
+        let meta = this.meta[key];
+        const dch = await DCW_ShadowRect.create(parentDch, meta.S);  // create a handler, assign parent, create <div>, set 'S'tyle
+        // if (!dch) {
+        //     return null;
+        // }
         if (this.rootDch == null) {         // record the topmost dch for returning
             this.rootDch = dch;
         }
-        if (parent) {                       // if parent was passed, attach this to its children
-            parent.__children.push(dch);
-        }
-        try {
-            await dch.importData(dchEntry.data);                         // implant the data into the <div>
-        } catch (err) {
-            console.warn("Error importing data of dch '" + dchEntry.name + "', " + err.message);
+
+        console.log(FF.__FILE__(), "attach DCH HERE!  *********************************************************")
+        if (0) {
+            let pkt = WS.makePacket("GetDchData");  // consider lazyloading this in the future
+            pkt.id = key;
+            pkt = await WS.sendWait(pkt);
+
+            dch.attachHandler(pkt.data.name)
+            dch.importData(pkt.data.content);
         }
 
-        for (let idx = 0; idx < dchEntry.children; idx++) {          // load children of component (if any)
-            await this._importNext(dch);
+        for (let idx = 0; idx < meta.C; idx++) {    // load children of component (if any)
+            await this._attachNext(dch);            // and attach to this dch
         }
-        await dch.update();     //finally AFTER ALL children loaded, update plugin!
     }
 };
+
+
+function onPktGetDchData(pkt, context) {
+
+}

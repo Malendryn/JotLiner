@@ -1,7 +1,7 @@
 import { DFContextMenu } from "/public/classes/DFContextMenu.js";
 import { DFDialog }      from "/public/classes/DFDialog.js";
 
-import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
+import { DCW_ShadowRect } from "/modules/core/fem_core_DCW_ShadowRect.js";
 
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
@@ -259,16 +259,18 @@ function onIdxContextMenuAction(action) {
 
 
 FF.newDoc = async () => {
-    await FF.waitDirty();
+    await FF.waitDirty();   // save any currently loaded and dirty doc elements
     await FF.clearDoc();
     
     // then create a new doc by adding a single BOX handler as the docRoot
-    const dch = await DCH_ShadowBASE.create("BOX", null, null);	// blowout any loaded handlers and create toplevel DOC object
+debugger; let dch = await DCW_ShadowRect.create(null, null);	// blowout any loaded handlers and create toplevel DOC object
     dch.__sysDiv.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.__sysDiv.style.top/bottom/etc during exportDoc()
     dch.__sysDiv.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
     dch.__sysDiv.style.right  = "0px";
     dch.__sysDiv.style.bottom = "0px";
     dch.__sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
+
+    dch.create("BOX", {zX:0, zY:0});      // turn it into a 'BOX'
     FG.curDoc = {
         uuid:    FF.makeUUID(),
         rootDch: dch,
@@ -527,9 +529,8 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
                 FF.autoSave(0);                 
                 await FF.waitDirty();
             }
-            if (await FF.loadDoc(uuid, force)) {            // but ONLY reload doc if forced...
-                info.li.style.backgroundColor = bgColorSel;    //...change treeEntry background to 'selected'
-            }
+            /*NOwait*/ FF.loadDoc(uuid, force);  //  ONLY reload doc if forced...
+            info.li.style.backgroundColor = bgColorSel;    //...mark treeEntry as 'selected'
         }
     } else {
         await FF.clearDoc();
@@ -697,74 +698,42 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 }
 
 
+async function onPktGetDoc(pkt, context) {
+    // we have changed loaded doc's and cleared any on screen,  then went to sleep waiting for this packet with the newly selected doc info
+
+    await FF.clearDoc();                                // there SHOULD NOT BE a doc loaded!  but just in case...
+    const el = document.getElementById("divDocView");   // immediately un-reset/un-disable the background in prep for docloading
+    el.classList.remove("disabled");
+    el.innerHTML = "";
+
+    const attacher = new FG.DocAttacher();
+    const meta = JSON.parse(pkt.data.meta);
+    const rootDch = await attacher.attach(meta, null, false);    // this doc has no parent(null) so will become our new rootDch
+
+    FG.curDoc = { 
+        uuid:    context.uuid, 
+        rootDch: rootDch,
+        dirty:   false,
+    };
+
+    LS.curDoc = context.uuid;
+}
+
+
 FF.loadDoc = async function(uuid, force=false) {                    // returns T/F if doc loaded. (sets curDoc.uuid and .rootDch if True)
     if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded
         // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=true");
         return true;
     }
 
-    // let tmp = FF.getDocInfo(uuid);      // if uuid !in index, abort!  (should NEVER happen?)
-    // if (tmp == null) {
-    //     return false;
-    // }
+    await FF.clearDoc();            // remove any current doc & disable divDocView background
 
-    await FF.clearDoc();                                // remove any current doc
-
-    const el = document.getElementById("divDocView");   // un-'disable' the background
-    el.classList.remove("disabled");
-    el.innerHTML = "";
+    const el = document.getElementById("divDocView");
+    el.innerHTML = "Loading...";
 
     let pkt = WS.makePacket("GetDoc");
     pkt.uuid = uuid;
-    pkt = await WS.sendWait(pkt);       // name not here, name already supplied from "GetDocTree"
-
-    let success = true;
-    let tmp;
-    if (pkt.ver != FG.DOCVERSION) {     // version upgrade required?
-        pkt.doc = await FF.upgradeDoc(pkt.doc, pkt.ver);
-        if (pkt.doc.error) {
-            alert(pkt.doc.error);
-            return false;
-        }
-        let encoder = new DFEncoder();
-        tmp = {
-            dchList: pkt.doc.dchList,
-        };
-        const pk2 = WS.makePacket("SaveDoc")
-        tmp = encoder.encode(tmp)  // encodes only the {dchlist:[]}, no uuid,name,version
-        pk2.dict = {
-            uuid: uuid,
-            doc: tmp,
-        };
-        await WS.sendWait(pk2)    // save upgraded doc
-        tmp = pkt.doc
-    } else {
-        const decoder = new DFDecoder(pkt.doc);
-        try {
-            tmp = decoder.decode();
-        }
-        catch(err) {
-            alert("Import error: " + err.message);
-            success = false;
-            await FF.newDoc();          // create new empty doc to replace the broken one
-            FG.curDoc.uuid = uuid;      // but use the same uuid
-            FG.curDoc.dirty = true;
-            FF.autoSave();
-        }
-    }
-
-    delete pkt.doc;                         // reduce memory usage
-    if (success) {
-        const imp = new FG.DocAttacher();
-
-        FG.curDoc = { 
-            uuid:    uuid, 
-            rootDch: await imp.attach(tmp.dchList, null),  // now build-and-attach doc to the system as new root doc!
-            dirty:   false,
-        };
-    }
-
-    LS.curDoc = uuid;
+    pkt = WS.sendExpect(pkt, onPktGetDoc, pkt.uuid);
 
     return true;
 }

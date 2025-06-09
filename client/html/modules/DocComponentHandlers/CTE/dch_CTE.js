@@ -4,9 +4,9 @@
 
 //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
 
-import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
-class DCH_CTE extends DCH_ShadowBASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
+class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)
 
     static pluginName    = "RichText CTE Editor";
     static pluginTooltip = "A RichText-like editor built using a contenteditable <div>";

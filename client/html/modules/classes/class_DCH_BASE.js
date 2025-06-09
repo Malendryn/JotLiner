@@ -6,7 +6,7 @@
 
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
-class DCH_ShadowBASE {   // base class of all document components
+class DCH_BASE {   // base class of all document components
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // PLUGIN SUPPLIED PROPERTIES: plugin-makers MUST override these following variables with their own values
     static pluginName    = "Unnamed Plugin";   // The plugin's name as shown in menus and command modes
@@ -17,10 +17,10 @@ class DCH_ShadowBASE {   // base class of all document components
 
     srcUrl  = "./pathTo/this/plugin"  // relative path to this plugin (so plugin can access related content)
     parent  = parentDCH  reference to parent dch (or id=divDocView if this is the topmost dch which is always a BOX)
-    host    = DOM <div>  where plugin's content should go.  for DCH_ShadowBASE this is a div inside a shadow DOM and thus isolated
+    host    = DOM <div>  where plugin's content should go.  for DCH_BASE this is a div inside a shadow DOM and thus isolated
                          from the main html page
     toolbar = DOM <div>  where the toolbar icons and dropdowns etc should be placed.  Like host, this is also a shadow DOM when the
-                         parent is DCH_ShadowBASE
+                         parent is DCH_BASE
 */
 
 //  id = addStyle(code) adds a style in <head> but tracks it via returned id and auto-prevents duplication if plugin loaded more than once
@@ -71,8 +71,9 @@ class DCH_ShadowBASE {   // base class of all document components
 // internal functions,  (do not override!)-----------------------------------------------------------------------------
 //  none!
 
+    #owner; // DCW_ShadowRect that owns us
 
-    static async create(dchName, parent=null, style=null) {
+    static async create(dchName, owner) {
         if (!dchName in DCH) {
             return null;
         }
@@ -83,6 +84,7 @@ class DCH_ShadowBASE {   // base class of all document components
             console.warn("Failed to create plugin '" + dchName + "', reason: " + err.message);
             return null;
         }
+        this.#owner = owner;
         if (typeof dch.hasToolbar != "boolean") {
             throw new Error(`${this.constructor.name} must set static property 'hasToolbar' to true or false`);
         }
@@ -285,10 +287,10 @@ addDbgId(el, "_dbg_" + this.constructor.name + ".__toolShadow.style(InShadow) id
     }
 
     constructor() {     // RSTODO move all the other 'on class' defines into here, supposedly it's 'the right way'
-        if (this.constructor.pluginName == DCH_ShadowBASE.pluginName) {
+        if (this.constructor.pluginName == DCH_BASE.pluginName) {
             throw new Error(`${this.constructor.name} must override static property 'pluginName'`);
         }
-        if (this.constructor.pluginTooltip == DCH_ShadowBASE.pluginTooltip) {
+        if (this.constructor.pluginTooltip == DCH_BASE.pluginTooltip) {
             throw new Error(`${this.constructor.name} must override static property 'pluginName'`);
         }
         this.tracker  = new DFListenerTracker(); // see below under 'listener add/remove functions'
@@ -323,7 +325,7 @@ addDbgId(el, "_dbg_" + this.constructor.name + ".__toolShadow.style(InShadow) id
                     // for listeners, use this.addDCHListener() & this.removeDCHListener...()  so dch can autoremove when destroying
 
 };
-export { DCH_ShadowBASE };
+export { DCH_BASE };
 
 let _debugIdCounter = 0;    // for debug purposes
 

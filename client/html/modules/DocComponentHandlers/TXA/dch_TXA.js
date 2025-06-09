@@ -1,7 +1,7 @@
 
-import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
-class DCH_TXA extends DCH_ShadowBASE {
+class DCH_TXA extends DCH_BASE {
     el;                 // becomes childof this.host and is a "textarea"  (see construct())
 
     static pluginName    = "<textarea> node";

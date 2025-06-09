@@ -1,7 +1,7 @@
 
-import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
+import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
-class DCH_BOX extends DCH_ShadowBASE {
+class DCH_BOX extends DCH_BASE {
     __children = [];      // changing to [] to allow children
 
     static pluginName    = "Infinite Box";
@@ -55,4 +55,4 @@ class DCH_BOX extends DCH_ShadowBASE {
         }
      }
 };
-export { DCH_BOX as DCH };      // always export 'as DCH' so DCH_ShadowBASE can load-on-the-fly and attach to globalThis.DCH
+export { DCH_BOX as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH

@@ -73,15 +73,19 @@ async function process(ws, buf) {
     }
 }
 
+WS.batchRespond = (ws, pkt) => {
+    pkt.__r = 1;
+    WS.send(ws, pkt);
+}
 
-BF.fault = function(msg) {
+WS.fault = function(msg) {
     const pkt = new WS.classes.Fault();
     pkt.msg = msg;
     return pkt;
 }
 
 
-BF.onChanged = (ws, dict) => {
+WS.onChanged = (ws, dict) => {
     const pkt = new WS.classes.Changed();
     pkt.dict = dict;
     for (const client of BG.clients.values()) {

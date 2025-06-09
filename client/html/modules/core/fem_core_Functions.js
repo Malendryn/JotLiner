@@ -98,8 +98,10 @@ FF.makeHash = async (txt) => {
 
 
 FF.clearDoc = async() => {
-    // console.log(FF.__FILE__(), "clearDoc: FG.curDoc=",FG.curDoc);
+    WS.clearExpectByName("GetDoc");       // remove any pending GetDoc waitfors
     if (FG.curDoc) {
+        WS.clearBatchExpect("GetDchData", FG.curDoc.uuid); // remove any pending GetDchData batch waitfors  
+    
         if (FG.curDoc.dirty) {
             FF.autoSave(0);
             await FF.waitDirty();       // wait until doc save is clean

@@ -44,7 +44,6 @@ class PacketBASE {
 /////////////////////////////////////// Packet class definitions go below this line ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // see bem_core_PacketHandlers.js for the CLASS.prototype.process(){} backend overrides for these classes
-
 //                <-- means server to client (being replaced by B<--F)
 //                --> means client to server (being replaced by B-->F)
 // note that under the 'updated' packet structure, classes when defined have NO properties in them!  They must be added
@@ -87,11 +86,15 @@ WS.registerPacketClass(class GetDocTree extends PacketBASE { // get docTree tabl
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
-    uuid;       // -->  uuid of doc to get 
-                // <-- uuid of doc returned
-    doc;        // <-- doc-as-string (possibly uuencoded) OR RSTODO we wrap this in a toJSON and fromJSON
+ //   uuid;       // B<--F uuid of doc to get 
+ //   data;       // B-->F {id,name,meta}
 });
-WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.registerPacketClass(class GetDchData extends PacketBASE {    // load a doc from the db via its uuid
+    //   list;    // F<--F list of id's of dchData recs to fetch
+    //   data;    // B-->F {id,name,content}
+   });
+   WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
     dict;       // --> {uuid,version,name,listOrder,parent,doc}
 // <-- returns with a GetDocTree packet instead of this one!
 });

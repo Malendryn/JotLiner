@@ -3,7 +3,15 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-09 ------------------------------------------------------------------------------------------------------------
+* branch rework/0.2.0
+* started revamping DCH_ShadowBase, removed toolbar from it as at this stage it's not needed yet, but it still builds
+    the main shadowRoot.
+* added WS.sendBatchExpect(pkt, key, callback, context) to allow a single request to return multiple responses
+    caveat is that client must eventually call WS.clearBatchExpect(key) to stop 'expecting' that packet
+* have DCH_ShadowBASE reworked into DCW_ShadowRect and now call these dcw's, and dch's will be attached as DCH_BASE'same
+    inside at this.#dch
+    
 2025-06-08 ------------------------------------------------------------------------------------------------------------
 * began upgrade of db from 6 to 7, this will be another big change where we extract individual dch's (plugins) from
     the single table:doc.content into table:dch records and track them via the new table:doc.dchList column.

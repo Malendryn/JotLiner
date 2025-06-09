@@ -17,6 +17,6 @@ WS.classes.Changed.prototype.process = async function() {    // insert new doc i
         await FF.selectAndLoadDoc(FG.curDoc && FG.curDoc.uuid);     // download and display new tree, re-select curDoc too
     } else if (this.dict.what == "dbList") {
         FF.updateDBSelector();      // get available dbs from server, populate dbDropdown in titlebar, fireup FF.selectDB() workhorse!
-
     }
 };
+

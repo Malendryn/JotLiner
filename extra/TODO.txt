@@ -1,4 +1,33 @@
 
+in (and around) fem_core_IndexVieHandler.js:699  function onGetDoc(pkt,context)
+
+RSTODO rework FG.DocAttacher such that it builds the __sysDiv frames but inserts a 'loading...' msg into each one
+and then fires requests to the server for all the dchData needed to fill them.
+then one-by-one we populate as they arrive
+AND track if not complete so "Export Document" is blocked until fully loaded
+   I can see no reason we can't save the doc even if the dch's arent fully loaded
+   we can also save dch's that /are/ fully loaded
+   but we cannot export as that requires them to ALL be fully loaded
+
+hmm... FG.DocAttacher() expected dch's to be children of DCH_ShadowBase .. but if we're lazyloading then we don't 
+even know what they are at this point...  
+the concept of what a dch is just got a little smaller! 
+
+so a DCH_ShadowBase now builds everything just like before up to .host and .toolbar and loadStyle() but it is no longer
+an extended class.  We will need a new class the plugin can inherit from (now DCH_BASE cuz it's free!)
+and we attach on it .host and .toolbar and import()/export() and those few things that truly matter to it
+
+
+how should DocAttacher work now....
+you used to hand it a dchList and a parent to attach it to which allowed us to copy/paste whole sections, so we should
+keep that ability somehow... 
+
+but it will be impossible to 'copy/paste' using the new lazyloader so we may need an 'injectAsNew' type thing... ?
+    (this opens up a new door, we could link two dch's to the same dchData rec!)
+
+WS.clearBatchExpect() and WS.clearExpectByName("GetDoc")  should be called from FG.clearDoc/FG.newDoc 
+
+
 -----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 don't forget that when we add the Colorpikr to license it appropriately!
@@ -11,6 +40,7 @@ add copy/paste  (see cherrytree "cut/copy/paste and HTTPS")
 with the new LocalStore class we can get rid of FG.curDbName (now LS.curDb)  and maybe a few other refs that are now in 
     LocalStore  (EG: search for LS.curdoc as there are places that have const uuid=LS.curDoc)
 -----------------------------------------------------------------------------------------------------------------------
+cut/copy/paste of DCH's and children
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------
 consider making a conscious decision to stop calling things client/server OR to stop calling them backend/frontend,

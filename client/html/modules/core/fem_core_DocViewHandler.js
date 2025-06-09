@@ -1,6 +1,6 @@
 // DocViewHandler = Toplevel Keyboard and Mouse Event Handlers
 
-import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
+import { DCW_ShadowRect } from "/modules/core/fem_core_DCW_ShadowRect.js";
 
 let el = document.getElementById("divDocView");
 // el.addEventListener("focus",       onTkmDocViewFocus, true);                                           // listen for 'leaving browser' specifically
@@ -331,7 +331,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
             let dchName = action.substr(7);
 console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
             const style = {L:startX, T:startY, W:100, H:100};
-            const nuDch = await DCH_ShadowBASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
+            const nuDch = await DCW_ShadowRect.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
             dch.__children.push(nuDch);
             FF.autoSave();          // autosave after 5 secs
         }

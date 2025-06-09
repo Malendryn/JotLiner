@@ -18,7 +18,7 @@ async function iterCallback(db, rec) {
     let decoder = new DFDecoder(rec.content);
     let docContent = decoder.decode();
 
-    const metaList = [];
+    const meta = {};
     for (const dch of docContent.dchList) {
         let encoder = new DFEncoder();
         let tmp = encoder.encode(dch.data);         // encode only the plugin's data
@@ -26,32 +26,34 @@ async function iterCallback(db, rec) {
         let id = await db.run("INSERT INTO dchData (docId,name,content,bump) values (?,?,?,?)", list);
 
         dch.style.Z=0;             // stick 'Z' into the style block
-        let meta = {
-            I: id,
+        let entry = {
+            // I: id,
             S: dch.style,
             C: dch.children,
         };
-        metaList.push(meta);
+        meta[id] = entry;
     }
-// now we have to convert the meta.C from a #-of-children to the actual recId's in the dch table
+// // now we have to convert the meta.C from a #-of-children to the actual recId's in the dch table
+// no we don't! Just leave it as #children following, that works for export() just fine, it works just fine here too!
+//     let idx = 0;
+//     let keys = Object.keys(meta);
+//     function iter() {
+//         const key = keys[idx];
+//         const dch = meta[key];
+//         let children = dch.C;          // change from the number captured above...
+//         dch.C = [];                    //...to a list of id's 
+//         while (children-- > 0) {        // and if there were any children...
+//             ++idx;
+//             dch.C.push(iter());        //...add them
+//         }
+//         return key;  // return 'parent of consumed children' (for children-of-children consuming)
+//     }
+//     while (idx < keys.length) {
+//         iter();
+//         ++idx;
+//     }
 
-    let idx = 0;
-    function iter() {
-        const meta = metaList[idx];
-        let children = meta.C;          // change from the number captured above...
-        meta.C = [];                    //...to a list of id's 
-        while (children-- > 0) {        // and if there were any children...
-            ++idx;
-            meta.C.push(iter());        //...add them
-        }
-        return meta.I;  // return 'I'd as 'parent of consumed children' (for children-of-children consuming)
-    }
-    while (idx < metaList.length) {
-        iter();
-        ++idx;
-    }
-
-    await db.run("UPDATE doc set meta=? where id=?", [JSON.stringify(metaList), rec.id]);
+    await db.run("UPDATE doc set meta=? where id=?", [JSON.stringify(meta), rec.id]);
 
     return true;
 
@@ -73,7 +75,7 @@ async function iterCallback(db, rec) {
 
 async function updateDb(db) { 
 if (1) {
-    await db.run("ALTER TABLE doc DROP COLUMN ver;");
+    await db.run("ALTER TABLE doc DROP COLUMN version;");
     await db.run("ALTER TABLE doc ADD COLUMN meta TEXT NOT NULL DEFAULT '';");
     await db.run("ALTER TABLE doc ADD COLUMN bump INTEGER NOT NULL DEFAULT 0;");
     

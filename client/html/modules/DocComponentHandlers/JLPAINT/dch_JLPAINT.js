@@ -13,9 +13,9 @@ const html = `
     <button id="saveCanvas">Save as PNG</button>
   </div>`;
 
-  import { DCH_ShadowBASE } from "/modules/classes/class_DCH_ShadowBASE.js";
+  import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
-  class DCH_JLPAINT extends DCH_ShadowBASE {
+  class DCH_JLPAINT extends DCH_BASE {
     static pluginName    = "Simple Painter Plugin";
     static pluginTooltip = "A basic painting node for learning how to make your own plugins";
            hasToolbar    = true;  // without this the class would have no toolbar!
