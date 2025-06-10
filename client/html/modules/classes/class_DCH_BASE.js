@@ -49,7 +49,6 @@ class DCH_BASE {   // base class of all document components
 
     showToolbar() {}
     hideToolbar() {}
-    setToolbarHeight(px) {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create/destroy and other helper functions on baseclass (do not override!)-------------------------------------------
@@ -95,16 +94,18 @@ class DCH_BASE {   // base class of all document components
     async update()         {}                              // *overridable*
 
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
-        debugger; this.tracker.removeAll();
+        this.tracker.removeAll();
         await this.destruct();
-        this.__sysDiv.remove();                                     // remove our dch toplevel div
-        if (this.hasToolbar) {                                      // if we had a toolbar, remove its toplevel div
-            this.__toolWrap.remove();
-        }
-        if (this.#parentDch) {                                       // if not at topmost dch, remove us from our parents children
-            const idx = this.#parentDch.children.indexOf(this);
-            this.#parentDch.children.splice(idx, 1);
-        }
+
+// this following stuff is now done in the dcw
+        // this.__sysDiv.remove();                                     // remove our dch toplevel div
+        // if (this.hasToolbar) {                                      // if we had a toolbar, remove its toplevel div
+        //     this.__toolWrap.remove();
+        // }
+        // if (this.#parentDch) {                                       // if not at topmost dch, remove us from our parents children
+        //     const idx = this.#parentDch.children.indexOf(this);
+        //     this.#parentDch.children.splice(idx, 1);
+        // }
     }
 
     constructor(owner) {
@@ -145,7 +146,6 @@ class DCH_BASE {   // base class of all document components
     async loadStyle(str, which={}) {  await this.#owner.loadStyle(str, which); }
           showToolbar()            {        this.#owner.showToolbar();         }
           hideToolbar()            {        this.#owner.hideToolbar();         }
-          setToolbarHeight(px)     {        this.#owner.setToolbarHeight(px);  }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -47,12 +47,12 @@ FG.kmStates = {
     keyMeta:  false,    // on windows this is the 'Win' key
     keyZ:     false,    // moves us to mode=2
     modal:    false,    // true when any menu, contextmenu, or dialog is open, else false
-    dch:      null,     // the dch the target belongs to  (IF, else null)
+    dcw:      null,     // the current dcw, (ONLY if mode1 or mode2, null when mode0)
 };
 FG.kmPrior = null;  // clone of FG.kmStates prior to onStateChange() so we can test if something JUST changed
 
 function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND set value
-    let elC = document.getElementById("dawIBCkBox" + code);
+    debugger; let elC = document.getElementById("dawIBCkBox" + code);
     let elI = document.getElementById("dawIBInput" + code);
     if (enable) {
         elC.className = "enAbled";
@@ -69,7 +69,7 @@ function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND s
     }
 }
 function onFormInput(evt) {                         // if an inputBox's value changed
-    formChanged = true;
+    debugger; formChanged = true;
     const dch = FG.kmStates.dch;
     let ss = dch.__sysDiv.style;
     const val = parseInt(evt.target.value) || 0;
@@ -90,7 +90,7 @@ function onFormInput(evt) {                         // if an inputBox's value ch
 let formChanged;
 let formOrigVals;
 function onFormClick(evt) {
-    if (evt.target.id.startsWith("dawIBCkBox")) {       // if a checkbox was clicked...
+    debugger; if (evt.target.id.startsWith("dawIBCkBox")) {       // if a checkbox was clicked...
         formChanged = true;
         const dch = FG.kmStates.dch;
         // const pRect = dch.__parent.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
@@ -125,7 +125,7 @@ function onFormClick(evt) {
 
 
 function setFormVals() {
-    const dch = FG.kmStates.dch;
+    debugger; const dch = FG.kmStates.dch;
     const ss = dch.__sysDiv.style;
     frmSetEl("L", (parseInt(ss.left) || 0),   ss.left.length   > 0);
     frmSetEl("W", (parseInt(ss.width) || 0),  ss.width.length  > 0);
@@ -214,7 +214,7 @@ dawAHL (AHR/AHT/AHB) is arrowhead facing Left, Right, Top, Bottom
 `;
 let dlg;
 function onContextDCHLayout() {
-    async function _preRun(form) {
+    debugger; async function _preRun(form) {
         formChanged = false;
         const dch = FG.kmStates.dch;
         formOrigVals = {
@@ -230,7 +230,7 @@ function onContextDCHLayout() {
         form.addEventListener("input", onFormInput);
     }
     async function _onBtn(btnLabel, dict) {
-        if (!dict.isSubmit) {
+        debugger; if (!dict.isSubmit) {
             const ss = FG.kmStates.dch.__sysDiv.style;
             ss.left   = formOrigVals.left;      // if dict == null, cancel was clicked, so restore original values
             ss.width  = formOrigVals.width;
@@ -243,7 +243,7 @@ function onContextDCHLayout() {
         return true;                // tell dialog to close no matter what button was pressed
     }
     async function _postRun(form) {
-        form.removeEventListener("input", onFormInput);
+        debugger; form.removeEventListener("input", onFormInput);
         form.removeEventListener("click", onFormClick);
         if (formChanged) {
             FF.autoSave(0);         // save immediately
@@ -271,18 +271,18 @@ because we can't rely on the dch to do it itself
         return true;                // tell dialog to close no matter what button was pressed
     }
     async function _postRun(form) {
-        FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
+        debugger; FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
         onStateChange({});          // just to bump an update so ghost clears
     }
     
-    FG.kmStates.modal = true;
+    debugger; FG.kmStates.modal = true;
     dlg = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onBtn });
     dlg.open({form:"<form>temporary</form>"});
 }
 
 
 FF.getDchName = function (dch) {
-    for (const key in DCH) {            // get it's dchName by searching for it in the loaded DCH ComponentHandlers
+    debugger; for (const key in DCH) {            // get it's dchName by searching for it in the loaded DCH ComponentHandlers
         if (dch instanceof DCH[key].dchClass) {  
             return key;
         }
@@ -297,7 +297,7 @@ import { DFDialog }      from "/public/classes/DFDialog.js";
 
 const _dchContextMenu = new DFContextMenu();
 function openDCHContextMenu() {      // based on the dch the mouse is over when rightmouse was pressed...
-   let dch = FG.kmStates.dch;   // the actual dch instance
+    debugger; let dch = FG.kmStates.dch;   // the actual dch instance
 
     const dchName = FF.getDchName(dch);  // the name (as found in the globalThis.DCH{} )
 
@@ -371,15 +371,15 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
 }
 
 
-FF.getDchAt = function(clientX, clientY) {
+function getDcwAt(clientX, clientY) {
     if (!FG.kmStates.inDocView) {
         return null;
     }
     const list = document.elementsFromPoint(clientX, clientY);
     for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
         const tmp = list[idx];
-        if (tmp._dchMouseOp == "dchComponent") {
-            return tmp._dchHandler;
+        if (tmp._dcw) {          // is <el> under mouse a  dcw?
+            return tmp._dcw;
         }
     }
     return null;
@@ -387,7 +387,7 @@ FF.getDchAt = function(clientX, clientY) {
 
 
 function setKBModeTitlebarText(dch) {
-    if (dch) {          // dch can be null when first entering mode1/2 from mode0
+    debugger; if (dch) {          // dch can be null when first entering mode1/2 from mode0
         let el = document.getElementById("__tmpKBModeTitlebar");
         if (el) {
             let txt = `
@@ -426,7 +426,7 @@ const __skbmtbtxtStyle = /*setup the styles used by the setKBModeToolbarText() f
 </style>
 `;
 function __mkSkbmtbtxtFld(wrd, val, show) { // create the <span>s to display val in the toolbar
-    let bgc;
+    debugger; let bgc;
     if (show) {
         bgc="white"
     } else {
@@ -436,7 +436,7 @@ function __mkSkbmtbtxtFld(wrd, val, show) { // create the <span>s to display val
 }
 
 function setKBModeToolbarText(dch) {
-    if (!dch) {
+    debugger; if (!dch) {
         return;
     }
     let el = document.getElementById("__tmpKBModeToolbar");
@@ -476,7 +476,7 @@ function setKBModeToolbarText(dch) {
 
 
 FF.getAllDch = function() {
-    if (!FG.curDoc) {
+    debugger; if (!FG.curDoc) {
         return [];
     }
     let dch = FG.curDoc.rootDcw;
@@ -496,7 +496,7 @@ FF.getAllDch = function() {
 
 
 function getChildrenBoundingRect(dch) {
-    let rect = {
+    debugger; let rect = {
         L: 999999999,
         R: 0,
         T: 999999999,
@@ -513,7 +513,7 @@ function getChildrenBoundingRect(dch) {
 }
 function showOOB() {
     // console.log(FF.__FILE__(), "showOOB");
-    FG.ghosts.showOOB = true;
+    debugger; FG.ghosts.showOOB = true;
     const dchList = FF.getAllDch();
     for (const dch of dchList) {
         if (FF.getDchName(dch) == "BOX") {  // only do this to BOXes
@@ -548,7 +548,7 @@ function showOOB() {
 //     }
 // }
 function showGhosts(dch) {
-    const mDiff = FG.kmStates.mode != FG.kmPrior.mode;  // did the current mode change?
+    debugger; const mDiff = FG.kmStates.mode != FG.kmPrior.mode;  // did the current mode change?
     const dDiff = FG.kmStates.dch  != FG.kmPrior.dch;   // did the dch under mouse change?
     // console.log(FF.__FILE__(), "showGhosts dch=", dch != null, "mode=", FG.kmStates.mode, "mDiff=", mDiff, "dDiff=", dDiff);
     showOOB();
@@ -619,7 +619,7 @@ function showGhosts(dch) {
 }
 
 function doDchOpMode1(orig) { // only called when FG.kmStates == 1
-    if (!FG.kmStates.inDocView) {
+    debugger; if (!FG.kmStates.inDocView) {
         return;
     }
     if (!FG.curDoc) {
@@ -637,7 +637,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     if (FG.kmStates.btnLeft) {                      // if mouseLeft down, use existing hovered-over sysDiv
         dch = FG.kmStates.dch;
     } else {                                        // mouseleft NOT down, find dch currently hovering over
-        dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
+        dch = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);
         // if (FG.kmStates.dch != FG.curDoc.rootDcw) {      
             if (dch && dch != FG.kmStates.dch) {                // if there was a dch already selected but it's not this one any more
                 if (FG.ghosts.divGhost) {                           // remove any exhisting ghost
@@ -721,13 +721,13 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     }
 }
 function doDchOpMode2(orig) { // only called when FG.kmStates == 2
-    let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
+    debugger; let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
     if (FG.kmStates.btnLeft) {                     // if mousleft down, use existing hovered-over dch
         dch = FG.kmStates.dch;
     } else {
-        dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dch under cursor (even if it is the root!)
+        dch = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dch under cursor (even if it is the root!)
         dch = FF.getBoxAroundDch(dch);                                  // get parent BOX (or self if is a BOX)
         FG.kmStates.dch = dch;
 
@@ -813,35 +813,27 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
 }
 
 function getCmdMode(src = FG.kmStates) {      // alternately pass in FG.kmPrior
-    if (src.keyAlt && src.keyShift) {       // if both keys are down
+    if (src.keyAlt && src.keyShift) {
         if (src.keyZ) {
-            return 2;
+            return 2;       // alt+shift+z are pressed
         }
-        return 1;
+        return 1;           // alt+shift only
     }
 
-    if (FG.kmStates.dch) {  // mode=0, close anything open
+    if (FG.kmStates.dcw) {  // mode=0, (alt+shift NOT pressed) close anything open
         setKMStateMode(0);
     }
-//EEEE
-    // I think right here (mode=0) we should test if FG.kmStates.dch != null and if not we should call all the 'closeme' stuff and 'restore shadow' stuff
-    // and then set dch to null.
-
-    // then in the oncontextmenu() we can check and if dch=null (which it should now ALWAYS be if we do this) then we can 'FG.kmStates.btnRight = false'
-    // and that SHOULD solve our keyboard mapping issue with the rightbutton context menu thingy leaving rightbutton in a faux-states
-
-
     return 0;                               // if only one or neither are down
 }
 
 
 // sets/zeros FG.kmStates.mode based on cmdKeys pressed/released OR toggled
-function onStateChange(orig) {  // detect commandState change and create a faux invis window over entire divDocView
+function onStateChange() {  // detect commandState change and create a faux invis window over entire divDocView
     if (FG.kmStates.modal) {            // a modal operation is happening, ignore state activities after this point
         return;
     }
     const docDiv = document.getElementById("divDocView");
-    let oldCMode = getCmdMode(orig);
+    let oldCMode = getCmdMode(FG.kmPrior);
     let newCMode = getCmdMode();
     // console.log(FF.__FILE__(), oldCMode, newCMode);
 
@@ -852,23 +844,22 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
         return;
     }
 
-    if (FG.kmStates.mode == 1) {    
-        doDchOpMode1(orig);
-    } else if (FG.kmStates.mode == 2) {
-        doDchOpMode2(orig);
+    if (FG.kmStates.mode == 1) {            // alt+shift pressed
+        doDchOpMode1(FG.kmPrior);
+    } else if (FG.kmStates.mode == 2) {   // alt+shift+Z pressed
+        doDchOpMode2(FG.kmPrior);
     } else {
-        if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != orig.btnLeft) {       // show toolbar for dch, hide all others
+        if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != FG.kmPrior.btnLeft) {  // show toolbar for dch, hide all others
             if (FG.curDoc) {
-                FG.curDoc.rootDcw.setToolbarHeight(FG.toolbarHeight);               // reset default toolbar height
-            }
-            const dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
-            if (dch) {
-                const div = document.getElementById("divToolbar");
+                const div = document.getElementById("divToolbar");          // hide all dch toolbars
                 for (const child of div.children) {
-                    const tmpDch = child._dchHandler;
-                    tmpDch.hideToolbar();         // hide all toolbars then...
+                    child.style.display = "none";
                 }
-                dch.showToolbar();
+                FF.setToolbarHeight(FG.defaultToolbarHeight);               // reset default toolbar height
+            }
+            const dcw = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY); // are we over a dcw?
+            if (dcw) {
+                dcw.showToolbar();                                          // show its dch's toolbar
             }
         }
     }
@@ -876,7 +867,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
 
 
 function debugStates(states) {
-    const wrds = ["btnLeft", "btnMid", "btnRight", "keyAlt", "keyCtrl", "keyShift", "keyMeta", "modal"];
+    debugger; const wrds = ["btnLeft", "btnMid", "btnRight", "keyAlt", "keyCtrl", "keyShift", "keyMeta", "modal"];
     let ss = "";
     let flag = false;
     for (let idx = 0; idx < wrds.length; idx++) {
@@ -900,7 +891,7 @@ function debugStates(states) {
 function clearAllButtons(callSetKMState = true) {
     // console.log("CAB");
 
-    const states = {          // inject an 'all buttons released' statechange
+    debugger; const states = {          // inject an 'all buttons released' statechange
         "btnLeft":  false,
         "btnMid":   false,
         "btnRight": false,
@@ -936,13 +927,13 @@ function setKMState(states) {
     // debugStates(states);
 
     if (changed) {
-        onStateChange(FG.kmPrior);                // if anything changed, call the handler
+        onStateChange();                         // if anything changed, call the handler
     }
 }
 
 
 function onTkmKeyDown(evt) {
-    const states = {
+    debugger; const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
         keyShift: evt.shiftKey,
@@ -956,7 +947,7 @@ function onTkmKeyDown(evt) {
 }
 
 function onTkmKeyUp(evt) {
-    const states = {
+    debugger; const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
         keyShift: evt.shiftKey,
@@ -970,7 +961,7 @@ function onTkmKeyUp(evt) {
 
 
 function onTkmContextMenu(evt) {
-    if (FG.kmStates.dch == null) {      // if no dch, this should be popping the system default context menu
+    if (FG.kmStates.dcw == null) {      // if no dch, this should be popping the system default context menu
         FG.kmStates.btnRight = false;   // so 'lose the right button' which it gets stuck on
     }
 
@@ -1013,7 +1004,7 @@ function onTkmMousedown(evt) {
 }
 
 
-function testInDocView(evt) {
+function setInDocView(evt) {
     let el = document.getElementById("divDocView");
     let rect = el.getBoundingClientRect();
     FG.kmStates.inDocView = evt.clientX >= rect.left && evt.clientX <= rect.right
@@ -1035,7 +1026,7 @@ FF.setSizerPos = function(pos) {
 
 
 function onTkmMouseMove(evt) {
-    testInDocView(evt);
+    setInDocView(evt);                  // sets FG.kmStates.inDocView
     if (sizerStartPos) {                //check/move dragging sizerBar BEFORE checking inDocView
         const m = sizerStartPos;
         const deltaX = (evt.screenX - m.startX);
@@ -1043,18 +1034,16 @@ function onTkmMouseMove(evt) {
         return;
     }
     
-    const docDiv = document.getElementById("divDocView");
+    // if NOT dragging the sizerbar
     if (!FG.kmStates.inDocView) {
         return;
     }
-
-    // if NOT dragging the sizerbar
     setKMState({"clientX": evt.clientX, "clientY": evt.clientY});
 }
 
 
 function onTkmMouseUp(evt) {
-    if (sizerStartPos) {
+    if (sizerStartPos) {                                // if was dragging the sizerbar
         const el = document.getElementById("divIndexDocSizer");
         el.style.cursor = "";
 
@@ -1073,7 +1062,7 @@ function onTkmMouseUp(evt) {
 
 
 FF.moveDivRelative = function(el, deltaX, deltaY) {
-    if (el) {
+    debugger; if (el) {
         const rect = FF.getRawRect(el);
         if (rect.lrMode.includes("L")) { el.style.left   = (rect.L + deltaX) + "px"; }
         if (rect.lrMode.includes("R")) { el.style.right  = (rect.R - deltaX) + "px"; }
@@ -1084,7 +1073,7 @@ FF.moveDivRelative = function(el, deltaX, deltaY) {
 
 
 FF.moveDivAbsolute = function(el, locX, locY) {
-    if (el) {
+    debugger; if (el) {
         const rect = FF.getRawRect(el);
         if (rect.lrMode.includes("L")) { el.style.left   = locX + "px"; }
         if (rect.lrMode.includes("R")) { el.style.right  = locX + "px"; }
@@ -1095,7 +1084,7 @@ FF.moveDivAbsolute = function(el, locX, locY) {
 
 
 FF.sizeDivRelative = function(el, walls, deltaX, deltaY) {  // wall is n|ne|e|se|s|sw|w|nw
-    if (!el) {
+    debugger; if (!el) {
         return;
     }
     const rect = FF.getRawRect(el);
@@ -1152,7 +1141,7 @@ FF.sizeDivRelative = function(el, walls, deltaX, deltaY) {  // wall is n|ne|e|se
 
 
 FF.getRawRect = function(el) {
-    const rect = {
+    debugger; const rect = {
         lrMode: "",
         tbMode: "",
         L: NaN,
@@ -1178,7 +1167,7 @@ FF.getRawRect = function(el) {
 
 
 FF.getBoxAroundDch = function(dch) {
-    if (dch) {                                     // !!DO!! allow them to select/move the docroot! 
+    debugger; if (dch) {                                     // !!DO!! allow them to select/move the docroot! 
         let el = dch.__sysDiv;
         while (FF.getDchName(dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
             try {

@@ -12,6 +12,8 @@ module = async loadModule(modulePath)   load and return module, if has an export
 uuid   = async makeUUID()               make and return a UUID
 hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
 
+               setToolbarHeight(px)     // set toolbar height and adjust surrounding windows accordingly
+
 -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
 -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
 
@@ -79,12 +81,12 @@ window.addEventListener("beforeunload", FF.shutdown);
 
 FF.msDelay = (ms) => {  // this is primarily just a sample function
     return new Promise(resolve => setTimeout(resolve, ms)); 
-}
+};
 
 
 FF.makeUUID = () => {
 	return crypto.randomUUID();
-}
+};
 
 
 FF.makeHash = async (txt) => {
@@ -94,7 +96,16 @@ FF.makeHash = async (txt) => {
 		),
 		(byte) => byte.toString(16).padStart(2, '0')
 	).join('');
-}
+};
+
+
+FF.setToolbarHeight = (px) => {
+    let el = document.getElementById("divToolbar");
+    let rect = el.getBoundingClientRect();
+    el.style.height = px + "px";
+    el = document.getElementById("divMainView");
+    el.style.top = (rect.top + px) + "px";
+};
 
 
 FF.clearDoc = async() => {
@@ -113,7 +124,7 @@ FF.clearDoc = async() => {
     const el = document.getElementById("divDocView");
     el.classList.add("disabled");
     el.innerHTML = "Select an entry from the left pane";
-}
+};
 
 
 FF.getDocInfo = function (uuid) {
@@ -123,7 +134,7 @@ FF.getDocInfo = function (uuid) {
 		}
 	}
 	return null;
-}
+};
 
 
 FF.setIdxpanded = function(docTreeId, yesno) {    
@@ -133,7 +144,7 @@ FF.setIdxpanded = function(docTreeId, yesno) {
         opened.push(docTreeId);                                 // add (or add again) if needed
     }
     LS.openIndexes = opened;
-}
+};
 
 
 FF.parseRgba = function (rgbString) {     // turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
@@ -169,7 +180,7 @@ FF.parseRgba = function (rgbString) {     // turn "rgb(1,2,3)" or "rgba(1,2,3,4)
     }
   
     return hasAlpha? { r, g, b, a } : { r, g, b }; // Return as an object
-}
+};
 
 
 function __getFileLineInfo(err) {
@@ -196,6 +207,8 @@ function __getFileLineInfo(err) {
 		return "<?noFileInfo?>.???";
 	}
 }
+
+
 FF.__FILE__ = function(all = false) {
 	try {
 		throw new Error();
@@ -227,7 +240,7 @@ FF.__FILE__ = function(all = false) {
 		}
 		return "<?noFileName?>.??:???";
 	}
-}
+};
 
 
 FF.reTimer = function(callback) {
@@ -248,7 +261,7 @@ FF.reTimer = function(callback) {
 	}
 	return startTimeout;
     console.log(FF.__FILE__(), "*** AUTOSAVE DISABLED ***");
-}
+};
 
 
 const autoSaveCallback = async function() {
@@ -269,7 +282,7 @@ const autoSaveCallback = async function() {
         pkt = WS.send(pkt);	        // send to backend, /maybe/ get a response-or-Fault, ?don't care?
     	FG.curDoc.dirty = false;
     }
-}
+};
 FF._autoSaveFunc = FF.reTimer(autoSaveCallback);		// '_' cuz this should only ever be called from FF.autoSave() below
 
 FF.autoSave = function(delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
@@ -277,7 +290,8 @@ FF.autoSave = function(delay=1000) {    // since we're talking to 'local' backen
         FG.curDoc.dirty = true;    // set dirty flag immediately
         FF._autoSaveFunc(delay);   // start-or-restart the autosave countdown
     }
-}
+};
+
 
 FF.waitDirty = async function() {
     let tm, end = Date.now() + 15000;   // set end 15secs into the future
@@ -293,7 +307,8 @@ FF.waitDirty = async function() {
         tm = FF.reTimer(waitOnDirty);
         tm(10);                             // start the dirtychecker
     });
-}
+};
+
 
 FF.showLS = function() {
     for (let i = 0; i < localStorage.length; i++) {
@@ -301,11 +316,13 @@ FF.showLS = function() {
         const value = localStorage.getItem(key);
         console.log(`${key}: ${value}`);
     }
-}
+};
+
 
 FF.dump1 = function(u8a) {
     console.log(Array.from(u8a).map(byte => byte.toString(16).padStart(2, '0')).join(' '));
-}
+};
+
 
 FF.dump2 = function(u8a) {
     let ss = "";
@@ -322,5 +339,5 @@ FF.dump2 = function(u8a) {
     if (ss) {
         console.log(ss);
     }
-}
+};
 

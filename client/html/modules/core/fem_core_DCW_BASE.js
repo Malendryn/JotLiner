@@ -80,18 +80,22 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
 
     static async create(parentDcw, style) {
+        let parentDiv;
+        if (parentDcw == null) {                                // if self has no parent...
+            parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
+        } else {
+            parentDiv = parentDcw.host                          // else attach to parent's host <div>
+        }
+
         const dcw = new DCW_BASE();   // dcw = Document Component Wrapper
         dcw._dcwId = ++_dcwIdCounter;
         dcw.parentDcw = parentDcw;
         dcw.__sysDiv = document.createElement("div");           // create div
         dcw.addDbgId(dcw.__sysDiv, "__sysDiv");
+        // dcw.__sysDiv._dchMouseOp = "dchComponent";       // how to know mouse is over a dcw
+        dcw.__sysDiv._dcw = dcw;                         // howtoKnow mouse is over this dcw
+
         // dcw.__sysDiv.tabIndex = -1;                          // doing this makes the .__sysDiv focussable but not tabbable
-        let parentDiv;
-        if (parentDcw == null) {                                // if self has no parent...
-            parentDiv = document.getElementById("divDocView");  // attach div to toplevel div
-        } else {
-            parentDiv = dcw.parentDcw.host                     // else attach to parent's host <div>
-        }
         dcw.__sysDiv.classList.add("DCW_DefaultRect");
         // dcw.__sysDiv.style.position  = "absolute";      // the wrapping 'dcw.__sysDiv' is ALWAYS absolute!
         // dcw.__sysDiv.style.boxSizing = "border-box";    // prevent oversizing due to padding,borders,margin,...
@@ -207,11 +211,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         this.toolbar = document.createElement("div");
         this.addDbgId(this.toolbar, "toolbar(InShadow)");
         this.toolbar.classList.add("DCW_DefaultToolbar");           // see index.css
-        // this.toolbar._dchHandler = dch;                      // same for the toolbar
-        // this.toolbar._dchMouseOp = "dchToolBtn";
-        // this.toolbar.style.position = "absolute";
-        // this.toolbar.style.inset = "0px 0px 0px 0px";       // top, right, bottom, left
-        // this.toolbar.style.boxSizing = "border-box";
+        // this.toolbar._dcw = this;                            // needed for 'hide all toolbars'
         this.toolbar.style.backgroundColor = "rgb(155, 253, 161)";
                 
         this.__toolShadow.appendChild(this.toolbar);            // add useraccessable toolbar as child of __toolbar
@@ -256,49 +256,37 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
      showToolbar() {
-        debugger; if (this.toolbar) {
+        if (this.toolbar) {
             this.__toolWrap.style.display = "";
             if (this.toolbarHeight !== undefined) {
-                this.setToolbarHeight(this.toolbarHeight);
+                FF.setToolbarHeight(this.toolbarHeight);
             }
         }
     }
     hideToolbar() {
         debugger; if (this.toolbar) {
             this.__toolWrap.style.display = "none";
-            this.setToolbarHeight(FG.toolbarHeight);
-        }
-    }
-
-    setToolbarHeight(px) {
-        debugger; if (this.toolbar) {
-            // let el = document.getElementById("divTitlebar");
-            // let top = el.getBoundingClientRect().height;
-            let el = document.getElementById("divToolbar");
-            let rect = el.getBoundingClientRect();
-            el.style.height = px + "px";
-            el = document.getElementById("divMainView");
-            el.style.top = (rect.top + px) + "px";
+            FF.setToolbarHeight(FG.defaultToolbarHeight);
         }
     }
 
 
 // override above pre-defs in the help comments at the top of the class
     async destruct() {
-        debugger; for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy them (in reverse order cuz 'parent.splice()'
+        for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy them (in reverse cuz destroy() uses splice() )
             const child = this.children[idx];
-            await child.destroy();          // does the .splice() of my .children internally so don't do it here!
-            // this.children.splice(idx, 1);
+            await child.destroy();
         }
     }
 
     async destroy() { // detach this dcw and owned dch from doc, removing all listeners too, and destroy it
-        debugger; await this.destruct();
-        this.__sysDiv.remove();                                     // remove our dcw toplevel div
+        await this.destruct();
+        this.__dch.destroy();                  // give the dch a chance to cleanup
+        this.__sysDiv.remove();             // remove our dcw toplevel div
         if (this.__toolWrap) {
-            this.__toolWrap.remove();                               // if it had a toolbar, remove that too
+            this.__toolWrap.remove();       // if it had a toolbar, remove that too
         }
-        if (this.parentDcw) {                                      // if not at topmost dcw, remove us from our parents children
+        if (this.parentDcw) {                // if not at topmost dcw, remove us from our parents children
             const idx = this.parentDcw.children.indexOf(this);
             this.parentDcw.children.splice(idx, 1);
         }

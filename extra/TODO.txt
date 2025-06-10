@@ -29,6 +29,9 @@ WS.clearBatchExpect() and WS.clearExpectByName("GetDoc")  should be called from 
 
 
 -----------------------------------------------------------------------------------------------------------------------
+with the new dialogs pretty much taking over the screen, do we still need FG.kmStates.modal ?
+(also make sure contextmenu takes over just like dialog now does)
+-----------------------------------------------------------------------------------------------------------------------
 Review the licenses and licensed files to make sure everything's in place as it should.
 don't forget that when we add the Colorpikr to license it appropriately!
 Tiptap uses MIT license which I think is fine for my AGPLV3 use

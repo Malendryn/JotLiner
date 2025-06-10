@@ -698,7 +698,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 }
 
 
-async function onPktGetDoc(pkt, context) {
+async function onSe_pktGetDoc(pkt, uuid) {
     // we have changed loaded doc's and cleared any on screen,  then went to sleep waiting for this packet with the newly selected doc info
 
     await FF.clearDoc();                                // there SHOULD NOT BE a doc loaded!  but just in case...
@@ -711,12 +711,12 @@ async function onPktGetDoc(pkt, context) {
     const rootDcw = await attacher.attach(meta, null, false);    // this doc has no parent(null) so will become our new rootDcw
 
     FG.curDoc = { 
-        uuid:    context.uuid, 
+        uuid:    uuid, 
         rootDcw: rootDcw,
         dirty:   false,
     };
 
-    LS.curDoc = context.uuid;
+    LS.curDoc = uuid;
 }
 
 
@@ -733,7 +733,7 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
 
     let pkt = WS.makePacket("GetDoc");
     pkt.uuid = uuid;
-    pkt = WS.sendExpect(pkt, onPktGetDoc, pkt.uuid);
+    pkt = WS.sendExpect(pkt, onSe_pktGetDoc, pkt.uuid);
 
     return true;
 }

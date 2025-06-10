@@ -46,9 +46,9 @@ window.addEventListener('load', async function() {
 
     let el;
     el = this.document.getElementById("divToolbar");
-    FG.toolbarHeight = el.getBoundingClientRect().height;
+    FG.defaultToolbarHeight = el.getBoundingClientRect().height;
     el = this.document.getElementById("divIndexDocSizer");
-    el._dchMouseOp = "idx<>doc";
+    // el._dchMouseOp = "idx<>doc"; // oldschool, no longer needed
 
     let mod;
     await FF.loadModule("./modules/core/fem_core_LocalStore.js");          // attaches globally as 'LS' 'localStorage' class (for consistency)
