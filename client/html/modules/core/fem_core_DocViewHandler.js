@@ -1,6 +1,6 @@
 // DocViewHandler = Toplevel Keyboard and Mouse Event Handlers
 
-import { DCW_ShadowRect } from "/modules/core/fem_core_DCW_ShadowRect.js";
+import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 
 let el = document.getElementById("divDocView");
 // el.addEventListener("focus",       onTkmDocViewFocus, true);                                           // listen for 'leaving browser' specifically
@@ -314,7 +314,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
     entries.push({action:"export", label:"Export Element", tip:"Export node (and all children) under cursor to local file"});
 
 
-    if (dch != FG.curDoc.rootDch) {     // never allow deleting the topmost BOX element from this menu
+    if (dch != FG.curDoc.rootDcw) {     // never allow deleting the topmost BOX element from this menu
         entries.push({action:"delete", label:"Delete node (and all children)", tip:"Delete document element under mouse and all children inside it"});
         entries.push({action:"", label:"", tip:""});     // nor allow changing the styles
         entries.push({action:"setLayout", label:"Layout, anchors and depth", tip:"Modify the node's position and anchors, and change the front to back depth"});
@@ -331,7 +331,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
             let dchName = action.substr(7);
 console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
             const style = {L:startX, T:startY, W:100, H:100};
-            const nuDch = await DCW_ShadowRect.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
+            const nuDch = await DCW_BASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
             dch.__children.push(nuDch);
             FF.autoSave();          // autosave after 5 secs
         }
@@ -479,8 +479,8 @@ FF.getAllDch = function() {
     if (!FG.curDoc) {
         return [];
     }
-    let dch = FG.curDoc.rootDch;
-    let list = [dch];                     // add rootDch right away
+    let dch = FG.curDoc.rootDcw;
+    let list = [dch];                     // add rootDcw right away
 
     function getKids(dch) {
         if (dch.__children && dch.__children.length > 0) {
@@ -629,7 +629,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
     let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
-    if (FG.kmStates.dch == FG.curDoc.rootDch) {     // if rootDch WAS selected via mode2, THEN we came back here to mode1
+    if (FG.kmStates.dch == FG.curDoc.rootDcw) {     // if rootDcw WAS selected via mode2, THEN we came back here to mode1
         FG.kmStates.dch = dch = null;
     }
     // console.log(FF.__FILE__(), "doDchOpMode1: dch=", FG.kmStates.dch);
@@ -638,7 +638,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
         dch = FG.kmStates.dch;
     } else {                                        // mouseleft NOT down, find dch currently hovering over
         dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
-        // if (FG.kmStates.dch != FG.curDoc.rootDch) {      
+        // if (FG.kmStates.dch != FG.curDoc.rootDcw) {      
             if (dch && dch != FG.kmStates.dch) {                // if there was a dch already selected but it's not this one any more
                 if (FG.ghosts.divGhost) {                           // remove any exhisting ghost
                     FG.ghosts.divGhost.remove();
@@ -659,7 +659,7 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
         }
         return;
     }
-    if (dch == FG.curDoc.rootDch) {         // in mode1, do not allow them to select/move the docRoot!
+    if (dch == FG.curDoc.rootDcw) {         // in mode1, do not allow them to select/move the docRoot!
         dch = null;
     }
     if (!dch) {                             // there's no dch under the mouse,  nothing to do!
@@ -859,7 +859,7 @@ function onStateChange(orig) {  // detect commandState change and create a faux 
     } else {
         if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != orig.btnLeft) {       // show toolbar for dch, hide all others
             if (FG.curDoc) {
-                FG.curDoc.rootDch.setToolbarHeight(FG.toolbarHeight);               // reset default toolbar height
+                FG.curDoc.rootDcw.setToolbarHeight(FG.toolbarHeight);               // reset default toolbar height
             }
             const dch = FF.getDchAt(FG.kmStates.clientX, FG.kmStates.clientY);
             if (dch) {

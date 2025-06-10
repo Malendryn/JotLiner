@@ -1,7 +1,7 @@
 import { DFContextMenu } from "/public/classes/DFContextMenu.js";
 import { DFDialog }      from "/public/classes/DFDialog.js";
 
-import { DCW_ShadowRect } from "/modules/core/fem_core_DCW_ShadowRect.js";
+import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
@@ -191,7 +191,7 @@ async function _onCtxExport_onDlgButton(btnLabel, dict) {
 }
 async function onCtxExport() {
     let extracter = new FG.DocExtracter();
-    let tmp = await extracter.extract(FG.curDoc.rootDch, true);
+    let tmp = await extracter.extract(FG.curDoc.rootDcw, true);
 
     let mod = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
 
@@ -263,7 +263,7 @@ FF.newDoc = async () => {
     await FF.clearDoc();
     
     // then create a new doc by adding a single BOX handler as the docRoot
-debugger; let dch = await DCW_ShadowRect.create(null, null);	// blowout any loaded handlers and create toplevel DOC object
+debugger; let dch = await DCW_BASE.create(null, null);	// blowout any loaded handlers and create toplevel DOC object
     dch.__sysDiv.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.__sysDiv.style.top/bottom/etc during exportDoc()
     dch.__sysDiv.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
     dch.__sysDiv.style.right  = "0px";
@@ -273,7 +273,7 @@ debugger; let dch = await DCW_ShadowRect.create(null, null);	// blowout any load
     dch.create("BOX", {zX:0, zY:0});      // turn it into a 'BOX'
     FG.curDoc = {
         uuid:    FF.makeUUID(),
-        rootDch: dch,
+        rootDcw: dch,
         dirty:   false,
     };
 };
@@ -350,7 +350,7 @@ async function insertDoc(dict) {
         let extracter = new FG.DocExtracter();
         let encoder = new DFEncoder();
         let tmp = {
-            dchList: await extracter.extract(FG.curDoc.rootDch, false),
+            dchList: await extracter.extract(FG.curDoc.rootDcw, false),
         };
         dict.doc = encoder.encode(tmp);  // encodes only the {dchlist:[]}, no uuid,name,version
     }
@@ -708,11 +708,11 @@ async function onPktGetDoc(pkt, context) {
 
     const attacher = new FG.DocAttacher();
     const meta = JSON.parse(pkt.data.meta);
-    const rootDch = await attacher.attach(meta, null, false);    // this doc has no parent(null) so will become our new rootDch
+    const rootDcw = await attacher.attach(meta, null, false);    // this doc has no parent(null) so will become our new rootDcw
 
     FG.curDoc = { 
         uuid:    context.uuid, 
-        rootDch: rootDch,
+        rootDcw: rootDcw,
         dirty:   false,
     };
 
@@ -720,7 +720,7 @@ async function onPktGetDoc(pkt, context) {
 }
 
 
-FF.loadDoc = async function(uuid, force=false) {                    // returns T/F if doc loaded. (sets curDoc.uuid and .rootDch if True)
+FF.loadDoc = async function(uuid, force=false) {                    // returns T/F if doc loaded. (sets curDoc.uuid and .rootDcw if True)
     if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded
         // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=true");
         return true;

@@ -9,13 +9,14 @@ X.attach(meta, parent, clone);      // attach the component (and all its childre
     clone:  bool  default:false; true=clone meta's dchData recs and use those instead  (allows us to do copy/paste)
 */
 
-import { DCW_ShadowRect } from "/modules/core/fem_core_DCW_ShadowRect.js";
+import { DCW_BASE  } from "/modules/core/fem_core_DCW_BASE.js";
+import { DFDecoder } from "/public/classes/DFCoder.mjs";
 
 export class DocAttacher {   // create and return a DCH from a stream
     dchList;
     dchLIdx;
 
-    rootDch;
+    rootDcw;
     meta;
     keys;
     idx;
@@ -23,10 +24,10 @@ export class DocAttacher {   // create and return a DCH from a stream
         this.meta = meta;
         this.keys = Object.keys(meta);
         this.idx = 0;
-        this.rootDch = null;
+        this.rootDcw = null;
 
         await this._attachNext(parentDch);
-        return this.rootDch;
+        return this.rootDcw;
     }
 
 
@@ -36,26 +37,30 @@ export class DocAttacher {   // create and return a DCH from a stream
         }
         const key = parseInt(this.keys[this.idx++]);
         let meta = this.meta[key];
-        const dch = await DCW_ShadowRect.create(parentDch, meta.S);  // create a handler, assign parent, create <div>, set 'S'tyle
-        // if (!dch) {
+        const dcw = await DCW_BASE.create(parentDch, meta.S);  // create a handler, assign parent, create <div>, set 'S'tyle
+        // if (!dcw) {
         //     return null;
         // }
-        if (this.rootDch == null) {         // record the topmost dch for returning
-            this.rootDch = dch;
+        if (this.rootDcw == null) {         // record the topmost dch for returning
+            this.rootDcw = dcw;
         }
+        let pkt = WS.makePacket("GetDchData");      // go get the dch's name and content and attach it
+        pkt.id = key;
+        pkt = await WS.sendWait(pkt);                 // consider lazyloading this in the future
 
-        console.log(FF.__FILE__(), "attach DCH HERE!  *********************************************************")
-        if (0) {
-            let pkt = WS.makePacket("GetDchData");  // consider lazyloading this in the future
-            pkt.id = key;
-            pkt = await WS.sendWait(pkt);
+// RSTODO if this happens we should delete it properly by removing the dchData record too and removing it from any parent's 
+// 'children' list and also autoSave() that parent immediately to get rid of the dcw entirely
+// this technically SHOULD NEVER happen buuuut.... ! 
+        if (!await dcw.attachDch(pkt.data.name)) {
+             dcw.destroy();
+        } else {
+            const decoder = new DFDecoder(pkt.data.content);
+            const dict = decoder.decode()
+            dcw.__dch.importData(dict);
 
-            dch.attachHandler(pkt.data.name)
-            dch.importData(pkt.data.content);
-        }
-
-        for (let idx = 0; idx < meta.C; idx++) {    // load children of component (if any)
-            await this._attachNext(dch);            // and attach to this dch
+            for (let idx = 0; idx < meta.C; idx++) {    // load children of component (if any) (only if BOX component)
+                await this._attachNext(dcw);            // and attach to this dch
+            }
         }
     }
 };

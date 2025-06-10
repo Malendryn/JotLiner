@@ -43,7 +43,7 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 -------- async selectAndLoadDoc(uuid,force)   update selection in indexView, load selected doc in dchView, update localStorage
 
 ==== FROM fem_core_DocViewHandler.js ==================================================================================
-[]     =       getAllDch()              get list of all dch's in FF.curDoc.rootDch. (in same order as exporter puts them)
+[]     =       getAllDch()              get list of all dch's in FF.curDoc.rootDcw. (in same order as exporter puts them)
 --------       getDchName(dch)          return name of dch as the subdirName in DocComponentHandlers
 --------       getRawRect(el)           return LWRTHB of el direct from .style property
 --------       moveDivRelative(el, deltaX, deltaY)  move a div by x/y pixels, accounting for LWRTHB anchors too
@@ -107,7 +107,7 @@ FF.clearDoc = async() => {
             await FF.waitDirty();       // wait until doc save is clean
             console.log("beep");
         }
-        await FG.curDoc.rootDch.destroy();	// detach all listeners and remove entire document tree
+        await FG.curDoc.rootDcw.destroy();	// detach all listeners and remove entire document tree
         FG.curDoc = null;
     }
     const el = document.getElementById("divDocView");
@@ -257,7 +257,7 @@ const autoSaveCallback = async function() {
         let encoder = new DFEncoder();
 
         let tmp = {
-            dchList: await extracter.extract(FG.curDoc.rootDch, false),
+            dchList: await extracter.extract(FG.curDoc.rootDcw, false),
         };
         tmp = encoder.encode(tmp);
 

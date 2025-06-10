@@ -83,7 +83,7 @@
 * accidentally 'undid' some changes via a wrong git command, but they seem to have been pretty minor as nothing broke
 * changed direct testing for keyAlt+keyShift to a function getCmdMode() to make future configuration options easier
 * changed the alt+shift-then-releaseOne-then-alt+shift to go to mode2, to now be alt+shift+z
-* solved a bug that allowed rootDch to be dragged if you went to mode1 AFTER going to mode2
+* solved a bug that allowed rootDcw to be dragged if you went to mode1 AFTER going to mode2
 * started fleshing out some README/FEATURESCONTRIBUTING .md files for eventual pushing to github
 * moved the whole mask/ghost tracking data OUT of .mkStates and into .mgStates so that both are now 'flat' and can be
     shallow-cloned reliably
@@ -230,8 +230,8 @@ lets get to working on resizing the dch's!
 
 2025-05-03 ------------------------------------------------------------------------------------------------------------
 * renamed table docList to docIndex ... and then to docTree
-* changed FG.docUuid to FG.curDoc={id,name,uuid,listOrder,parent,rootDch}
-* got rid of FG.docRoot, now FG.curDoc.rootDch
+* changed FG.docUuid to FG.curDoc={id,name,uuid,listOrder,parent,rootDcw}
+* got rid of FG.docRoot, now FG.curDoc.rootDcw
 * added FG.docIndex which is now entire docIndex table
 * removed curSelectedLI as it's now available in FG.docTree[idx]
 

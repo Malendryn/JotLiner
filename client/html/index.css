@@ -120,14 +120,38 @@ html,body {
 }
 
 
+.DCW_DefaultRect {
+    position:   absolute;
+    overflow:   hidden;
+    box-sizing: border-box;
+    inset:      0px;
+    padding:    0px;
+    margin:     0px;
+    /* border:     0px; */
+    border:     1px dashed red;
+}
 .shadowWrapper__host.disabled {
     pointer-events: none;   
     opacity:0.5;
 }
 
-.DCH_BOX {
-    position: absolute;
-    overflow: hidden;
+.DCW_DefaultToolbar {
+    position:   absolute;
+    overflow:   hidden;
+    box-sizing: border-box;
+    inset:      0px;
+    padding:    0px;
+    margin:     0px;
+    border:     0px;
+}
+.shadowWrapper__toolbar.disabled {
+    pointer-events: none;   
+    opacity:0.5;
+}
+
+.DCH_BOX { /* NOW only needed so the following .DCH_BOX styles work (as children of it) */
+    position: absolute;     /* ONLY present to stop vscode warnings of empty styles */
+    /* overflow: hidden; */
     /* background-color:#C1C1C1;
     background-color:red; */
 }

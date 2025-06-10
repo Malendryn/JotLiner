@@ -3,6 +3,11 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
+* changed DCW_ShadowRect to DCW_BASE as all 'shadow' ops are subfunctions added /after/ the dch is known.
+* finally got some visual action working again. dch's now load and display but the rest of the system is still borked
+    as things now happen on two levels,  most of what WAS called dch is now called dcw (Cocument Component Wrapper)
+    and the system has to be reworked for that scenario
+
 2025-06-09 ------------------------------------------------------------------------------------------------------------
 * branch rework/0.2.0
 * started revamping DCH_ShadowBase, removed toolbar from it as at this stage it's not needed yet, but it still builds
