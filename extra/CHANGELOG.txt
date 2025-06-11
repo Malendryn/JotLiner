@@ -2,11 +2,18 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-10 ------------------------------------------------------------------------------------------------------------
 * changed DCW_ShadowRect to DCW_BASE as all 'shadow' ops are subfunctions added /after/ the dch is known.
 * finally got some visual action working again. dch's now load and display but the rest of the system is still borked
     as things now happen on two levels,  most of what WAS called dch is now called dcw (Cocument Component Wrapper)
     and the system has to be reworked for that scenario
+* got more things working.  can now select dcw's and it shows/hides titlebar propertly, can now click off a doc and 
+    it properly removes the current doc
+* removed FF.getDchAt (never needed to be on FF as its used ONLY in DocViewHandler) and renamed to getDcwAt
+* renamed most of the dch refs to dcw, but will pretty much have to test the whole system through and through to
+    see what I've missed
+* got more stuff working,  progress is slow but steady!
+# renamed most properties in DCW_BASE to make it easier to figure out who(sys,private,dch) can access what (_s_, #, _c_)
 
 2025-06-09 ------------------------------------------------------------------------------------------------------------
 * branch rework/0.2.0

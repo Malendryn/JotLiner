@@ -39,8 +39,8 @@ class DCH_BASE {   // base class of all document components
     async exportData()     {}   // RETURNS:  an object of key-value pairs to be preserved/exported
     async update()         {}   // called right after imported or properties of it (or its children) were modified
 
-    onResize()  {}
-    onMove()    {}
+    // onResize()  {}
+    // onMove()    {}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // baseclass helper properties and functions for convenience ----------------------------------------------------------
 
@@ -96,16 +96,6 @@ class DCH_BASE {   // base class of all document components
     async destroy() { // detach this dch from doc, removing all listeners too, and destroy it
         this.tracker.removeAll();
         await this.destruct();
-
-// this following stuff is now done in the dcw
-        // this.__sysDiv.remove();                                     // remove our dch toplevel div
-        // if (this.hasToolbar) {                                      // if we had a toolbar, remove its toplevel div
-        //     this.__toolWrap.remove();
-        // }
-        // if (this.#parentDch) {                                       // if not at topmost dch, remove us from our parents children
-        //     const idx = this.#parentDch.children.indexOf(this);
-        //     this.#parentDch.children.splice(idx, 1);
-        // }
     }
 
     constructor(owner) {
@@ -137,11 +127,10 @@ class DCH_BASE {   // base class of all document components
     #throwErr(propName) { throw new Error(`${this.constructor.name} attempted to set readonly property '${propName}'`); }
 
 // extending classes can never talk to owner directly so we have these passthrough get/setters
-    get srcUrl()   { return this.#owner.srcUrl;   }    set srcUrl(v)   { this.#throwErr("srcUrl");   }
-    // get owner()    { return this.#owner;          }    set owner(v)    { this.#throwErr("owner");    }
-    get host()     { return this.#owner.host;     }    set host(v)     { this.#throwErr("host");     }
-    get toolbar()  { return this.#owner.toolbar;  }    set toolbar(v)  { this.#throwErr("toolbar");  }
-    get children() { return this.#owner.children; }    set children(v) { this.#throwErr("children"); }
+    get srcUrl()   { return this.#owner.srcUrl;     }    set srcUrl(v)   { this.#throwErr("srcUrl");   }
+    get host()     { return this.#owner.host;       }    set host(v)     { this.#throwErr("host");     }
+    get toolbar()  { return this.#owner.toolbar;    }    set toolbar(v)  { this.#throwErr("toolbar");  }
+    translateChildren(x,y) { this.#owner.translateChildren(x,y); }     // special just for BOX
 
     async loadStyle(str, which={}) {  await this.#owner.loadStyle(str, which); }
           showToolbar()            {        this.#owner.showToolbar();         }

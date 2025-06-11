@@ -23,5 +23,3 @@ FG.DocAttacher   = null;     // CLASS to import a stringstream into a doc (see f
 FG.DocExtracter   = null;    // CLASS to extract current loaded doc for saving/exporting  (see fem_core_DocExtracter.js)
 
 FG.kmStates      = {};       // kbd and mouse states at any instant in time (see fem_core_DocViewHandler.js)
-
-// FIX setMouseState()  get rid of setting of FG.kmStates.dch

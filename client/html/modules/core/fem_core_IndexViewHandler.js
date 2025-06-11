@@ -264,11 +264,11 @@ FF.newDoc = async () => {
     
     // then create a new doc by adding a single BOX handler as the docRoot
 debugger; let dch = await DCW_BASE.create(null, null);	// blowout any loaded handlers and create toplevel DOC object
-    dch.__sysDiv.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.__sysDiv.style.top/bottom/etc during exportDoc()
-    dch.__sysDiv.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
-    dch.__sysDiv.style.right  = "0px";
-    dch.__sysDiv.style.bottom = "0px";
-    dch.__sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
+    dch._s_sysDiv.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch._s_sysDiv.style.top/bottom/etc during exportDoc()
+    dch._s_sysDiv.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
+    dch._s_sysDiv.style.right  = "0px";
+    dch._s_sysDiv.style.bottom = "0px";
+    dch._s_sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
 
     dch.create("BOX", {zX:0, zY:0});      // turn it into a 'BOX'
     FG.curDoc = {

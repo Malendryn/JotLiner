@@ -1,7 +1,7 @@
 
 in (and around) fem_core_IndexVieHandler.js:699  function onGetDoc(pkt,context)
 
-RSTODO rework FG.DocAttacher such that it builds the __sysDiv frames but inserts a 'loading...' msg into each one
+RSTODO rework FG.DocAttacher such that it builds the _s_sysDiv frames but inserts a 'loading...' msg into each one
 and then fires requests to the server for all the dchData needed to fill them.
 then one-by-one we populate as they arrive
 AND track if not complete so "Export Document" is blocked until fully loaded
@@ -28,6 +28,9 @@ but it will be impossible to 'copy/paste' using the new lazyloader so we may nee
 WS.clearBatchExpect() and WS.clearExpectByName("GetDoc")  should be called from FG.clearDoc/FG.newDoc 
 
 
+-----------------------------------------------------------------------------------------------------------------------
+we have an idea how we could undo/redo at least in part with the dcw level stuff, pushing/storing positons, sizes, etc
+and even the adding/deleting and zX/zY should work (although since zX/zY is part of the dch, not dcw, ...thinkaboutit)
 -----------------------------------------------------------------------------------------------------------------------
 with the new dialogs pretty much taking over the screen, do we still need FG.kmStates.modal ?
 (also make sure contextmenu takes over just like dialog now does)

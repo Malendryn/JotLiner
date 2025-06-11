@@ -70,8 +70,8 @@ function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND s
 }
 function onFormInput(evt) {                         // if an inputBox's value changed
     debugger; formChanged = true;
-    const dch = FG.kmStates.dch;
-    let ss = dch.__sysDiv.style;
+    const dcw = FG.kmStates.dcw;
+    let ss = dcw._s_sysDiv.style;
     const val = parseInt(evt.target.value) || 0;
     switch(evt.target.id.charAt(10)) {    // dawIBInputL, dawIBInputW, etc...
         case 'L':   { ss.left   = val + "px";  break; }     // counter the zX before setting
@@ -82,7 +82,7 @@ function onFormInput(evt) {                         // if an inputBox's value ch
         case 'B':   { ss.bottom = val + "px";  break; }
     }
 
-    let rect = dch.__sysDiv.getBoundingClientRect();
+    let rect = dcw._s_sysDiv.getBoundingClientRect();
     FF.moveDivAbsolute(FG.ghosts.divGhost, rect.left, rect.top);
 }
 
@@ -92,10 +92,10 @@ let formOrigVals;
 function onFormClick(evt) {
     debugger; if (evt.target.id.startsWith("dawIBCkBox")) {       // if a checkbox was clicked...
         formChanged = true;
-        const dch = FG.kmStates.dch;
-        // const pRect = dch.__parent.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
-        const pRect = dch.__parent.__sysDiv.getBoundingClientRect();
-        const rect = dch.__sysDiv.getBoundingClientRect();
+        const dcw = FG.kmStates.dcw;
+        // const pRect = dcw.__parent.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
+        const pRect = dcw.__parent._s_sysDiv.getBoundingClientRect();
+        const rect = dcw._s_sysDiv.getBoundingClientRect();
 
         const id = evt.target.id;
         const box = { 
@@ -107,7 +107,7 @@ function onFormClick(evt) {
             B: (pRect.bottom - rect.bottom) + "px",
         };
         let code;
-        let ss = dch.__sysDiv.style;
+        let ss = dcw._s_sysDiv.style;
         switch(id.charAt(10)) {    // dawIBCkBoxL, dawIBCkBoxW, etc...
             case 'L':   { code = ['L', 'W', 'R']; ss.left   = '';  ss.width  = box.W;  ss.right  = box.R;  break; }
             case 'W':   { code = ['W', 'L', 'R']; ss.width  = '';  ss.left   = box.L;  ss.right  = box.R;  break; }
@@ -125,8 +125,8 @@ function onFormClick(evt) {
 
 
 function setFormVals() {
-    debugger; const dch = FG.kmStates.dch;
-    const ss = dch.__sysDiv.style;
+    debugger; const dcw = FG.kmStates.dcw;
+    const ss = dcw._s_sysDiv.style;
     frmSetEl("L", (parseInt(ss.left) || 0),   ss.left.length   > 0);
     frmSetEl("W", (parseInt(ss.width) || 0),  ss.width.length  > 0);
     frmSetEl("R", (parseInt(ss.right) || 0),  ss.right.length  > 0);
@@ -216,14 +216,14 @@ let dlg;
 function onContextDCHLayout() {
     debugger; async function _preRun(form) {
         formChanged = false;
-        const dch = FG.kmStates.dch;
+        const dcw = FG.kmStates.dcw;
         formOrigVals = {
-            left:   dch.__sysDiv.style.left,
-            width:  dch.__sysDiv.style.width,
-            right:  dch.__sysDiv.style.right,
-            top:    dch.__sysDiv.style.top,
-            height: dch.__sysDiv.style.height,
-            bottom: dch.__sysDiv.style.bottom,
+            left:   dcw._s_sysDiv.style.left,
+            width:  dcw._s_sysDiv.style.width,
+            right:  dcw._s_sysDiv.style.right,
+            top:    dcw._s_sysDiv.style.top,
+            height: dcw._s_sysDiv.style.height,
+            bottom: dcw._s_sysDiv.style.bottom,
         };
         setFormVals();
         form.addEventListener("click", onFormClick);
@@ -231,7 +231,7 @@ function onContextDCHLayout() {
     }
     async function _onBtn(btnLabel, dict) {
         debugger; if (!dict.isSubmit) {
-            const ss = FG.kmStates.dch.__sysDiv.style;
+            const ss = FG.kmStates.dcw._s_sysDiv.style;
             ss.left   = formOrigVals.left;      // if dict == null, cancel was clicked, so restore original values
             ss.width  = formOrigVals.width;
             ss.right  = formOrigVals.right;
@@ -282,7 +282,7 @@ because we can't rely on the dch to do it itself
 
 
 FF.getDchName = function (dch) {
-    debugger; for (const key in DCH) {            // get it's dchName by searching for it in the loaded DCH ComponentHandlers
+    for (const key in DCH) {            // get it's dchName by searching for it in the loaded DCH ComponentHandlers
         if (dch instanceof DCH[key].dchClass) {  
             return key;
         }
@@ -297,12 +297,10 @@ import { DFDialog }      from "/public/classes/DFDialog.js";
 
 const _dchContextMenu = new DFContextMenu();
 function openDCHContextMenu() {      // based on the dch the mouse is over when rightmouse was pressed...
-    debugger; let dch = FG.kmStates.dch;   // the actual dch instance
-
-    const dchName = FF.getDchName(dch);  // the name (as found in the globalThis.DCH{} )
+    debugger; let dcw = FG.kmStates.dcw;
 
     const entries = [];
-    if (dch.__children) {           // if rightclicked dchHandler allows children...  (is a BOX)
+    if (FF.getDchName(dcw._s_dch) != "BOX") {
         for (const key in DCH) {    // add all the addable dch's to the menuEntries
             const dchClass = DCH[key].dchClass;
             if (dchClass.pluginName !== null) {   
@@ -314,15 +312,15 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
     entries.push({action:"export", label:"Export Element", tip:"Export node (and all children) under cursor to local file"});
 
 
-    if (dch != FG.curDoc.rootDcw) {     // never allow deleting the topmost BOX element from this menu
+    if (dcw != FG.curDoc.rootDcw) {     // never allow deleting the topmost BOX element from this menu
         entries.push({action:"delete", label:"Delete node (and all children)", tip:"Delete document element under mouse and all children inside it"});
         entries.push({action:"", label:"", tip:""});     // nor allow changing the styles
         entries.push({action:"setLayout", label:"Layout, anchors and depth", tip:"Modify the node's position and anchors, and change the front to back depth"});
         entries.push({action:"setProps", label:"Properties", tip:"Modify the anchors, border, background color, etc"});
     }
 
-    const rect = dch.__sysDiv.getBoundingClientRect();
-    const startX = FG.kmStates.clientX - rect.left; // calc mouseXY relative to dch.__sysDiv rect
+    const rect = dcw._s_sysDiv.getBoundingClientRect();
+    const startX = FG.kmStates.clientX - rect.left; // calc mouseXY relative to dcw._s_sysDiv rect
     const startY = FG.kmStates.clientY - rect.top;
     
     async function onContextMenuClose(action) { 
@@ -331,30 +329,31 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
             let dchName = action.substr(7);
 console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
             const style = {L:startX, T:startY, W:100, H:100};
-            const nuDch = await DCW_BASE.create(dchName, dch, style);  // create handler, assign parent, create <div>, set style
-            dch.__children.push(nuDch);
-            FF.autoSave();          // autosave after 5 secs
+            debugger; /* doublecheck!*/ const nuDcw = await DCW_BASE.create(dcw, style);  // create nuDcw, parentTo dcw, set style
+            await nuDcw.attachDch(dchName);
+            // dcw._s_children.push(nuDch);
+            FF.autoSave();
         }
         switch (action) {                                     // 'go do' whatever was clicked
             case "export":
 /*RSTODO 2.0*/  debugger; let extracter = new FG.DocExtracter();    //RSNOTE DOES NOT detach! ONLY extracts!!!!
-                let str = await extracter.extract(dch, true);
+                let str = await extracter.extract(dcw, true);
                 console.log(str);
                 break;
             case "delete":
-                const dchName = FF.getDchName(dch);
+                const dchName = FF.getDchName(dcw._s_dch);
                 let yes = window.confirm("Delete node '" + dchName + ", are you sure?");
                 if (!yes) {
                     return;
                 }
-                if (dch.__children && dch.__children.length > 0) {  // if dch is a BOX
+                if (dcw._s_children && dcw._s_children.length > 0) {
                     yes = window.confirm("This node has children that will be deleted too.\nAre you SURE?");
                     if (!yes) {
                         return;
                     }
                 }
                 setKMStateMode(0);  // obliterate all ghosting and modeing 
-                await dch.destroy();
+                await dcw.destroy();
                 FF.autoSave();
                 break;
             case "setLayout":
@@ -376,7 +375,7 @@ function getDcwAt(clientX, clientY) {
         return null;
     }
     const list = document.elementsFromPoint(clientX, clientY);
-    for (let idx = 1; idx < list.length; idx++) {  // find topmost dchEl
+    for (let idx = 1; idx < list.length; idx++) {  // find topmost dcwEl
         const tmp = list[idx];
         if (tmp._dcw) {          // is <el> under mouse a  dcw?
             return tmp._dcw;
@@ -386,25 +385,26 @@ function getDcwAt(clientX, clientY) {
 }
 
 
-function setKBModeTitlebarText(dch) {
-    debugger; if (dch) {          // dch can be null when first entering mode1/2 from mode0
-        let el = document.getElementById("__tmpKBModeTitlebar");
-        if (el) {
-            let txt = `
+function setKBModeTitlebarText(dcw) {
+    if (!dcw) {    // dcw can be null when first entering mode 1/2 from mode0
+        return;
+    }
+    let el = document.getElementById("__tmpKBModeTitlebar");
+    if (el) {
+        let txt = `
 <div style="display:flex;align-items:center;height:100%;">
-    Node: ${dch.constructor.pluginName} &nbsp; &nbsp; Mode: `;
+    Node: ${dcw._s_dch.constructor.pluginName} &nbsp; &nbsp; Mode: `;
 
-            let ss;
-            if (FG.kmStates.mode == 2) {
-                txt += "Infinite Pan";
-            } else {
-                txt += "Drag/Resize";
-            }
-
-            txt += `</div>`;
-
-            el.innerHTML = txt;
+        let ss;
+        if (FG.kmStates.mode == 2) {
+            txt += "Infinite Pan";
+        } else {
+            txt += "Drag/Resize";
         }
+
+        txt += `</div>`;
+
+        el.innerHTML = txt;
     }
 }
 
@@ -426,7 +426,7 @@ const __skbmtbtxtStyle = /*setup the styles used by the setKBModeToolbarText() f
 </style>
 `;
 function __mkSkbmtbtxtFld(wrd, val, show) { // create the <span>s to display val in the toolbar
-    debugger; let bgc;
+    let bgc;
     if (show) {
         bgc="white"
     } else {
@@ -435,8 +435,8 @@ function __mkSkbmtbtxtFld(wrd, val, show) { // create the <span>s to display val
     return `    <span  style="background-color:${bgc};"><span class="aT">${wrd}:</span><span class="aD"">${val}</span></span>`;
 }
 
-function setKBModeToolbarText(dch) {
-    debugger; if (!dch) {
+function setKBModeToolbarText(dcw) {
+    if (!dcw) {    // dcw can be null when first entering mode 1/2 from mode0
         return;
     }
     let el = document.getElementById("__tmpKBModeToolbar");
@@ -446,7 +446,7 @@ function setKBModeToolbarText(dch) {
 
         let ss;
         if (FG.kmStates.mode == 2) {
-            txt += "Offset: &nbsp; &nbsp; X: " + dch.zX + ", &nbsp; &nbsp; Y: " + dch.zY
+            txt += "Offset: &nbsp; &nbsp; X: " + dcw._s_dch.zX + ", &nbsp; &nbsp; Y: " + dcw._s_dch.zY
 
         } else {
             function getstylVal(val) {      // return a num or '---' if isNaN
@@ -457,15 +457,15 @@ function setKBModeToolbarText(dch) {
                 return qq;
             }
             const box = {
-                left:     getstylVal(dch.__sysDiv.style.left),
-                width:    getstylVal(dch.__sysDiv.style.width),
-                right:    getstylVal(dch.__sysDiv.style.right),
-                top:      getstylVal(dch.__sysDiv.style.top),
-                height:   getstylVal(dch.__sysDiv.style.height),
-                bottom:   getstylVal(dch.__sysDiv.style.bottom),
+                left:     getstylVal(dcw._s_sysDiv.style.left),
+                width:    getstylVal(dcw._s_sysDiv.style.width),
+                right:    getstylVal(dcw._s_sysDiv.style.right),
+                top:      getstylVal(dcw._s_sysDiv.style.top),
+                height:   getstylVal(dcw._s_sysDiv.style.height),
+                bottom:   getstylVal(dcw._s_sysDiv.style.bottom),
             }
             for (const key in box) {
-                txt += __mkSkbmtbtxtFld(key, box[key], dch.__sysDiv.style[key]); // create the <span>s to display val in the toolbar
+                txt += __mkSkbmtbtxtFld(key, box[key], dcw._s_sysDiv.style[key]); // create the <span>s to display val in the toolbar
             }
         }
         txt += `</div>`;
@@ -475,35 +475,35 @@ function setKBModeToolbarText(dch) {
 }
 
 
-FF.getAllDch = function() {
-    debugger; if (!FG.curDoc) {
+FF.getAllDcw = function() {
+    if (!FG.curDoc) {
         return [];
     }
-    let dch = FG.curDoc.rootDcw;
-    let list = [dch];                     // add rootDcw right away
+    let dcw = FG.curDoc.rootDcw;
+    let list = [dcw];                     // add rootDcw right away
 
-    function getKids(dch) {
-        if (dch.__children && dch.__children.length > 0) {
-            for (let child of dch.__children) {
+    function getKids(dcw) {
+        if (dcw._s_children && dcw._s_children.length > 0) {
+            for (let child of dcw._s_children) {
                 list.push(child);           // add child, and get it's kids next too
                 getKids(child);
             }
         }
     }
-    getKids(dch);
+    getKids(dcw);
     return list;
 }
 
 
-function getChildrenBoundingRect(dch) {
-    debugger; let rect = {
+function getChildrenBoundingRect(dcw) {
+    let rect = {
         L: 999999999,
         R: 0,
         T: 999999999,
         B: 0,
     }
-    for (const tmp of dch.__children) {
-        const box = tmp.__sysDiv.getBoundingClientRect();
+    for (const tmp of dcw._s_children) {
+        const box = tmp._s_sysDiv.getBoundingClientRect();
         if (box.left < rect.L)               { rect.L = box.x;                }
         if ((box.left + box.width) > rect.R) { rect.R = box.left + box.width; }
         if (box.top < rect.T)                { rect.T = box.top;              }
@@ -511,27 +511,29 @@ function getChildrenBoundingRect(dch) {
     }
     return rect;
 }
+
+
 function showOOB() {
     // console.log(FF.__FILE__(), "showOOB");
-    debugger; FG.ghosts.showOOB = true;
-    const dchList = FF.getAllDch();
-    for (const dch of dchList) {
-        if (FF.getDchName(dch) == "BOX") {  // only do this to BOXes
-            let pRect = dch.__sysDiv.getBoundingClientRect();
-            let cRect = getChildrenBoundingRect(dch);
-            // console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "parent=", JSON.stringify(pRect));
-            // console.log(FF.__FILE__(), dch.__sysDiv.id.padStart(8, '-'), "childs=", JSON.stringify(cRect));
+    FG.ghosts.showOOB = true;
+    const dcwList = FF.getAllDcw();
+    for (const dcw of dcwList) {
+        if (FF.getDchName(dcw._s_dch) == "BOX") {  // only do this to BOXes
+            let pRect = dcw._s_sysDiv.getBoundingClientRect();
+            let cRect = getChildrenBoundingRect(dcw);
+            // console.log(FF.__FILE__(), dcw._s_sysDiv.id.padStart(8, '-'), "parent=", JSON.stringify(pRect));
+            // console.log(FF.__FILE__(), dcw._s_sysDiv.id.padStart(8, '-'), "childs=", JSON.stringify(cRect));
 
-            dch.__sysDiv.classList.remove("border-T");
-            dch.__sysDiv.classList.remove("border-R");
-            dch.__sysDiv.classList.remove("border-B");
-            dch.__sysDiv.classList.remove("border-L");
+            dcw._s_sysDiv.classList.remove("border-T");
+            dcw._s_sysDiv.classList.remove("border-R");
+            dcw._s_sysDiv.classList.remove("border-B");
+            dcw._s_sysDiv.classList.remove("border-L");
 
             if (FG.kmStates.mode != 0) {            // only show borders if mode 1 or 2
-                if (cRect.T < pRect.top)    { dch.__sysDiv.classList.add("border-T"); }
-                if (cRect.R > pRect.right)  { dch.__sysDiv.classList.add("border-R"); }
-                if (cRect.B > pRect.bottom) { dch.__sysDiv.classList.add("border-B"); }
-                if (cRect.L < pRect.left)   { dch.__sysDiv.classList.add("border-L"); }
+                if (cRect.T < pRect.top)    { dcw._s_sysDiv.classList.add("border-T"); }
+                if (cRect.R > pRect.right)  { dcw._s_sysDiv.classList.add("border-R"); }
+                if (cRect.B > pRect.bottom) { dcw._s_sysDiv.classList.add("border-B"); }
+                if (cRect.L < pRect.left)   { dcw._s_sysDiv.classList.add("border-L"); }
             }
         }
     }
@@ -539,38 +541,38 @@ function showOOB() {
 // function clearOOB() {
 //     console.log(FF.__FILE__(), "clearOOB");
 //     FG.ghosts.showOOB = false;
-//     const dchList = FF.getAllDch();
-//     for (const dch of dchList) {
-//         dch.__sysDiv.classList.remove("border-T");
-//         dch.__sysDiv.classList.remove("border-R");
-//         dch.__sysDiv.classList.remove("border-B");
-//         dch.__sysDiv.classList.remove("border-L");
+//     const dcwList = FF.getAllDcw();
+//     for (const dcw of dcwList) {
+//         dcw._s_sysDiv.classList.remove("border-T");
+//         dcw._s_sysDiv.classList.remove("border-R");
+//         dcw._s_sysDiv.classList.remove("border-B");
+//         dcw._s_sysDiv.classList.remove("border-L");
 //     }
 // }
-function showGhosts(dch) {
-    debugger; const mDiff = FG.kmStates.mode != FG.kmPrior.mode;  // did the current mode change?
-    const dDiff = FG.kmStates.dch  != FG.kmPrior.dch;   // did the dch under mouse change?
-    // console.log(FF.__FILE__(), "showGhosts dch=", dch != null, "mode=", FG.kmStates.mode, "mDiff=", mDiff, "dDiff=", dDiff);
+function showGhosts(dcw) {
+    const mDiff = FG.kmStates.mode != FG.kmPrior.mode;  // did the current mode change?
+    const dDiff = FG.kmStates.dcw  != FG.kmPrior.dcw;   // did the dcw under mouse change?
+    // console.log(FF.__FILE__(), "showGhosts dcw=", dcw != null, "mode=", FG.kmStates.mode, "mDiff=", mDiff, "dDiff=", dDiff);
     showOOB();
     // if (FG.kmStates.mode != 2 && !FG.ghosts.showOOB) {  // if mode0 and not showing OOBs
     //     showOOB();
     // } else if (FG.kmStates.mode == 0 && FG.ghosts.showOOB) {  // if mode NOT 0 and IS showing OOBs
     //     clearOOB();
     // }
-    if (mDiff || dDiff) {                               // if mode or dch under mouse changed, clear all ghosts
+    if (mDiff || dDiff) {                               // if mode or dcw under mouse changed, clear all ghosts
         if (FG.ghosts.divGhost) {
             FG.ghosts.divGhost.remove();
             FG.ghosts.divGhost = null;      // RSTODO can we eliminate this 'divGhost' entirely now that we use __divGhost ?
         }
-        let dchList = FF.getAllDch();       // also delete all child ghosts everywhere
-        for (const tmp of dchList) {
+        let dcwList = FF.getAllDcw();       // also delete all child ghosts everywhere
+        for (const tmp of dcwList) {
             if (tmp.__divGhost) {
                 tmp.__divGhost.remove();
                 delete tmp.__divGhost;
             }
         }
     }
-    if (!dch) {
+    if (!dcw) {
         return;
     }
     let ghost = FG.ghosts.divGhost;
@@ -582,11 +584,11 @@ function showGhosts(dch) {
         docDiv.appendChild(ghost);
         FG.ghosts.divGhost = ghost;
         if (FG.kmStates.mode == 2) {    // we're in mode 2 and dch is guaranteed to be a box
-            for (const child of dch.__children) {
+            for (const child of dcw._s_children) {
                 const el = document.createElement("div");
                 el.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
                 el.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
-                let rect = child.__sysDiv.getBoundingClientRect();
+                let rect = child._s_sysDiv.getBoundingClientRect();
                 el.style.left    = rect.x + "px";
                 el.style.top     = rect.y + "px";
                 el.style.width   = rect.width + "px";
@@ -602,14 +604,14 @@ function showGhosts(dch) {
     } else {
         FG.ghosts.divGhost.style.backgroundColor = "rgba(0, 0, 0, 0.15)";       // mode2, lighter covering
     }
-    let rect = dch.__sysDiv.getBoundingClientRect();    // match the toplevel ghost to the selected dch
+    let rect = dcw._s_sysDiv.getBoundingClientRect();    // match the toplevel ghost to the selected dcw
     ghost.style.left    = rect.x + "px";
     ghost.style.top     = rect.y + "px";
     ghost.style.width   = rect.width + "px";
     ghost.style.height  = rect.height + "px";
     if (FG.kmStates.mode == 2) {                        // if mode2, move the ghosts of the children too
-        for (const child of dch.__children) {
-            rect = child.__sysDiv.getBoundingClientRect();
+        for (const child of dcw._s_children) {
+            rect = child._s_sysDiv.getBoundingClientRect();
             child.__divGhost.style.left    = rect.x + "px";
             child.__divGhost.style.top     = rect.y + "px";
             child.__divGhost.style.width   = rect.width + "px";
@@ -618,40 +620,40 @@ function showGhosts(dch) {
     }
 }
 
-function doDchOpMode1(orig) { // only called when FG.kmStates == 1
-    debugger; if (!FG.kmStates.inDocView) {
+function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove etc, not JUST on modechange)
+    if (!FG.kmStates.inDocView) {
         return;
     }
     if (!FG.curDoc) {
         return;
     }
 
-    let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
+    let dcw = null; // mouseUP = currently hovered dcw/null, mouseDOWN = dcw under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
-    if (FG.kmStates.dch == FG.curDoc.rootDcw) {     // if rootDcw WAS selected via mode2, THEN we came back here to mode1
-        FG.kmStates.dch = dch = null;
+    if (FG.kmStates.dcw === FG.curDoc.rootDcw) {    // if rootDcw WAS selected (via mode2), THEN we came back here to mode1
+        FG.kmStates.dcw = dcw = null;               // unset it (we don't 'mode1' on rootDcw ever!)
     }
-    // console.log(FF.__FILE__(), "doDchOpMode1: dch=", FG.kmStates.dch);
+    // console.log(FF.__FILE__(), "doDchOpMode1: dcw=", FG.kmStates.dcw);
 
-    if (FG.kmStates.btnLeft) {                      // if mouseLeft down, use existing hovered-over sysDiv
-        dch = FG.kmStates.dch;
-    } else {                                        // mouseleft NOT down, find dch currently hovering over
-        dch = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);
-        // if (FG.kmStates.dch != FG.curDoc.rootDcw) {      
-            if (dch && dch != FG.kmStates.dch) {                // if there was a dch already selected but it's not this one any more
+    if (FG.kmStates.btnLeft) {                      // if mouseLeft down, stick with currently selected dcw
+        dcw = FG.kmStates.dcw;
+    } else {                                        // mouseleft NOT down, find dcw currently hovering over
+        dcw = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);
+        // if (FG.kmStates.dcw != FG.curDoc.rootDcw) {      
+            if (dcw && dcw != FG.kmStates.dcw) {                // if dcw @mouse !same as last time through here
                 if (FG.ghosts.divGhost) {                           // remove any exhisting ghost
                     FG.ghosts.divGhost.remove();
                     FG.ghosts.divGhost = null;
                 }
             }
-            FG.kmStates.dch = dch;
+            FG.kmStates.dcw = dcw;
             FG.ghosts.nesw = "";                      // clear this right away to prevent possible tripup later on
-            setKBModeTitlebarText(FG.kmStates.dch);     // fire 'first time' to get data on screen (else wont show til mousemove)
-            setKBModeToolbarText(FG.kmStates.dch);
+            setKBModeTitlebarText(FG.kmStates.dcw);     // fire 'first time' to get data on screen (else wont show til mousemove)
+            setKBModeToolbarText(FG.kmStates.dcw);
         // }
     }
-    showGhosts(dch);                // show any changes to the ghosting state
+    showGhosts(dcw);                // show any changes to the ghosting state
     if (FG.kmStates.btnRight) {             // if contextMenu button down, ...
         let tmp = document.getElementById("sysContextMenu");
         if (!tmp) {     // only open if a menu isn't already open
@@ -659,21 +661,21 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
         }
         return;
     }
-    if (dch == FG.curDoc.rootDcw) {         // in mode1, do not allow them to select/move the docRoot!
-        dch = null;
+    if (dcw == FG.curDoc.rootDcw) {         // in mode1, do not allow them to select/move the docRoot!
+        dcw = null;
     }
-    if (!dch) {                             // there's no dch under the mouse,  nothing to do!
+    if (!dcw) {                             // there's no dcw under the mouse,  nothing to do!
         docDiv.style.cursor = "";
         return;
     }
-// dch now refs the FG.kmStates.dch currently hovered over
+// dcw now refs the FG.kmStates.dcw currently hovered over
 
     if (!FG.ghosts.divGhost) {     // we're over an element but no ghost was created yet
-        showGhosts(dch);              // create the ghost
+        showGhosts(dcw);              // create the ghost
     }
     if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
-        let rect = dch.__sysDiv.getBoundingClientRect();
-        const slop = 6;              // figure out if mouse is over a dch border and set FG.ghosts.nesw accordingly
+        let rect = dcw._s_sysDiv.getBoundingClientRect();
+        const slop = 6;              // figure out if mouse is over a dcw border and set FG.ghosts.nesw accordingly
         rect.r = rect.x + rect.width - 1;
         rect.b = rect.y + rect.height - 1;
         const irect = {
@@ -706,43 +708,43 @@ function doDchOpMode1(orig) { // only called when FG.kmStates == 1
         const deltaY = FG.kmStates.clientY - FG.kmPrior.clientY;
         if (deltaX || deltaY) {
             if (FG.ghosts.nesw.length > 0) {            // if over an edge or corner, resize...
-                FF.sizeDivRelative(dch.__sysDiv, FG.ghosts.nesw, deltaX, deltaY);
+                FF.sizeDivRelative(dcw._s_sysDiv, FG.ghosts.nesw, deltaX, deltaY);
                 FF.sizeDivRelative(FG.ghosts.divGhost, FG.ghosts.nesw, deltaX, deltaY);
-                dch.onResize();
+                // dcw.onResize();
             } else {                                // ...else move
-                FF.moveDivRelative(dch.__sysDiv, deltaX, deltaY);
+                FF.moveDivRelative(dcw._s_sysDiv, deltaX, deltaY);
                 FF.moveDivRelative(FG.ghosts.divGhost, deltaX, deltaY);
-                dch.onMove();
+                // dcw.onMove();
             }
         }
 
         FF.autoSave();          // autosave after n secs
-        setKBModeToolbarText(FG.kmStates.dch);
+        setKBModeToolbarText(FG.kmStates.dcw);
     }
 }
-function doDchOpMode2(orig) { // only called when FG.kmStates == 2
-    debugger; let dch = null; // mouseUP = currently hovered dch/null, mouseDOWN = dch under mouse btn pressed/null
+function doDchOpMode2() { // only called when FG.kmStates.mode == 2  (mousemove etc, not JUST on modechange)
+    debugger; let dcw = null; // mouseUP = currently hovered dcw/null, mouseDOWN = dcw under mouse btn pressed/null
     const docDiv = document.getElementById("divDocView");
 
-    if (FG.kmStates.btnLeft) {                     // if mousleft down, use existing hovered-over dch
-        dch = FG.kmStates.dch;
+    if (FG.kmStates.btnLeft) {                     // if mousleft down, use existing hovered-over dcw
+        dcw = FG.kmStates.dcw;
     } else {
-        dch = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dch under cursor (even if it is the root!)
-        dch = FF.getBoxAroundDch(dch);                                  // get parent BOX (or self if is a BOX)
-        FG.kmStates.dch = dch;
+        dcw = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dcw under cursor (even if it is the root!)
+        dcw = FF.getBoxAroundDch(dcw);                                  // get parent BOX (or self if is a BOX)
+        FG.kmStates.dcw = dcw;
 
-        setKBModeTitlebarText(dch); // fire 'first time' to get data on screen (else wont show til mousemove)
-        setKBModeToolbarText(dch);
+        setKBModeTitlebarText(dcw); // fire 'first time' to get data on screen (else wont show til mousemove)
+        setKBModeToolbarText(dcw);
     }
-    showGhosts(dch);                 // delete-or-show ghost over the BOX
-    if (!dch) {         // there's no dch under the mouse,  nothing to do!
+    showGhosts(dcw);                 // delete-or-show ghost over the BOX
+    if (!dcw) {         // there's no dcw under the mouse,  nothing to do!
         docDiv.style.cursor = "";
         return;
     }
-// dch now refs the BOX the FG.kmStates.dch currently hovered over resides within (or self if is a BOX)
+// dcw now refs the BOX the FG.kmStates.dcw currently hovered over resides within (or self if is a BOX)
 
     // if (!FG.ghosts.divGhost) {     // we're over an element but no ghost was created yet
-    //     showGhosts(dch);
+    //     showGhosts(dcw);
     // }
 
     if (!FG.kmStates.btnLeft) {      // and mouseLeft NOT down...
@@ -750,20 +752,20 @@ function doDchOpMode2(orig) { // only called when FG.kmStates == 2
         const deltaX = FG.kmStates.clientX - FG.kmPrior.clientX;
         const deltaY = FG.kmStates.clientY - FG.kmPrior.clientY;
         if (deltaX || deltaY) {
-            dch.zX += deltaX;
-            dch.zY += deltaY;
-            dch.update();
+            dcw._s_dch.zX += deltaX;
+            dcw._s_dch.zY += deltaY;
+            dcw.update();
             FF.autoSave();          // autosave after n secs
         }
     }
-    setKBModeTitlebarText(dch);
-    setKBModeToolbarText(dch);
+    setKBModeTitlebarText(dcw);
+    setKBModeToolbarText(dcw);
 }
 
 
 function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the __tmpKBModeTitlebar/Toolbar
     FG.kmStates.mode = mode;
-    // disableAllShadowHosts(mode != 0);  // enable if 0, else disable all dch shadow DOMS
+    // disableAllShadowHosts(mode != 0);  // enable if 0, else disable all dcw shadow DOMS
     if (mode == 0) {
         let el = document.getElementById("__tmpKBModeToolbar");
         if (el) {
@@ -779,8 +781,8 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
         if (FG.ghosts.divGhost) {
             showGhosts(null);
         }
-        if (FG.kmStates.dch) {
-            FG.kmStates.dch = null;                 // unset any selected dch;
+        if (FG.kmStates.dcw) {
+            FG.kmStates.dcw = null;                 // unset any selected dcw;
         }
     } else {
         if (FG.curDoc) {    // prevent titlebar being taken over when there's not even a selected doc
@@ -806,8 +808,8 @@ function setKMStateMode(mode) {     // set kmStates.mode and also add/remove the
                 let tBar = document.getElementById("divToolbar");
                 tBar.appendChild(el);
             }
-            setKBModeTitlebarText(FG.kmStates.dch);
-            setKBModeToolbarText(FG.kmStates.dch);
+            setKBModeTitlebarText(FG.kmStates.dcw);
+            setKBModeToolbarText(FG.kmStates.dcw);
         }
     }
 }
@@ -832,7 +834,7 @@ function onStateChange() {  // detect commandState change and create a faux invi
     if (FG.kmStates.modal) {            // a modal operation is happening, ignore state activities after this point
         return;
     }
-    const docDiv = document.getElementById("divDocView");
+    // const docDiv = document.getElementById("divDocView");
     let oldCMode = getCmdMode(FG.kmPrior);
     let newCMode = getCmdMode();
     // console.log(FF.__FILE__(), oldCMode, newCMode);
@@ -840,19 +842,16 @@ function onStateChange() {  // detect commandState change and create a faux invi
     if (oldCMode != newCMode) {             // if commandState changed
         setKMStateMode(newCMode);           // set kmStates.mode, add/rmv ghosts, title/toolbars, dis/enable shadow DOMs
     }
-    if (FG.kmStates.modal) {            // a modal operation is happening, ignore further activities after this point
-        return;
-    }
 
     if (FG.kmStates.mode == 1) {            // alt+shift pressed
-        doDchOpMode1(FG.kmPrior);
+        doDchOpMode1();
     } else if (FG.kmStates.mode == 2) {   // alt+shift+Z pressed
-        doDchOpMode2(FG.kmPrior);
+        doDchOpMode2();
     } else {
         if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != FG.kmPrior.btnLeft) {  // show toolbar for dch, hide all others
             if (FG.curDoc) {
                 const div = document.getElementById("divToolbar");          // hide all dch toolbars
-                for (const child of div.children) {
+                for (const child of div._s_children) {
                     child.style.display = "none";
                 }
                 FF.setToolbarHeight(FG.defaultToolbarHeight);               // reset default toolbar height
@@ -933,7 +932,7 @@ function setKMState(states) {
 
 
 function onTkmKeyDown(evt) {
-    debugger; const states = {
+    const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
         keyShift: evt.shiftKey,
@@ -947,7 +946,7 @@ function onTkmKeyDown(evt) {
 }
 
 function onTkmKeyUp(evt) {
-    debugger; const states = {
+    const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
         keyShift: evt.shiftKey,
@@ -961,7 +960,7 @@ function onTkmKeyUp(evt) {
 
 
 function onTkmContextMenu(evt) {
-    if (FG.kmStates.dcw == null) {      // if no dch, this should be popping the system default context menu
+    if (FG.kmStates.dcw == null) {      // if no dcw, this should be popping the system default context menu
         FG.kmStates.btnRight = false;   // so 'lose the right button' which it gets stuck on
     }
 
@@ -1166,16 +1165,16 @@ FF.getRawRect = function(el) {
 }
 
 
-FF.getBoxAroundDch = function(dch) {
-    debugger; if (dch) {                                     // !!DO!! allow them to select/move the docroot! 
-        let el = dch.__sysDiv;
-        while (FF.getDchName(dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
+FF.getBoxAroundDcw = function(dcw) {
+    debugger; if (dcw) {                                     // !!DO!! allow them to select/move the docroot! 
+        let el = dcw._s_sysDiv;
+        while (FF.getDchName(dcw._s_dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
             try {
-                dch = dch.__parent;
+                dcw = dcw.__parent;
             } catch (err) {
                 debugger;
             }
         }
     }
-    return dch;
+    return dcw;
 }

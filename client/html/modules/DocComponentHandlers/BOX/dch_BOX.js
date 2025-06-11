@@ -2,7 +2,7 @@
 import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 class DCH_BOX extends DCH_BASE {
-    __children = [];      // changing to [] to allow children
+    _s_children = [];      // changing to [] to allow children
 
     static pluginName    = "Infinite Box";
     static pluginTooltip = "A rectangle that other plugins can exist inside of";
@@ -13,18 +13,10 @@ class DCH_BOX extends DCH_BASE {
 
     async construct() {
         // most styles are now in the DCH_BOX.css file
-        // this.__sysDiv.classList.add("DCH_BOX");
+        // this._s_sysDiv.classList.add("DCH_BOX");
         this.host.classList.add("DCH_BOX"); // now = "DCW_DefaultRect DCH_BOX"
         await this.update();                     // applies the transform:translate() if needed
     }
-
-    // async destruct() {
-    //     for (let idx = this.children.length - 1; idx >= 0; idx--) {     // destroy them (in reverse order cuz 'parent.splice()'
-    //         const child = this.children[idx];
-    //         await child.destroy();          // does the .splice() of my .children internally so don't do it here!
-    //         // this.children.splice(idx, 1);
-    //     }
-    // }
 
     async importData(data) {    // populate this component with data
         // if (Object.keys(data).length > 0) {
@@ -41,15 +33,8 @@ class DCH_BOX extends DCH_BASE {
     }
 
 
-    async update() {    // walk children to get bounding box size, then deal with zX zY etc...
-        if (!this.children.length) {  // no children?  no update!
-            return false;
-        }
-
-        debugger; for (let idx = 0; idx < this.children.length; idx++) {        // get the bounding box around all children
-            const child = this.children[idx];
-            child.__sysDiv.style.transform = "translate(" + this.zX + "px," + this.zY + "px)";
-        }
-     }
+    async update() {
+        this.translateChildren(this.zX, this.zY);
+    }
 };
 export { DCH_BOX as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH

@@ -20,27 +20,24 @@ export class DocAttacher {   // create and return a DCH from a stream
     meta;
     keys;
     idx;
-    async attach(meta, parentDch, clone=false)  {
+    async attach(meta, parentDcw, clone=false)  {
         this.meta = meta;
         this.keys = Object.keys(meta);
         this.idx = 0;
         this.rootDcw = null;
 
-        await this._attachNext(parentDch);
+        await this._attachNext(parentDcw);
         return this.rootDcw;
     }
 
 
-    async _attachNext(parentDch) {
+    async _attachNext(parentDcw) {
         if (this.idx > this.keys.length) {      // no more recs to process 
             return null;
         }
         const key = parseInt(this.keys[this.idx++]);
         let meta = this.meta[key];
-        const dcw = await DCW_BASE.create(parentDch, meta.S);  // create a handler, assign parent, create <div>, set 'S'tyle
-        // if (!dcw) {
-        //     return null;
-        // }
+        const dcw = await DCW_BASE.create(parentDcw, meta.S);  // create a handler, assign parent, create <div>, set 'S'tyle
         if (this.rootDcw == null) {         // record the topmost dch for returning
             this.rootDcw = dcw;
         }
@@ -48,24 +45,13 @@ export class DocAttacher {   // create and return a DCH from a stream
         pkt.id = key;
         pkt = await WS.sendWait(pkt);                 // consider lazyloading this in the future
 
-// RSTODO if this happens we should delete it properly by removing the dchData record too and removing it from any parent's 
-// 'children' list and also autoSave() that parent immediately to get rid of the dcw entirely
-// this technically SHOULD NEVER happen buuuut.... ! 
-        if (!await dcw.attachDch(pkt.data.name)) {
-             dcw.destroy();
-        } else {
+        if (await dcw.attachDch(pkt.data.name)) {
             const decoder = new DFDecoder(pkt.data.content);
             const dict = decoder.decode()
-            dcw.__dch.importData(dict);
-
-            for (let idx = 0; idx < meta.C; idx++) {    // load children of component (if any) (only if BOX component)
-                await this._attachNext(dcw);            // and attach to this dch
-            }
+            dcw._s_dch.importData(dict);
+        }
+        for (let idx = 0; idx < meta.C; idx++) {    // load children of component (if any) (only if BOX component)
+            await this._attachNext(dcw);            // and attach to this dch
         }
     }
 };
-
-
-function onPktGetDchData(pkt, context) {
-
-}
