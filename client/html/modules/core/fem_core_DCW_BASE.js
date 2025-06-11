@@ -14,7 +14,6 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 /* *** these next few are 'getter-only' d'C'h component-accessable properties 
 
     _c_srcUrl  = "./pathTo/this/plugin"  // relative path to this plugin (so plugin can access related content)
-    #parentDcw = reference to parent dcw (or id=divDocView if this is the topmost dcw which is always a BOX)
     _c_host    = shadowDOM <div>  where plugin's content should go.  for DCW_BASE this is a div inside a shadow DOM and thus isolated
     _c_toolbar = shadowDOM <div>  a toolbar area for dch's to play with
                          from the main html page
@@ -43,7 +42,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create/destroy and other helper functions on baseclass (do not override!)-------------------------------------------
-    // static async create(#parentDcw, style) {  // create with only the most basic ._c_host, give it style and parentage
+    // static async create(parentDcw, style) {  // create with only the most basic ._c_host, give it style and parentage
 
     // async attachDch(name); // create dch, attach ShadowHost and shadowToolbar if needed
     // async destroy(); // recursive, calls this.destruct() on attached dch, then removes all listeners, then destroys 
@@ -86,11 +85,11 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
         const dcw = new DCW_BASE();   // dcw = Document Component Wrapper
         dcw.#dcwId = ++_dcwIdCounter;
-        dcw.#parentDcw = parentDcw;
+        dcw._s_parentDcw = parentDcw;
         dcw._s_sysDiv = document.createElement("div");           // create div
         dcw.addDbgId(dcw._s_sysDiv, "_s_sysDiv");
         // dcw._s_sysDiv._dchMouseOp = "dchComponent";       // how to know mouse is over a dcw
-        dcw._s_sysDiv._dcw = dcw;                         // howtoKnow mouse is over this dcw
+        dcw._s_sysDiv["el->Dcw"] = dcw;                         // howtoKnow mouse is over this dcw
 
         // dcw._s_sysDiv.tabIndex = -1;                          // doing this makes the ._s_sysDiv focussable but not tabbable
         dcw._s_sysDiv.classList.add("DCW_DefaultRect");
@@ -209,7 +208,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         this._c_toolbar = document.createElement("div");
         this.addDbgId(this._c_toolbar, "_c_toolbar(InShadow)");
         this._c_toolbar.classList.add("DCW_DefaultToolbar");           // see index.css
-        // this._c_toolbar._dcw = this;                            // needed for 'hide all toolbars'
+        // this._c_toolbar["el->Dcw"] = this;                            // needed for 'hide all toolbars'
         this._c_toolbar.style.backgroundColor = "rgb(155, 253, 161)";
                 
         this.#toolShadow.appendChild(this._c_toolbar);            // add useraccessable toolbar as child of #toolShadow
@@ -292,9 +291,9 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         if (this.#toolWrap) {
             this.#toolWrap.remove();       // if it had a toolbar, remove that too
         }
-        if (this.#parentDcw) {                // if not at topmost dcw, remove us from our parents children
-            const idx = this.#parentDcw._s_children.indexOf(this);
-            this.#parentDcw._s_children.splice(idx, 1);
+        if (this._s_parentDcw) {                // if not at topmost dcw, remove us from our parents children
+            const idx = this._s_parentDcw._s_children.indexOf(this);
+            this._s_parentDcw._s_children.splice(idx, 1);
         }
     }
 
@@ -305,7 +304,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // special function JUST for BOX as it needs to know about its children
-    translateChildren(zX, zY) {
+    _c_translateChildren(zX, zY) {
         for (let idx = 0; idx < this._s_children.length; idx++) {        // get the bounding box around all children
             const child = this._s_children[idx];
             child._s_sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)";
@@ -336,7 +335,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
     _c_srcUrl   = null;
 
-    #parentDcw  = null;     // private! parent dcw (or null if topLevel, (ONLY the root BOX element will ever be null))
+    _s_parentDcw = null;   // parent dcw (or null if topLevel, (ONLY the root BOX element will ever be null))
     _s_children  = [];
 
     _s_dch;   // attached dch or undefined
@@ -354,3 +353,4 @@ let _debugIdCounter = 0;    // for debug purposes
 let _dcwIdCounter = 0;
 
 
+ 

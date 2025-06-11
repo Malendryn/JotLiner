@@ -31,11 +31,13 @@ FF.loadModule = async (modulePath) => {
 
 
 function __onError(message, source, lineno, colno, error) {
+    console.log(error);
     debugger;
 }
 window.onerror = __onError;
 
 function __onUnhandledRejection(err) {
+    console.log(err);
     debugger;
 }
 window.onunhandledrejection = __onUnhandledRejection;

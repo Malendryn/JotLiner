@@ -93,8 +93,8 @@ function onFormClick(evt) {
     debugger; if (evt.target.id.startsWith("dawIBCkBox")) {       // if a checkbox was clicked...
         formChanged = true;
         const dcw = FG.kmStates.dcw;
-        // const pRect = dcw.__parent.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
-        const pRect = dcw.__parent._s_sysDiv.getBoundingClientRect();
+        // const pRect = dcw._s_parentDcw.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
+        debugger;/*test _s_parentDcw*/ const pRect = dcw._s_parentDcw._s_sysDiv.getBoundingClientRect();
         const rect = dcw._s_sysDiv.getBoundingClientRect();
 
         const id = evt.target.id;
@@ -297,10 +297,10 @@ import { DFDialog }      from "/public/classes/DFDialog.js";
 
 const _dchContextMenu = new DFContextMenu();
 function openDCHContextMenu() {      // based on the dch the mouse is over when rightmouse was pressed...
-    debugger; let dcw = FG.kmStates.dcw;
+    let dcw = FG.kmStates.dcw;
 
     const entries = [];
-    if (FF.getDchName(dcw._s_dch) != "BOX") {
+    if (FF.getDchName(dcw._s_dch) == "BOX") {
         for (const key in DCH) {    // add all the addable dch's to the menuEntries
             const dchClass = DCH[key].dchClass;
             if (dchClass.pluginName !== null) {   
@@ -377,8 +377,8 @@ function getDcwAt(clientX, clientY) {
     const list = document.elementsFromPoint(clientX, clientY);
     for (let idx = 1; idx < list.length; idx++) {  // find topmost dcwEl
         const tmp = list[idx];
-        if (tmp._dcw) {          // is <el> under mouse a  dcw?
-            return tmp._dcw;
+        if (tmp["el->Dcw"]) {          // is <el> under mouse a  dcw?
+            return tmp["el->Dcw"];
         }
     }
     return null;
@@ -621,14 +621,14 @@ function showGhosts(dcw) {
 }
 
 function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove etc, not JUST on modechange)
-    if (!FG.kmStates.inDocView) {
-        return;
-    }
-    if (!FG.curDoc) {
-        return;
-    }
+    // if (!FG.kmStates.inDocView) {
+    //     return;
+    // }
+    // if (!FG.curDoc) {
+    //     return;
+    // }
 
-    let dcw = null; // mouseUP = currently hovered dcw/null, mouseDOWN = dcw under mouse btn pressed/null
+    let dcw = null;
     const docDiv = document.getElementById("divDocView");
 
     if (FG.kmStates.dcw === FG.curDoc.rootDcw) {    // if rootDcw WAS selected (via mode2), THEN we came back here to mode1
@@ -668,8 +668,8 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
         docDiv.style.cursor = "";
         return;
     }
-// dcw now refs the FG.kmStates.dcw currently hovered over
 
+// dcw is now !null and refs the dcw currently hovered over (if LMB it still refs the one that WAS under mouse when LMB was pressed)
     if (!FG.ghosts.divGhost) {     // we're over an element but no ghost was created yet
         showGhosts(dcw);              // create the ghost
     }
@@ -723,14 +723,24 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
     }
 }
 function doDchOpMode2() { // only called when FG.kmStates.mode == 2  (mousemove etc, not JUST on modechange)
-    debugger; let dcw = null; // mouseUP = currently hovered dcw/null, mouseDOWN = dcw under mouse btn pressed/null
+    // if (!FG.kmStates.inDocView) {
+    //     return;
+    // }
+    // if (!FG.curDoc) {
+    //     return;
+    // }
+
+    let dcw = null;
     const docDiv = document.getElementById("divDocView");
 
     if (FG.kmStates.btnLeft) {                     // if mousleft down, use existing hovered-over dcw
         dcw = FG.kmStates.dcw;
     } else {
         dcw = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dcw under cursor (even if it is the root!)
-        dcw = FF.getBoxAroundDch(dcw);                                  // get parent BOX (or self if is a BOX)
+// if (dcw==undefined) {
+// debugger;
+// }
+        dcw = FF.getBOXforDcw(dcw);                                  // get parent BOX (or self if is a BOX)
         FG.kmStates.dcw = dcw;
 
         setKBModeTitlebarText(dcw); // fire 'first time' to get data on screen (else wont show til mousemove)
@@ -842,7 +852,6 @@ function onStateChange() {  // detect commandState change and create a faux invi
     if (oldCMode != newCMode) {             // if commandState changed
         setKMStateMode(newCMode);           // set kmStates.mode, add/rmv ghosts, title/toolbars, dis/enable shadow DOMs
     }
-
     if (FG.kmStates.mode == 1) {            // alt+shift pressed
         doDchOpMode1();
     } else if (FG.kmStates.mode == 2) {   // alt+shift+Z pressed
@@ -851,7 +860,7 @@ function onStateChange() {  // detect commandState change and create a faux invi
         if (FG.kmStates.btnLeft && FG.kmStates.btnLeft != FG.kmPrior.btnLeft) {  // show toolbar for dch, hide all others
             if (FG.curDoc) {
                 const div = document.getElementById("divToolbar");          // hide all dch toolbars
-                for (const child of div._s_children) {
+                for (const child of div.children) {
                     child.style.display = "none";
                 }
                 FF.setToolbarHeight(FG.defaultToolbarHeight);               // reset default toolbar height
@@ -909,6 +918,14 @@ function clearAllButtons(callSetKMState = true) {
 }
 
 function setKMState(states) {
+    if (!FG.kmStates.inDocView) {
+        return;
+    }
+    if (!FG.curDoc) {
+        return;
+    }
+    // console.log("IDV=",FG.kmStates.inDocView);
+    
     FG.kmPrior = Object.assign({}, FG.kmStates);     // clone the original FG.kmStates before changing them
     let changed = false;
 
@@ -1061,8 +1078,8 @@ function onTkmMouseUp(evt) {
 
 
 FF.moveDivRelative = function(el, deltaX, deltaY) {
-    debugger; if (el) {
-        const rect = FF.getRawRect(el);
+    if (el) {
+        const rect = FF.getRawRect(el);  // get rectvals from el.style NOT boundingBox so we know which LWRTHB to change
         if (rect.lrMode.includes("L")) { el.style.left   = (rect.L + deltaX) + "px"; }
         if (rect.lrMode.includes("R")) { el.style.right  = (rect.R - deltaX) + "px"; }
         if (rect.tbMode.includes("T")) { el.style.top    = (rect.T + deltaY) + "px"; }
@@ -1073,7 +1090,7 @@ FF.moveDivRelative = function(el, deltaX, deltaY) {
 
 FF.moveDivAbsolute = function(el, locX, locY) {
     debugger; if (el) {
-        const rect = FF.getRawRect(el);
+        const rect = FF.getRawRect(el);  // get rectvals from el.style NOT boundingBox so we know which LWRTHB to change
         if (rect.lrMode.includes("L")) { el.style.left   = locX + "px"; }
         if (rect.lrMode.includes("R")) { el.style.right  = locX + "px"; }
         if (rect.tbMode.includes("T")) { el.style.top    = locY + "px"; }
@@ -1083,7 +1100,7 @@ FF.moveDivAbsolute = function(el, locX, locY) {
 
 
 FF.sizeDivRelative = function(el, walls, deltaX, deltaY) {  // wall is n|ne|e|se|s|sw|w|nw
-    debugger; if (!el) {
+    if (!el) {
         return;
     }
     const rect = FF.getRawRect(el);
@@ -1139,8 +1156,8 @@ FF.sizeDivRelative = function(el, walls, deltaX, deltaY) {  // wall is n|ne|e|se
 }
 
 
-FF.getRawRect = function(el) {
-    debugger; const rect = {
+FF.getRawRect = function(el) { // get rectvals from el.style NOT boundingBox
+    const rect = {
         lrMode: "",
         tbMode: "",
         L: NaN,
@@ -1165,16 +1182,21 @@ FF.getRawRect = function(el) {
 }
 
 
-FF.getBoxAroundDcw = function(dcw) {
-    debugger; if (dcw) {                                     // !!DO!! allow them to select/move the docroot! 
+FF.getBOXforDcw = function(dcw) {     // if dcw=BOX return dcw, else walk parents to find owning BOX
+    if (dcw) {                        // !!DO!! allow them to select/move the docroot! 
         let el = dcw._s_sysDiv;
-        while (FF.getDchName(dcw._s_dch) != "BOX") {      // if dch != BOX, walk parentChain to find one
-            try {
-                dcw = dcw.__parent;
-            } catch (err) {
-                debugger;
+// try {
+// console.log("dcw=",dcw);
+            while (FF.getDchName(dcw._s_dch) != "BOX") { // if dch != BOX, walk parentChain to find one
+                try {
+                    dcw = dcw._s_parentDcw;
+                } catch (err) {
+                    debugger;
+                }
             }
-        }
+// } catch (err) {
+// debugger;
+// }
     }
     return dcw;
 }

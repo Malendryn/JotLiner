@@ -127,8 +127,8 @@ html,body {
     inset:      0px;
     padding:    0px;
     margin:     0px;
-    /* border:     0px; */
-    border:     1px dashed red;
+    border:     0px;
+    /* border:     1px dashed red; */
 }
 .shadowWrapper__host.disabled {
     pointer-events: none;   
