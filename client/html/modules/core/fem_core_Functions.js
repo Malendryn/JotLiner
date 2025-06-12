@@ -22,7 +22,6 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 {...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
---------       reTimer(callback)        x = reTimer(callback);   x(5000); make timer, that can be set and reset
 --------       autoSave(delay=5000)     uses a reTimer() to autoSave FG.curDoc after (delay) millisecs has passed
 -------- async waitDirty()              spin-wait up to 15 secs while (FG.curdoc && FG.curDoc.dirty)
 
@@ -57,6 +56,7 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
+import { DFTimeList } from "/public/classes/DFTimeList.js"
 
 
 FF.shutdown = async (event) => {            // webpage closing/changing, do final terminations/cleanups
@@ -256,31 +256,36 @@ FF.trace = function(...args) {
     console.log("TR=" + fn_ln, ...args);
 }
 
-FF.reTimer = function(callback) {
-	let id = 0;
-	const startTimeout = async (delay, dict=null) => {	// delay = -n=kill, 0=callback(dict)Immediate, +n=delay ms then callback(dict)
-		if (id > 0) {                               // kill any current running timer
-			clearTimeout(id);
-			id = 0;
-		}
-        if (delay == 0) {
-            await callback(dict);               // when delay == 0 we await
-        }
-		if (delay > 0) {
-			id = setTimeout(async () => {       // by making this async() in this way we... 
-                callback(dict);
-            }, delay);	// start new timer
-		}
-	}
-	return startTimeout;
-    console.log(FF.__FILE__(), "*** AUTOSAVE DISABLED ***");
-};
 
 
-const autoSaveCallback = async function() {
-    // console.log(FF.__FILE__(), "autosavefunc fired");
-    // return;
-    if (FG.curDoc && FG.curDoc.dirty) {
+/*
+autosave ops = {
+    addDch: dch   -- new dch, tell server to saveData and return new id, THEN also save/bump doc --> wanSend 'Changed'
+    modDch: dch   -- dch was modded, send exported data to server, bump dchData rec and bump doc --> wanSend 'Changed'
+    delDch: recId -- dch was removed/deleted, tell server to delete dch, THEN also save/bump doc --> wanSend 'Changed'
+    addDoc: uuid  -- tell backend new doc, backend adds doc, adds to docTree,   --> wanSend 'Changed' doc + docTree
+    modDoc: ""    -- tell backend mod doc, backend updates doc,                 --> wanSend 'Changed' doc  (uuid pulled from FG.curDoc.uuid)
+    delDoc: uuid  -- tell backend del doc, backend dels doc, rmvs from docTree, --> wanSend 'Changed' doc + docTree
+    addDb:
+   xmodDbx --modding is handled by above ops, 
+    delDb:
+}
+so we need to build a queue (one for each?)  that tracks time til autosave fires on it
+we need to track 'dirty' on each item too  ... maybe a set dirty(v) = {}  ? 
+
+queue = 
+    [ {what, action, timestamp}, ...]  (same things passed in to autosave but with timestamp added)
+
+    { timestamp: {what, action} }  /sorted/ map on timestamp for next firing time (but what if there are connected entries?)
+
+it would be nice to do this on dirty flags like we used to, but does it really matter?
+once dirty it's never really gonna go 'un'dirty is it?
+however if it gets saved twice we dont want to save it twice so here's where _asFifo.find comes in
+*/
+
+
+const _processTlEntry = async function(data) { // process _tlFifo entry
+    debugger; if (FG.curDoc && FG.curDoc.dirty) {
         let extracter = new FG.DocExtracter();
         let encoder = new DFEncoder();
 
@@ -298,68 +303,59 @@ const autoSaveCallback = async function() {
     	FG.curDoc.dirty = false;
     }
 };
-FF._autoSaveFunc = FF.reTimer(autoSaveCallback);		// '_' cuz this should only ever be called from FF.autoSave() below
-
-// FF.autoSave = function(delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
-//     if (FG.curDoc) {               // if we have a doc and it's not marked dirty    
-//         FG.curDoc.dirty = true;    // set dirty flag immediately
-//         FF._autoSaveFunc(delay);   // start-or-restart the autosave countdown
-//     }
-// };
-
-/*
-autosave ops = {
-    addDch: dch   -- new dch, tell server to saveData and return new id, THEN also save/bump doc --> wanSend 'Changed'
-    modDch: dch   -- dch was modded, send exported data to server, bump dchData rec and bump doc --> wanSend 'Changed'
-    delDch: recId -- dch was removed/deleted, tell server to delete dch, THEN also save/bump doc --> wanSend 'Changed'
-    addDoc: uuid  -- tell backend new doc, backend adds doc, adds to docTree,   --> wanSend 'Changed' doc + docTree
-    modDoc: ""    -- tell backend mod doc, backend updates doc,                 --> wanSend 'Changed' doc  (uuid pulled from FG.curDoc.uuid)
-    delDoc: uuid  -- tell backend del doc, backend dels doc, rmvs from docTree, --> wanSend 'Changed' doc + docTree
-    addDb:
-   xmodDbx --modding is handled by above ops, 
-    delDb:
-}
-*/
-x x /*
-so we need to build a queue (one for each?)  that tracks time til autosave fires on it
-we need to track 'dirty' on each item too  ... maybe a set dirty(v) = {}  ? 
-
-queue = 
-    [ {what, action, timestamp}, ...]  (same things passed in to autosave but with timestamp added)
-
-    { timestamp: {what, action} }  /sorted/ map on timestamp for next firing time (but what if there are connected entries?)
-*/
 
 
-
-
-
-
-
-
-FF.autoSave = function({ops}, delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
-debugger;    for (const item of items) {
-        if (typeof item == "string") {   // a 'string' is uuid of doc,  
-
-        } else if (Object.getPrototypeOf(Object.getPrototypeOf(item)).constructor.name == "DCH_BASE") {
-            if (item.__recId == 0)  { // INSERT NEW dchData
-            } else {
-            } 
-        } else {                        // right now the only other option is save docTree
-
+let _tlResetId = 0;
+async function _tlReset() {
+    if (_tlResetId > 0) {                               // kill any current running timer
+        clearTimeout(_tlResetId);
+        _tlResetId = 0;
+    }
+    while (_tlFifo.length > 0) {
+        const next = _tlFifo.getByIdx(0);   // returns [key, val, idx] where key is a 'Date.now() + delay'
+        if (next) {
+            _tlFifo.removeByIdx(0);
+            let span = Date.now() - next[0];
+            if (span <= 0) {        // if timed out, go process it
+                await _processTlEntry(next[1]);
+            } else {                // else start a timeout and wait for it
+                setTimeout( () => {
+                    _tlReset();
+                }, span);
+                return;
+            }
         }
-
     }
+}
 
-    if (FG.curDoc) {               // if we have a doc and it's not marked dirty    
-        FG.curDoc.dirty = true;    // set dirty flag immediately
-        FF._autoSaveFunc(delay);   // start-or-restart the autosave countdown
+const _tlFifo = new DFTimeList();
+
+function _tlFifoCmp(what, entry) {  // test the [list] we passed in by walking it and seeking matches
+    debugger; for (const item in entry) {
+        if (what == item) {
+            return true;
+        }
     }
+    return false;
+}
+FF.autoSave = function(opList, delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
+    debugger; const idx = _tlFifo.find(opList, _tlFifoCmp)
+    if (idx !== -1) {
+        debugger; _tlFifo.removeByIdx(idx);
+    }
+    _tlFifo.add(opList, Date.now() + delay);
+    _tlReset();
 };
 
+FF.autoFlush = function() {
+    debugger; for (let idx = 0; idx < _tlFifo.length; ++idx) {
+        _tlFifo.keys[idx] = 0;  // reach into _tlFifo and zero ALL the keys
+    }
+    _tlReset(); // cause ALL waitfor's to fire immediately
+}
 
-FF.waitDirty = async function() {
-    let tm, end = Date.now() + 15000;   // set end 15secs into the future
+FF.waitDirty = async function() {   // we may have to obsolete this func if we cant figure out how to handle it
+    debugger; let tm, end = Date.now() + 15000;   // set end 15secs into the future
     return new Promise(async (resolve, reject) => {
         function waitOnDirty() {
             if (FG.curDoc && FG.curDoc.dirty && Date.now() < end) { // if doc and dirty and notyet15secs...

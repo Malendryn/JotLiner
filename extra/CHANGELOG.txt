@@ -3,6 +3,10 @@
 2025-06-12 ------------------------------------------------------------------------------------------------------------
 * working out the logic for 'changed' packets which now must encompass dchData table entries too
 * created 2 new classes DFSortedList and DFTimeList
+* built a timer-fifo for handling the new autoSave system,  still needs some fleshing out but overall pretty happy
+    with it
+
+*
 
 2025-06-11 ------------------------------------------------------------------------------------------------------------
 * contextmenus now work again, alt+shift drag/resize works, alt++shift+z drag zX/Y works, but the 'red edge' showing
