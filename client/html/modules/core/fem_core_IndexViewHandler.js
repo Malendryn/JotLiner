@@ -526,7 +526,7 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
         const info = FF.getDocInfo(uuid);
         if (info) {
             if (FG.curDoc && FG.curDoc.dirty) {        // if dirty, force immediate save and wait for dirtyflag to clear
-                FF.autoSave(0);                 
+                debugger; FF.autoSave({}, 0);                 
                 await FF.waitDirty();
             }
             /*NOwait*/ FF.loadDoc(uuid, force);  //  ONLY reload doc if forced...

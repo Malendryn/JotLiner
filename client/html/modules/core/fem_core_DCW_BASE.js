@@ -8,21 +8,9 @@ import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 class DCW_BASE {   // base 'wrapper' class of all document components (where resize/anchor/depth are controlled)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// PLUGIN SUPPLIED PROPERTIES: plugin-makers MUST override these following variables with their own values
-    static pluginName    = "Unnamed Plugin";   // The plugin's name as shown in menus and command modes
-    static pluginTooltip = "No tooltip given"; // Shown when pluginName is hovered over in menus
-/* *** these next few are 'getter-only' d'C'h component-accessable properties 
 
-    _c_srcUrl  = "./pathTo/this/plugin"  // relative path to this plugin (so plugin can access related content)
-    _c_host    = shadowDOM <div>  where plugin's content should go.  for DCW_BASE this is a div inside a shadow DOM and thus isolated
-    _c_toolbar = shadowDOM <div>  a toolbar area for dch's to play with
-                         from the main html page
-*/
-
-//  id = addStyle(code) adds a style in <head> but tracks it via returned id and auto-prevents duplication if plugin loaded more than once
+//  loadStyle(code)   adds a style in <head> but tracks it via returned id and auto-prevents duplication if plugin loaded more than once
 //                      (code can be a "path-or-URL" to a .css file-or- direct "<style>text</style>" textblock)
-//  removeStyle(id);    remove style added by id returned from addStyle()
-//  removeAllStyles();  remove ALL styles added by this plugin, (AUTOMATICALLY called when plugin is destroy()'d)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,7 +205,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
     async loadStyle(style, which={}) {
         if (Object.keys(which).length == 0) {
-            throw new Error("loadStyle missing destination parameter");
+            throw new Error("loadStyle missing at least one destination parameter");
         }
         const match = style.match(/<style[^>]*>([\s\S]*?)<\/style>/i);  // see if it's wrapped in <style></style>
         if (!match) {
@@ -252,7 +240,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         }
     }
 
-     showToolbar() {
+    showToolbar() {
         if (this._c_toolbar) {
             this.#toolWrap.style.display = "";
             if (this.toolbarHeight !== undefined) {
@@ -260,12 +248,12 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
             }
         }
     }
-    hideToolbar() {
-        debugger; if (this._c_toolbar) {
-            this.#toolWrap.style.display = "none";
-            FF.setToolbarHeight(FG.defaultToolbarHeight);
-        }
-    }
+    // hideToolbar() {  // works, but never used
+    //     debugger; if (this._c_toolbar) {
+    //         this.#toolWrap.style.display = "none";
+    //         FF.setToolbarHeight(FG.defaultToolbarHeight);
+    //     }
+    // }
 
 
 // override above pre-defs in the help comments at the top of the class
@@ -286,7 +274,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     
     async destroy() { // detach this dcw and owned dch from doc, removing all listeners too, and destroy it
         await this.destruct();
-        this._s_dch.destroy();                  // give the dch a chance to cleanup
+        this._s_dch.__destroy();                  // give the dch a chance to cleanup
         this._s_sysDiv.remove();             // remove our dcw toplevel div
         if (this.#toolWrap) {
             this.#toolWrap.remove();       // if it had a toolbar, remove that too

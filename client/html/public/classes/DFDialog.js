@@ -392,7 +392,7 @@ class DFDialog {
         if (opts.onButton) { this.onButton = opts.onButton; }
         if (opts.onClose)  { this.onClose  = opts.onClose;  }
     }
-};
+}
 export { DFDialog };
 
  

@@ -1,5 +1,7 @@
 // DocViewHandler = Toplevel Keyboard and Mouse Event Handlers
 
+const trace = FF.trace;
+
 import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 
 let el = document.getElementById("divDocView");
@@ -52,7 +54,7 @@ FG.kmStates = {
 FG.kmPrior = null;  // clone of FG.kmStates prior to onStateChange() so we can test if something JUST changed
 
 function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND set value
-    debugger; let elC = document.getElementById("dawIBCkBox" + code);
+    let elC = document.getElementById("dawIBCkBox" + code);
     let elI = document.getElementById("dawIBInput" + code);
     if (enable) {
         elC.className = "enAbled";
@@ -69,7 +71,7 @@ function frmSetEl(code, val, enable) {     // set checkbox enAbled/unAbled AND s
     }
 }
 function onFormInput(evt) {                         // if an inputBox's value changed
-    debugger; formChanged = true;
+    formChanged = true;
     const dcw = FG.kmStates.dcw;
     let ss = dcw._s_sysDiv.style;
     const val = parseInt(evt.target.value) || 0;
@@ -90,7 +92,7 @@ function onFormInput(evt) {                         // if an inputBox's value ch
 let formChanged;
 let formOrigVals;
 function onFormClick(evt) {
-    debugger; if (evt.target.id.startsWith("dawIBCkBox")) {       // if a checkbox was clicked...
+    if (evt.target.id.startsWith("dawIBCkBox")) {       // if a checkbox was clicked...
         formChanged = true;
         const dcw = FG.kmStates.dcw;
         // const pRect = dcw._s_parentDcw.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
@@ -125,7 +127,7 @@ function onFormClick(evt) {
 
 
 function setFormVals() {
-    debugger; const dcw = FG.kmStates.dcw;
+    const dcw = FG.kmStates.dcw;
     const ss = dcw._s_sysDiv.style;
     frmSetEl("L", (parseInt(ss.left) || 0),   ss.left.length   > 0);
     frmSetEl("W", (parseInt(ss.width) || 0),  ss.width.length  > 0);
@@ -214,7 +216,7 @@ dawAHL (AHR/AHT/AHB) is arrowhead facing Left, Right, Top, Bottom
 `;
 let dlg;
 function onContextDCHLayout() {
-    debugger; async function _preRun(form) {
+    async function _preRun(form) {
         formChanged = false;
         const dcw = FG.kmStates.dcw;
         formOrigVals = {
@@ -230,7 +232,7 @@ function onContextDCHLayout() {
         form.addEventListener("input", onFormInput);
     }
     async function _onBtn(btnLabel, dict) {
-        debugger; if (!dict.isSubmit) {
+        if (!dict.isSubmit) {
             const ss = FG.kmStates.dcw._s_sysDiv.style;
             ss.left   = formOrigVals.left;      // if dict == null, cancel was clicked, so restore original values
             ss.width  = formOrigVals.width;
@@ -243,10 +245,10 @@ function onContextDCHLayout() {
         return true;                // tell dialog to close no matter what button was pressed
     }
     async function _postRun(form) {
-        debugger; form.removeEventListener("input", onFormInput);
+        form.removeEventListener("input", onFormInput);
         form.removeEventListener("click", onFormClick);
         if (formChanged) {
-            FF.autoSave(0);         // save immediately
+            debugger; FF.autoSave({modDoc:""}, 0);         // save immediately
         }
         FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
         onStateChange({});          // just to bump an update so ghost clears
@@ -329,10 +331,10 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
             let dchName = action.substr(7);
 console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
             const style = {L:startX, T:startY, W:100, H:100};
-            debugger; /* doublecheck!*/ const nuDcw = await DCW_BASE.create(dcw, style);  // create nuDcw, parentTo dcw, set style
+             const nuDcw = await DCW_BASE.create(dcw, style);  // create nuDcw, parentTo dcw, set style
             await nuDcw.attachDch(dchName);
             // dcw._s_children.push(nuDch);
-            FF.autoSave();
+            debugger; FF.autoSave({newDoc:nuDcw._s_dch});     // save the new dch (and the doc)
         }
         switch (action) {                                     // 'go do' whatever was clicked
             case "export":
@@ -353,8 +355,9 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
                     }
                 }
                 setKMStateMode(0);  // obliterate all ghosting and modeing 
+                const recId = dcw._s_dch.__recId;
                 await dcw.destroy();
-                FF.autoSave();
+                debugger; FF.autoSave({delDch: recId});
                 break;
             case "setLayout":
                 onContextDCHLayout();
@@ -514,15 +517,15 @@ function getChildrenBoundingRect(dcw) {
 
 
 function showOOB() {
-    // console.log(FF.__FILE__(), "showOOB");
+    console.log(FF.__FILE__(), "showOOB");
     FG.ghosts.showOOB = true;
     const dcwList = FF.getAllDcw();
     for (const dcw of dcwList) {
         if (FF.getDchName(dcw._s_dch) == "BOX") {  // only do this to BOXes
             let pRect = dcw._s_sysDiv.getBoundingClientRect();
             let cRect = getChildrenBoundingRect(dcw);
-            // console.log(FF.__FILE__(), dcw._s_sysDiv.id.padStart(8, '-'), "parent=", JSON.stringify(pRect));
-            // console.log(FF.__FILE__(), dcw._s_sysDiv.id.padStart(8, '-'), "childs=", JSON.stringify(cRect));
+            trace(dcw._s_sysDiv.dataset._dbgid.padStart(8, '-'), "parent=", JSON.stringify(pRect));
+            trace(dcw._s_sysDiv.dataset._dbgid.padStart(8, '-'), "childs=", JSON.stringify(cRect));
 
             dcw._s_sysDiv.classList.remove("border-T");
             dcw._s_sysDiv.classList.remove("border-R");
@@ -718,7 +721,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             }
         }
 
-        FF.autoSave();          // autosave after n secs
+        debugger; FF.autoSave({modDoc: ""}));          // autosave after n secs
         setKBModeToolbarText(FG.kmStates.dcw);
     }
 }
@@ -765,7 +768,7 @@ function doDchOpMode2() { // only called when FG.kmStates.mode == 2  (mousemove 
             dcw._s_dch.zX += deltaX;
             dcw._s_dch.zY += deltaY;
             dcw.update();
-            FF.autoSave();          // autosave after n secs
+            debugger; FF.autoSave({modDoc: ""});          // autosave after n secs
         }
     }
     setKBModeTitlebarText(dcw);
@@ -1089,7 +1092,7 @@ FF.moveDivRelative = function(el, deltaX, deltaY) {
 
 
 FF.moveDivAbsolute = function(el, locX, locY) {
-    debugger; if (el) {
+    if (el) {
         const rect = FF.getRawRect(el);  // get rectvals from el.style NOT boundingBox so we know which LWRTHB to change
         if (rect.lrMode.includes("L")) { el.style.left   = locX + "px"; }
         if (rect.lrMode.includes("R")) { el.style.right  = locX + "px"; }

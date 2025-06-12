@@ -10,7 +10,7 @@ export class DocExtracter {
     dchList;
     async extract(dch) {
         this.dchList = [];
-        await this._extract(dch);  // turn the dch into a stream
+        await this. _extract(dch);  // turn the dch into a stream
         return this.dchList;
     }
 

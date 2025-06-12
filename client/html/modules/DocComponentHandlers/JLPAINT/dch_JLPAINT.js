@@ -81,7 +81,7 @@ const html = `
         if (this.painting) {
             this.painting = false;
             this.ctx.beginPath(); // resets path to avoid unwanted lines
-            FF.autoSave();
+            debugger; this.autoSave();
         }
     }
 

@@ -30,7 +30,7 @@ class DCH_TXA extends DCH_BASE {
     }
     
     async onContentChanged(evt) {
-        FF.autoSave();
+        debugger; this.autoSave();
     }
 };
 export { DCH_TXA as DCH };      // always export 'as DCH' so DCH_<type>BASE can load-on-the-fly and attach to globalThis.DCH

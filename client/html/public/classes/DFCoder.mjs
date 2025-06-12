@@ -163,19 +163,5 @@ class DFDecoder {
         }
         return [dType, bytes];
     }
-};
+}
 export { DFEncoder, DFDecoder };
-
-// (function() {  // encode/decode testing of all datatype handlings
-//     function _hexDump(u8a) {
-//         console.log(Array.from(u8a).map(byte => byte.toString(16).padStart(2, '0')).join(' '));
-//     }
-//     let enc = new DFEncoder();
-//     let data = {list:[undefined, null, true, false],int:42,str:"abc",u8a:new Uint8Array(5)}
-//     console.log(data);
-//     data = enc.encode(data);
-//     _hexDump(data);
-//     let list2 = new DFDecoder(data).decode();
-//     console.log(list2);
-//     debugger; 
-// })();

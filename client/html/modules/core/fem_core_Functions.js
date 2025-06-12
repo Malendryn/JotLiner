@@ -59,10 +59,9 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 
 
-FF.shutdown = async (event) => {                       // webpage closing, do final terminations/cleanups
-
+FF.shutdown = async (event) => {            // webpage closing/changing, do final terminations/cleanups
     if (FG.curDoc && FG.curDoc.dirty) {     // if something's still dirty
-        FF.autoSave(0);                     // force immediate saving
+        debugger; FF.autoSave({}, 0);       // force immediate saving
         FF.waitDirty();                     // and wait for it to complete
     }
 
@@ -114,7 +113,7 @@ FF.clearDoc = async() => {
         WS.clearBatchExpect("GetDchData", FG.curDoc.uuid); // remove any pending GetDchData batch waitfors  
     
         if (FG.curDoc.dirty) {
-            FF.autoSave(0);
+            debugger; FF.autoSave(0);
             await FF.waitDirty();       // wait until doc save is clean
             console.log("beep");
         }
@@ -209,7 +208,7 @@ function __getFileLineInfo(err) {
 }
 
 
-FF.__FILE__ = function(all = false) {
+FF.__FILE__ = function(all = false) {   // see 'FF.trace' right below this func for a much better version
 	try {
 		throw new Error();
 	} catch (error) {
@@ -242,6 +241,20 @@ FF.__FILE__ = function(all = false) {
 	}
 };
 
+FF.trace = function(...args) {
+    let fn_ln = "???:?";
+
+    const err = new Error();
+    const stack = err.stack.split('\n');
+    const line = stack[2];      // 0=error, 1=thisFunc, 3=callerOfThisFunc
+    const match = line.match(/\(?([^():]+):(\d+):(\d+)\)?$/);
+    if (match) {
+        const fName = match[1].split('/').pop(); // get filename only
+        const lineNo = match[2];
+        fn_ln = fName + ":" + lineNo;
+    }
+    console.log("TR=" + fn_ln, ...args);
+}
 
 FF.reTimer = function(callback) {
 	let id = 0;
@@ -265,13 +278,13 @@ FF.reTimer = function(callback) {
 
 
 const autoSaveCallback = async function() {
-    console.log(FF.__FILE__(), "autosavefunc fired");
-    return;
+    // console.log(FF.__FILE__(), "autosavefunc fired");
+    // return;
     if (FG.curDoc && FG.curDoc.dirty) {
         let extracter = new FG.DocExtracter();
         let encoder = new DFEncoder();
 
-        let tmp = {
+        debugger; let tmp = {
             dchList: await extracter.extract(FG.curDoc.rootDcw, false),
         };
         tmp = encoder.encode(tmp);
@@ -287,7 +300,57 @@ const autoSaveCallback = async function() {
 };
 FF._autoSaveFunc = FF.reTimer(autoSaveCallback);		// '_' cuz this should only ever be called from FF.autoSave() below
 
-FF.autoSave = function(delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
+// FF.autoSave = function(delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
+//     if (FG.curDoc) {               // if we have a doc and it's not marked dirty    
+//         FG.curDoc.dirty = true;    // set dirty flag immediately
+//         FF._autoSaveFunc(delay);   // start-or-restart the autosave countdown
+//     }
+// };
+
+/*
+autosave ops = {
+    addDch: dch   -- new dch, tell server to saveData and return new id, THEN also save/bump doc --> wanSend 'Changed'
+    modDch: dch   -- dch was modded, send exported data to server, bump dchData rec and bump doc --> wanSend 'Changed'
+    delDch: recId -- dch was removed/deleted, tell server to delete dch, THEN also save/bump doc --> wanSend 'Changed'
+    addDoc: uuid  -- tell backend new doc, backend adds doc, adds to docTree,   --> wanSend 'Changed' doc + docTree
+    modDoc: ""    -- tell backend mod doc, backend updates doc,                 --> wanSend 'Changed' doc  (uuid pulled from FG.curDoc.uuid)
+    delDoc: uuid  -- tell backend del doc, backend dels doc, rmvs from docTree, --> wanSend 'Changed' doc + docTree
+    addDb:
+   xmodDbx --modding is handled by above ops, 
+    delDb:
+}
+*/
+x x /*
+so we need to build a queue (one for each?)  that tracks time til autosave fires on it
+we need to track 'dirty' on each item too  ... maybe a set dirty(v) = {}  ? 
+
+queue = 
+    [ {what, action, timestamp}, ...]  (same things passed in to autosave but with timestamp added)
+
+    { timestamp: {what, action} }  /sorted/ map on timestamp for next firing time (but what if there are connected entries?)
+*/
+
+
+
+
+
+
+
+
+FF.autoSave = function({ops}, delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
+debugger;    for (const item of items) {
+        if (typeof item == "string") {   // a 'string' is uuid of doc,  
+
+        } else if (Object.getPrototypeOf(Object.getPrototypeOf(item)).constructor.name == "DCH_BASE") {
+            if (item.__recId == 0)  { // INSERT NEW dchData
+            } else {
+            } 
+        } else {                        // right now the only other option is save docTree
+
+        }
+
+    }
+
     if (FG.curDoc) {               // if we have a doc and it's not marked dirty    
         FG.curDoc.dirty = true;    // set dirty flag immediately
         FF._autoSaveFunc(delay);   // start-or-restart the autosave countdown

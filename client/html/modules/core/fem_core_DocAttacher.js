@@ -9,7 +9,7 @@ X.attach(meta, parent, clone);      // attach the component (and all its childre
     clone:  bool  default:false; true=clone meta's dchData recs and use those instead  (allows us to do copy/paste)
 */
 
-import { DCW_BASE  } from "/modules/core/fem_core_DCW_BASE.js";
+import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 import { DFDecoder } from "/public/classes/DFCoder.mjs";
 
 export class DocAttacher {   // create and return a DCH from a stream
@@ -35,19 +35,20 @@ export class DocAttacher {   // create and return a DCH from a stream
         if (this.idx > this.keys.length) {      // no more recs to process 
             return null;
         }
-        const key = parseInt(this.keys[this.idx++]);
-        let meta = this.meta[key];
+        const recId = parseInt(this.keys[this.idx++]);
+        let meta = this.meta[recId];
         const dcw = await DCW_BASE.create(parentDcw, meta.S);  // create a handler, assign parent, create <div>, set 'S'tyle
         if (this.rootDcw == null) {         // record the topmost dch for returning
             this.rootDcw = dcw;
         }
         let pkt = WS.makePacket("GetDchData");      // go get the dch's name and content and attach it
-        pkt.id = key;
-        pkt = await WS.sendWait(pkt);                 // consider lazyloading this in the future
+        pkt.id = recId;
+        pkt = await WS.sendWait(pkt);               // consider lazyloading this in the future
 
         if (await dcw.attachDch(pkt.data.name)) {
+            dcw._s_dch.__recId = recId;             // dch needs to know its recId for autoSave
             const decoder = new DFDecoder(pkt.data.content);
-            const dict = decoder.decode()
+            const dict = decoder.decode();
             dcw._s_dch.importData(dict);
         }
         for (let idx = 0; idx < meta.C; idx++) {    // load children of component (if any) (only if BOX component)
