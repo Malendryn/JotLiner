@@ -334,7 +334,7 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
              const nuDcw = await DCW_BASE.create(dcw, style);  // create nuDcw, parentTo dcw, set style
             await nuDcw.attachDch(dchName);
             // dcw._s_children.push(nuDch);
-            debugger; FF.autoSave({newDoc:nuDcw._s_dch});     // save the new dch (and the doc)
+            debugger; FF.autoSave({newDch:nuDcw}, 0);  // save the new dch (through it's dcw) (and the doc) immediately
         }
         switch (action) {                                     // 'go do' whatever was clicked
             case "export":
@@ -524,8 +524,8 @@ function showOOB() {
         if (FF.getDchName(dcw._s_dch) == "BOX") {  // only do this to BOXes
             let pRect = dcw._s_sysDiv.getBoundingClientRect();
             let cRect = getChildrenBoundingRect(dcw);
-            trace(dcw._s_sysDiv.dataset._dbgid.padStart(8, '-'), "parent=", JSON.stringify(pRect));
-            trace(dcw._s_sysDiv.dataset._dbgid.padStart(8, '-'), "childs=", JSON.stringify(cRect));
+            trace(dcw._s_sysDiv.dataset._dbgid.padStart(8, '-'), "TESTREDBOX pRect=", JSON.stringify(pRect));
+            trace(dcw._s_sysDiv.dataset._dbgid.padStart(8, '-'), "TESTREDBOX cRect=", JSON.stringify(cRect));
 
             dcw._s_sysDiv.classList.remove("border-T");
             dcw._s_sysDiv.classList.remove("border-R");
@@ -721,7 +721,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             }
         }
 
-        debugger; FF.autoSave({modDoc: ""}));          // autosave after n secs
+        debugger; FF.autoSave({modDoc: ""});          // autosave after n secs
         setKBModeToolbarText(FG.kmStates.dcw);
     }
 }

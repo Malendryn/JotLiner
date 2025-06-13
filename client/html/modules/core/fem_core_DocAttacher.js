@@ -38,15 +38,15 @@ export class DocAttacher {   // create and return a DCH from a stream
         const recId = parseInt(this.keys[this.idx++]);
         let meta = this.meta[recId];
         const dcw = await DCW_BASE.create(parentDcw, meta.S);  // create a handler, assign parent, create <div>, set 'S'tyle
-        if (this.rootDcw == null) {         // record the topmost dch for returning
+        if (this.rootDcw == null) {           // record the topmost dch for returning
             this.rootDcw = dcw;
         }
-        let pkt = WS.makePacket("GetDchData");      // go get the dch's name and content and attach it
+        let pkt = WS.makePacket("GetDch");    // go get the dch's name and content and attach it
         pkt.id = recId;
-        pkt = await WS.sendWait(pkt);               // consider lazyloading this in the future
+        pkt = await WS.sendWait(pkt);         // consider lazyloading this in the future
 
         if (await dcw.attachDch(pkt.data.name)) {
-            dcw._s_dch.__recId = recId;             // dch needs to know its recId for autoSave
+            dcw._s_dch.__recId = recId;   // dch needs to know its recId for autoSave
             const decoder = new DFDecoder(pkt.data.content);
             const dict = decoder.decode();
             dcw._s_dch.importData(dict);

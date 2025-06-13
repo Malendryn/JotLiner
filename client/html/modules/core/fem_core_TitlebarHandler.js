@@ -65,12 +65,12 @@ FF.selectDB = async function() {
 
     if (FG.curDbName) {
         let pkt = WS.makePacket("SelectDB");            // tell server, waitfor failMsg or null=good
-        pkt.text = FG.curDbName;
+        pkt.name = FG.curDbName;
         pkt = await WS.sendWait(pkt);
-        if (pkt.text) {
+        if (pkt.err) {
             LS.curDb = "";              // something went wrong,  'forget' current DB and popup the msg
             FG.curDbName = LS.curDb;
-            alert(pkt.text);
+            alert(pkt.err);
             FF.updateDBSelector();      // to clean out the missing db(s)
         }
     }

@@ -1,5 +1,8 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-13 ------------------------------------------------------------------------------------------------------------
+* renamed dchData table to dch
+* testing all front/backend communication  from the beginning to assure all these new changes haven't broken anything
+
 2025-06-12 ------------------------------------------------------------------------------------------------------------
 * working out the logic for 'changed' packets which now must encompass dchData table entries too
 * created 2 new classes DFSortedList and DFTimeList

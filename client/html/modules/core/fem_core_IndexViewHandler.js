@@ -273,6 +273,7 @@ debugger; let dch = await DCW_BASE.create(null, null);	// blowout any loaded han
     dch.create("BOX", {zX:0, zY:0});      // turn it into a 'BOX'
     FG.curDoc = {
         uuid:    FF.makeUUID(),
+//        name:    "",
         rootDcw: dch,
         dirty:   false,
     };
@@ -299,10 +300,9 @@ function openDocRenamePopup() {
             }
     
             let pkt = WS.makePacket("RenameDoc")
-            pkt.dict = {
-                name:       dict.docName,   // name of doc
-                uuid:       FG.curDoc.uuid, // uuid of doc
-            }
+            // FG.curDoc.name = dict.docName;   no reason to track docname in curDoc
+            pkt.uuid = FG.curDoc.uuid;
+            pkt.name = dict.docName;
             pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
             await FF.loadDocTree();         // go fetch and reconstruct index pane
             await FF.selectAndLoadDoc(FG.curDoc.uuid, false);  // keep current doc as all we did was rename it
@@ -698,7 +698,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 }
 
 
-async function onSe_pktGetDoc(pkt, uuid) {
+async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
     // we have changed loaded doc's and cleared any on screen,  then went to sleep waiting for this packet with the newly selected doc info
 
     await FF.clearDoc();                                // there SHOULD NOT BE a doc loaded!  but just in case...
@@ -711,7 +711,8 @@ async function onSe_pktGetDoc(pkt, uuid) {
     const rootDcw = await attacher.attach(meta, null, false);    // this doc has no parent(null) so will become our new rootDcw
 
     FG.curDoc = { 
-        uuid:    uuid, 
+        uuid:    uuid,
+//        name:    pkt.name,
         rootDcw: rootDcw,
         dirty:   false,
     };
@@ -733,7 +734,7 @@ FF.loadDoc = async function(uuid, force=false) {                    // returns T
 
     let pkt = WS.makePacket("GetDoc");
     pkt.uuid = uuid;
-    pkt = WS.sendExpect(pkt, onSe_pktGetDoc, pkt.uuid);
+    pkt = WS.sendExpect(pkt, onPktGetDoc, pkt.uuid);
 
     return true;
 }

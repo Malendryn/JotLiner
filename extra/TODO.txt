@@ -12,6 +12,7 @@ new 'Changed' packet formula:                         tablename
    if doc changed we need to send pkt 'Changed' --> "doc",     docId
    if dch changed we need to send pkt 'Changed' --> "dchData", docId,     dchId
 
+so we now have a new autoSave system but it dispatches everything to a single callback,  I think this is fine though
 
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

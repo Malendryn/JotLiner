@@ -56,7 +56,7 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
-import { DFTimeList } from "/public/classes/DFTimeList.js"
+import { DFTimedQueue } from "/public/classes/DFTimedQueue.js"
 
 
 FF.shutdown = async (event) => {            // webpage closing/changing, do final terminations/cleanups
@@ -253,121 +253,52 @@ FF.trace = function(...args) {
         const lineNo = match[2];
         fn_ln = fName + ":" + lineNo;
     }
-    console.log("TR=" + fn_ln, ...args);
+    console.log("TRACE:" + fn_ln, ...args);
 }
-
 
 
 /*
-autosave ops = {
-    addDch: dch   -- new dch, tell server to saveData and return new id, THEN also save/bump doc --> wanSend 'Changed'
-    modDch: dch   -- dch was modded, send exported data to server, bump dchData rec and bump doc --> wanSend 'Changed'
+autosave ops = {  // passed to _cmpTQEntry as well as _processTQEntry
+    newDch: dcw   -- new dch, tell server to saveData and return new id, THEN also save/bump doc --> wanSend 'Changed'
+    modDch: dcw   -- dch was modded, send exported data to server, bump dchData rec and bump doc --> wanSend 'Changed'
     delDch: recId -- dch was removed/deleted, tell server to delete dch, THEN also save/bump doc --> wanSend 'Changed'
-    addDoc: uuid  -- tell backend new doc, backend adds doc, adds to docTree,   --> wanSend 'Changed' doc + docTree
+    newDoc: uuid  -- tell backend new doc, backend adds doc, adds to docTree,   --> wanSend 'Changed' doc + docTree
     modDoc: ""    -- tell backend mod doc, backend updates doc,                 --> wanSend 'Changed' doc  (uuid pulled from FG.curDoc.uuid)
     delDoc: uuid  -- tell backend del doc, backend dels doc, rmvs from docTree, --> wanSend 'Changed' doc + docTree
-    addDb:
+    newDb:
    xmodDbx --modding is handled by above ops, 
     delDb:
 }
-so we need to build a queue (one for each?)  that tracks time til autosave fires on it
-we need to track 'dirty' on each item too  ... maybe a set dirty(v) = {}  ? 
-
-queue = 
-    [ {what, action, timestamp}, ...]  (same things passed in to autosave but with timestamp added)
-
-    { timestamp: {what, action} }  /sorted/ map on timestamp for next firing time (but what if there are connected entries?)
-
-it would be nice to do this on dirty flags like we used to, but does it really matter?
-once dirty it's never really gonna go 'un'dirty is it?
-however if it gets saved twice we dont want to save it twice so here's where _asFifo.find comes in
 */
+function _cmpTQEntry(op1, op2) {
+    debugger;
+}
 
-
-const _processTlEntry = async function(data) { // process _tlFifo entry
-    debugger; if (FG.curDoc && FG.curDoc.dirty) {
-        let extracter = new FG.DocExtracter();
-        let encoder = new DFEncoder();
-
-        debugger; let tmp = {
-            dchList: await extracter.extract(FG.curDoc.rootDcw, false),
-        };
-        tmp = encoder.encode(tmp);
-
-        let pkt = WS.makePacket("SaveDoc")
-        pkt.dict = {                        // NOTE: no version or name, only uuid and content
-            uuid:       FG.curDoc.uuid,
-            doc:        tmp
-        }
-        pkt = WS.send(pkt);	        // send to backend, /maybe/ get a response-or-Fault, ?don't care?
-    	FG.curDoc.dirty = false;
-    }
+async function _dispatchTQEntry(op) {        // process DFTimedQueue entry  (op={action: data})
+    WS[op.action](op.data); // since 100% of dispatches are due to talking to backend lets just put it all on the WebSock/PacketHandler
 };
 
+const _tq = new DFTimedQueue(_cmpTQEntry, _dispatchTQEntry);
+FF.autoSave   = _tq.autoSave;   // FF.autoSave(val, delay=1000)
+FF.flushAll   = _tq.flushAll;   // FF.flushAll()
+FF.awaitQueue = _tq.awaitQueue; // async FF.awaitQueue()
 
-let _tlResetId = 0;
-async function _tlReset() {
-    if (_tlResetId > 0) {                               // kill any current running timer
-        clearTimeout(_tlResetId);
-        _tlResetId = 0;
-    }
-    while (_tlFifo.length > 0) {
-        const next = _tlFifo.getByIdx(0);   // returns [key, val, idx] where key is a 'Date.now() + delay'
-        if (next) {
-            _tlFifo.removeByIdx(0);
-            let span = Date.now() - next[0];
-            if (span <= 0) {        // if timed out, go process it
-                await _processTlEntry(next[1]);
-            } else {                // else start a timeout and wait for it
-                setTimeout( () => {
-                    _tlReset();
-                }, span);
-                return;
-            }
-        }
-    }
-}
-
-const _tlFifo = new DFTimeList();
-
-function _tlFifoCmp(what, entry) {  // test the [list] we passed in by walking it and seeking matches
-    debugger; for (const item in entry) {
-        if (what == item) {
-            return true;
-        }
-    }
-    return false;
-}
-FF.autoSave = function(opList, delay=1000) {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
-    debugger; const idx = _tlFifo.find(opList, _tlFifoCmp)
-    if (idx !== -1) {
-        debugger; _tlFifo.removeByIdx(idx);
-    }
-    _tlFifo.add(opList, Date.now() + delay);
-    _tlReset();
-};
-
-FF.autoFlush = function() {
-    debugger; for (let idx = 0; idx < _tlFifo.length; ++idx) {
-        _tlFifo.keys[idx] = 0;  // reach into _tlFifo and zero ALL the keys
-    }
-    _tlReset(); // cause ALL waitfor's to fire immediately
-}
 
 FF.waitDirty = async function() {   // we may have to obsolete this func if we cant figure out how to handle it
-    debugger; let tm, end = Date.now() + 15000;   // set end 15secs into the future
-    return new Promise(async (resolve, reject) => {
-        function waitOnDirty() {
-            if (FG.curDoc && FG.curDoc.dirty && Date.now() < end) { // if doc and dirty and notyet15secs...
-                tm(10);                     // spin very fast to not delay 'user experience'
-            } else {
-                resolve();
-                return;
-            }
-        }
-        tm = FF.reTimer(waitOnDirty);
-        tm(10);                             // start the dirtychecker
-    });
+    debugger; // REPLACED BY FF.awaitQueue
+    // let tm, end = Date.now() + 15000;   // set end 15secs into the future
+    // return new Promise(async (resolve, reject) => {
+    //     function waitOnDirty() {
+    //         if (FG.curDoc && FG.curDoc.dirty && Date.now() < end) { // if doc and dirty and notyet15secs...
+    //             tm(10);                     // spin very fast to not delay 'user experience'
+    //         } else {
+    //             resolve();
+    //             return;
+    //         }
+    //     }
+    //     tm = FF.reTimer(waitOnDirty);
+    //     tm(10);                             // start the dirtychecker
+    // });
 };
 
 

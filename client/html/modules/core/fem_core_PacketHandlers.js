@@ -1,3 +1,9 @@
+
+import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
+
+WS.dispatch = {};    // see bottom of file for autoSave handler/dispatchers
+
+
 /* When a packet comes in from the server that is not a response to a packet sent from here, it will look for a prototype.process() function on 
 the packet, and if found will call it.  
 
@@ -20,3 +26,22 @@ WS.classes.Changed.prototype.process = async function() {    // insert new doc i
     }
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.dispatch.newDch = async (dcw) => { // we were given the actual dch so we need to yank its content here for sending
+    debugger; const encoder = new DFEncoder();
+
+    let pkt = WS.makePacket("NewDch");
+    pkt.uuid    = FG.curDoc.uuid;
+    pkt.content = encoder.encode(dcw._s_dch.exportData());    // get data from dch and encode it for transport
+    pkt = await WS.sendWait(pkt);
+    dcw._s_dch.__recId = pkt.id;
+
+    const extractor = new FF.DocExtractor();
+    const meta = extractor.extract(FG.curDoc.rootDcw);
+    pkt = WS.makePacket("ModDoc");
+    pkt.uuid = FG.curDoc.uuid;
+    pkt.name = FG.curDoc.name;
+    pkt.meta = meta;
+};

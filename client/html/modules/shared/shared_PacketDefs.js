@@ -2,6 +2,7 @@
 
 // WS is defined in server.js AND index.js
 WS.classes = {};            // list of all PacketBASE-extending classes below, added via WS.registerPacketClass()
+
 WS.__nextNewPacketID = 1;   // unique id for every packet created
 
 
@@ -23,7 +24,6 @@ WS.parsePacket = function(pair) {         // decode ["className", pktData{} into
     Object.assign(pkt, dict);               // copy all stream's dictEls onto packet
     return pkt;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,79 +54,87 @@ class PacketBASE {
 // before returning,  and MAY add 'value' (only if 'key' existed) on returning)
 
 WS.registerPacketClass(class Fault extends PacketBASE { // if error thrown, it's sent back as a Fault
-    msg;        // <-- "msg" indicating what the fault was
+constructor(){super();debugger;} //    msg;        // <-- "msg" indicating what the fault was
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetBackendInfo extends PacketBASE { // get any element from extra table
-//  version;    // B-->F current software version (since frontend ONLY loads FROM backend, version is always same!)
+    //  version;    // B-->F current software version (since frontend ONLY loads FROM backend, version is always same!)
 //  docVersion; // B-->F current highest docversion (that doesn't need a conversion)
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetExtra extends PacketBASE { // get any element from extra table
-//  key;        // B<-F "key" on the way in
+    constructor(){super();debugger;} //  key;        // B<-F "key" on the way in
 //  value;      // B->F "value" on the way back or undeclared if key not found
 });
 WS.registerPacketClass(class SetExtra extends PacketBASE { // get any element from extra table
-    key;        // --> key to set/change
-    val;        // --> "value" to set/change to
+    constructor(){super();debugger;} //    key;        // B<-F key to set/change
+//    val;        // B<-F "value" to set/change to
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.registerPacketClass(class Changed extends PacketBASE {    // Something changed  (serverSend only)
-    dict;   // dict containing {what:"something"} and any other data
+WS.registerPacketClass(class Changed extends PacketBASE {    // Something changed  (serverSend only) sent to all clients
+    constructor(){super();debugger;} //    dict;       // B->F dict containing {what:"something"} and any other data
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetDCHList extends PacketBASE { // get list of all available DocComponentHandlers
-    list;       // <--  ["DOC","BOX"] etc... 
+    //    list;       // B->F  ["DOC","BOX"] etc... 
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetDocTree extends PacketBASE { // get docTree table contents
-    list;       // <-- [{id,name,docId,listOrder,parent}[,{}...]] etc... 
+    //    list;       // B->F [{T.id,T.docUuid,T.listOrder,T.parent,T.bump,D.docName}[,{}...]] etc...  (T=table:docTree, D=table:doc)
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
- //   uuid;       // B<--F uuid of doc to get 
- //   data;       // B-->F {id,name,meta}
+//   uuid;       // B<-F uuid of doc to get 
+//   data;       // B->F {name,meta,bump}
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.registerPacketClass(class GetDchData extends PacketBASE {    // load a doc from the db via its uuid
-    //   list;    // F<--F list of id's of dchData recs to fetch
-    //   data;    // B-->F {id,name,content}
-   });
-   WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
-    dict;       // --> {uuid,version,name,listOrder,parent,doc}
+
+
+WS.registerPacketClass(class NewDch extends PacketBASE {    // adding a new dch to current doc
+    constructor(){super();debugger;} //   uuid        // B<-F uuid of doc this belongs to
+//   data        // B<-F data pulled from dch
+//   id          // B->F id of rec that was inserted
+});
+
+
+WS.registerPacketClass(class GetDch extends PacketBASE {    // load a doc from the db via its uuid
+//   id;      // B<--F id's of dch rec to fetch
+//   data;    // B-->F {id,name,content}
+});
+WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
+    constructor(){super();debugger;}     dict;       // --> {uuid,version,name,listOrder,parent,doc}
 // <-- returns with a GetDocTree packet instead of this one!
 });
-WS.registerPacketClass(class SaveDoc extends PacketBASE {    // save doc back into the database
-    dict;       // --> {uuid,version,doc}
-    uuid;       // -->  uuid of doc to get 
-                // <-- uuid of doc returned
-    doc;        // <-- doc-as-string (possibly uuencoded) OR RSTODO we wrap this in a toJSON and fromJSON
+WS.registerPacketClass(class ModDoc extends PacketBASE {    // save doc back into the database
+    constructor(){super();debugger;}
+    uuid;      // B<-F uuid of doc to mod
+    name;      // B<-F name of doc 
+    meta;      // B<-F meta of connected dch's
 });
 WS.registerPacketClass(class RenameDoc extends PacketBASE {  // Delete a document from the system
-    uuid;       // -->  uuid of doc to get 
+    constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 
     name;       // -->  new document name
 });
 WS.registerPacketClass(class DeleteDoc extends PacketBASE {   // Delete a document from the system
-    uuid;       // -->  uuid of doc to get 
+    constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class CreateDB extends PacketBASE {  // Delete a document from the system
-//  name;       // F->B string name of db to create
+    constructor(){super();debugger;} //  name;       // F->B string name of db to create
 //  error;      // B->F error string if bad name or null if succeeded
 });
 WS.registerPacketClass(class SelectDB extends PacketBASE {  // Delete a document from the system
-    text;       // --> string name of db to select
-                // <-- error string if missing or broke,  null if successful
+// name;        // B<-F string name of db to select
+// err;         // B->F ONLY IF err occurred 
 });
 WS.registerPacketClass(class DeleteDB extends PacketBASE {  // Delete /CURRENT/ DB from backend
-    text;       // --> nothing, empty, null
+    constructor(){super();debugger;}     text;       // --> nothing, empty, null
                 // <-- error string if db not empty, null if successful
 });
 WS.registerPacketClass(class GetDBList extends PacketBASE {  // Delete /CURRENT/ DB from backend
-    list;       // --> nothing, empty, null
-                // <-- array[] of database names (without .db extension)]
+//  list;       // B-->F array[] of database names (without .db extension)]
 });
 

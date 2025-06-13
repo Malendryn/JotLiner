@@ -23,35 +23,15 @@ async function iterCallback(db, rec) {
         let encoder = new DFEncoder();
         let tmp = encoder.encode(dch.data);         // encode only the plugin's data
         const list = [rec.id, dch.name, tmp, 0];
-        let id = await db.run("INSERT INTO dchData (docId,name,content,bump) values (?,?,?,?)", list);
+        let id = await db.run("INSERT INTO dch (docId,name,content,bump) values (?,?,?,?)", list);
 
         dch.style.Z=0;             // stick 'Z' into the style block
         let entry = {
-            // I: id,
-            S: dch.style,
+            S: dch.style,       // style taken from the OLD dch, for the NEW dcw
             C: dch.children,
         };
-        meta[id] = entry;
+        meta[id] = entry;  // { id:{S,C} }
     }
-// // now we have to convert the meta.C from a #-of-children to the actual recId's in the dch table
-// no we don't! Just leave it as #children following, that works for export() just fine, it works just fine here too!
-//     let idx = 0;
-//     let keys = Object.keys(meta);
-//     function iter() {
-//         const key = keys[idx];
-//         const dch = meta[key];
-//         let children = dch.C;          // change from the number captured above...
-//         dch.C = [];                    //...to a list of id's 
-//         while (children-- > 0) {        // and if there were any children...
-//             ++idx;
-//             dch.C.push(iter());        //...add them
-//         }
-//         return key;  // return 'parent of consumed children' (for children-of-children consuming)
-//     }
-//     while (idx < keys.length) {
-//         iter();
-//         ++idx;
-//     }
 
     await db.run("UPDATE doc set meta=? where id=?", [JSON.stringify(meta), rec.id]);
 
@@ -80,7 +60,7 @@ if (1) {
     await db.run("ALTER TABLE doc ADD COLUMN bump INTEGER NOT NULL DEFAULT 0;");
     
     const sql = 
-    "CREATE TABLE dchData"
+    "CREATE TABLE dch"
     + "( id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"  // id of entry in index table (used by parent)
     + ", docId      INTEGER NOT NULL"            // ref back to id in doc table
     + ", name       TEXT    NOT NULL"            // BOX, TXA, etc...
