@@ -1,26 +1,34 @@
 
 export class DFSortedList {
-    keys = [];
-    vals = [];
-    get length() { return this.keys.length; }
+    uids = [];  // unique integers that map to keys  (replaces 'idx' as an immutable value no longer relative to index)
+    keys = [];  // like the {key:val} part of a dict except not limited to strings
+    vals = [];  // like the {key:val} part of a dict
 
-    add(key, val) { // return idx of new insert, or -idx if replaced entry
-        let idx;
-        for (idx = 0; idx < this.keys.length; idx++) {
+    get length() { return this.keys.length; }
+   
+    add(key, val) { // return uid of new insert, or -uid if replaced entry
+        let idx = this.keys.length;
+        while (--idx >= 0) {
             if (this.keys[idx] === key) {
                 this.vals[idx] = val;
-                return -idx;
+                return -this.uids[idx];
             }
-            if (this.keys[idx] > key) {
+            if (this.keys[idx] < key) {
+                const uid = ++this._nextId;
+                idx += 1;  // bump idx forward one to insert after the found key
+                this.uids.splice(idx, 0, uid);
                 this.keys.splice(idx, 0, key);
                 this.vals.splice(idx, 0, val);
-                return idx;
+                return uid;
             }
         }
-        this.keys.push(key);
-        this.vals.push(val);
-        return idx;
+        const uid = ++this._nextId;
+        this.uids.unshift(uid);        // prepend if lowest key
+        this.keys.unshift(key);
+        this.vals.unshift(val);
+        return uid;
     }
+
     removeByKey(key) {   // return num remaining or -1
         for (let idx = 0; idx < this.keys.length; idx++) {
             if (this.keys[idx] === key) {
@@ -31,49 +39,56 @@ export class DFSortedList {
         }
         return -1;
     }
-    removeByIdx(idx) {  // return num remaining or -1
-        if (idx >= 0 && idx < this.keys.length) {
+    removeByUid(uid) {  // return num remaining or -1
+        let idx = this.uids.indexOf(uid);
+        if (idx >= 0) {
             this.keys.splice(idx, 1);
             this.vals.splice(idx, 1);
+            this.uids.splice(idx, 1);
             return this.keys.length;
         }
         return -1;
     }
-    getByIdx(idx) {     // return [key, val, idx] or null
-        if (idx >= 0 && idx < this.keys.length) {
-            return [this.keys[idx], this.vals[idx], idx];
+
+    getByUid(uid) {     // return [key, val, uid] or null
+        let idx = this.uids.indexOf(uid);
+        if (idx >= 0) {
+            return [this.keys[idx], this.vals[idx], this.uids[idx]];
         }
         return null;
     }
-    getByKey(key) {     // return [key, val, idx] or null
+    getByKey(key) {     // return [key, val, uid] or null
         const idx = this.keys.indexOf(key);
         if (idx === -1) {
             return null;
         }
-        return [this.keys[idx], this.vals[idx], idx];
+        return [this.keys[idx], this.vals[idx], this.uids[idx]];
     }
-    setByIdx(idx, nuVal) {   // return [key, val, idx] or null
-        if (idx >= 0 && idx < this.keys.length) {
-            this.vals[idx] = nuVal;
-            return [this.keys[idx], this.vals[idx], idx];
+
+    setByUid(uid, nuVal) {   // return updated [key, val, uid] or null
+        let idx = this.uids.indexOf(uid);
+        if (idx >= 0) {
+            return [this.keys[idx], this.vals[idx], this.uids[idx]];
         }
         return null;
     }
-    setByKey(key, nuVal) {   // return [key, val, idx] or null
+    setByKey(key, nuVal) {   // return [key, val, uid] or null
         const idx = this.keys.indexOf(key);
         if (idx === -1) {
             return null;
         }
         this.vals[idx] = nuVal;
-        return [this.keys[idx], this.vals[idx], idx];
+        return [this.keys[idx], this.vals[idx], this.uids[idx]];
     }
-// function testFn(what, entry) --compare what to entry(this.vals[idx]), return t/f if matched
-    find(what, testFn) {  // return [key, val, idx] based on testFn or null if not found, NOTE: ONLY finds FIRST match!
+
+    find(what, testFn) {    //   compare what to this.vals[...], return t/f if matched
+                            // return [key, val, uid] based on testFn or null if not found, NOTE--ONLY finds FIRST match!
         for (let idx = 0; idx < this.vals.length; idx++) {
             if (testFn(what, this.vals[idx])) {
-                return [this.keys[idx], this.vals[idx], idx];
+                return [this.keys[idx], this.vals[idx], this.uids[idx]];
             }
         }
         return null;
     }
+    _nextId = 0;
 }

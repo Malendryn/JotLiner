@@ -1,4 +1,6 @@
 
+// this filename ends in .mjs cuz the node backend uses it too
+
 class DFEncoder {
     list = [];
 
