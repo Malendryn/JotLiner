@@ -248,7 +248,7 @@ function onContextDCHLayout() {
         form.removeEventListener("input", onFormInput);
         form.removeEventListener("click", onFormClick);
         if (formChanged) {
-            debugger; FF.autoSave({modDoc:""}, 0);         // save immediately
+            debugger; FF.autoSave("modDoc", "", 0);         // save immediately
         }
         FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
         onStateChange({});          // just to bump an update so ghost clears
@@ -299,9 +299,12 @@ import { DFDialog }      from "/public/classes/DFDialog.js";
 
 const _dchContextMenu = new DFContextMenu();
 function openDCHContextMenu() {      // based on the dch the mouse is over when rightmouse was pressed...
-    let dcw = FG.kmStates.dcw;
+    let dcw;
+    // dcw = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dcw under cursor (even if it is the root!)
+    dcw = FG.kmStates.dcw;
 
     const entries = [];
+try {
     if (FF.getDchName(dcw._s_dch) == "BOX") {
         for (const key in DCH) {    // add all the addable dch's to the menuEntries
             const dchClass = DCH[key].dchClass;
@@ -310,6 +313,9 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
             }
         }
     }
+} catch (err) {
+    debugger;
+}
     entries.push({action:"", label:"", tip:""});
     entries.push({action:"export", label:"Export Element", tip:"Export node (and all children) under cursor to local file"});
 
@@ -334,7 +340,7 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
              const nuDcw = await DCW_BASE.create(dcw, style);  // create nuDcw, parentTo dcw, set style
             await nuDcw.attachDch(dchName);
             // dcw._s_children.push(nuDch);
-            debugger; FF.autoSave({newDch:nuDcw}, 0);  // save the new dch (through it's dcw) (and the doc) immediately
+            FF.autoSave("newDch", nuDcw, 0);  // save the new dch (through it's dcw) (and the doc) immediately
         }
         switch (action) {                                     // 'go do' whatever was clicked
             case "export":
@@ -357,7 +363,7 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
                 setKMStateMode(0);  // obliterate all ghosting and modeing 
                 const recId = dcw._s_dch.__recId;
                 await dcw.destroy();
-                debugger; FF.autoSave({delDch: recId});
+                debugger; FF.autoSave("delDch", recId);
                 break;
             case "setLayout":
                 onContextDCHLayout();
@@ -478,7 +484,7 @@ function setKBModeToolbarText(dcw) {
 }
 
 
-FF.getAllDcw = function() {
+FF.getAllDcw = function() {  // return a straight [] of all dcw's in this doc
     if (!FG.curDoc) {
         return [];
     }
@@ -568,10 +574,10 @@ function showGhosts(dcw) {
             FG.ghosts.divGhost = null;      // RSTODO can we eliminate this 'divGhost' entirely now that we use __divGhost ?
         }
         let dcwList = FF.getAllDcw();       // also delete all child ghosts everywhere
-        for (const tmp of dcwList) {
-            if (tmp.__divGhost) {
-                tmp.__divGhost.remove();
-                delete tmp.__divGhost;
+        for (const dcw of dcwList) {
+            if (dcw.__divGhost) {
+                dcw.__divGhost.remove();
+                delete dcw.__divGhost;
             }
         }
     }
@@ -721,7 +727,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             }
         }
 
-        debugger; FF.autoSave({modDoc: ""});          // autosave after n secs
+        debugger; FF.autoSave("modDoc", "");          // autosave after n secs
         setKBModeToolbarText(FG.kmStates.dcw);
     }
 }
@@ -768,7 +774,7 @@ function doDchOpMode2() { // only called when FG.kmStates.mode == 2  (mousemove 
             dcw._s_dch.zX += deltaX;
             dcw._s_dch.zY += deltaY;
             dcw.update();
-            debugger; FF.autoSave({modDoc: ""});          // autosave after n secs
+            debugger; FF.autoSave("modDoc", "");   // autosave after n secs
         }
     }
     setKBModeTitlebarText(dcw);

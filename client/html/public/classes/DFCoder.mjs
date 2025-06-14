@@ -139,7 +139,9 @@ class DFDecoder {
                 return dict;
             }
         }
-        throw new Error("unknown datatype '0x" + dType.charCodeAt(0).toString(16).padStart(2, '0') + "'");
+        const hex = "'0x" + dType.toString(16).padStart(2, '0') + "'";
+        const offs = this.idx + "(0x" + this.idx.toString(16).padStart(4, '0') + ")";
+        throw new Error("unknown datatype " + hex + " at offset " + offs);
     }
 
     _parseHeader() {

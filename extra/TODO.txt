@@ -1,18 +1,18 @@
 -----------------------------------------------------------------------------------------------------------------------
 
+
 /*
-put an autosave here that recognizes DCH
-and another? that recognizes DCW
 
-THINKABOUT:  now that we have dchData in a seperate table how to go about sending 'changed' packets and how to add/delete
-individual dchs from a doc and how to copy/paste etc etc...
+howto: 'Changed' rec:
 
-new 'Changed' packet formula:                         tablename
-   if idx changed we need to send pkt 'Changed' --> "docTree"  docTreeId
-   if doc changed we need to send pkt 'Changed' --> "doc",     docId
-   if dch changed we need to send pkt 'Changed' --> "dchData", docId,     dchId
-
-so we now have a new autoSave system but it dispatches everything to a single callback,  I think this is fine though
+scenario: if we add a new dch
+1) it inserts, returns recId, DOES NOT ISSUE Changed cuz no doc presently exists that would recognize it
+2) it immediately calls ModDoc with the new dcwList  (and passes the name too but that didnt get changed)
+now, we have to send a Changed:
+* we know it was a ModDoc packet that caused it
+* we know the uuid of the doc that changed
+* we dont actually KNOW whether the name or the dcwList changed...  (we COULD but that's extra work!)
+(well modDoc only mods the dcwList... RenameDoc renames it!)
 
 -----------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

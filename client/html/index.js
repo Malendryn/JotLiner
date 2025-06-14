@@ -60,7 +60,7 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_PacketHandlers.js");      // for packets sent from backend that are not expect/wait responses
     mod = await FF.loadModule("./modules/core/fem_core_DocAttacher.js");
     FG.DocAttacher = mod.DocAttacher;
-    mod = await FF.loadModule("./modules/core/fem_core_DocExtracter.js");   // extracts FG.curDoc into { uuid,name,dchList }
+    mod = await FF.loadModule("./modules/core/fem_core_DocExtracter.js");   // extracts FG.curDoc.s dcw entries as a DFDict
     FG.DocExtracter = mod.DocExtracter
 
     await FF.loadModule("./public/classes/DFStyleTracker.js");      // for packets sent from backend that are not expect/wait responses

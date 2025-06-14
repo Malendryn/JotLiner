@@ -1,36 +1,41 @@
 
 /* extract the contents of a living dch AND its children into a dict as:
-dict = {
-    id: {    id of rec in table:dch
-        S:   dcw.style as {L:0,W:0,R:0,T:0,B:0,H:0},
-        C:   dcw.childCount
-    }, ...
-}
+dict = [
+    [
+        dch.recId,
+       {  
+           S:   dcw.style as {L:0,W:0,R:0,T:0,B:0,H:0},
+           C:   dcw.childCount
+        }
+    ], ...
+]
 */
+
+import { DFDict } from "/public/classes/DFDict.mjs";
+
 export class DocExtracter {
-    meta;
-    dchList;
-    async extract(dcw) {        // returns the meta of a doc {dchId.toString():{S,C},...}
-        debugger; this.meta = {};
-        await this. _extract(dcw);  // turn the dch into a stream
-        return this.dchList;
+    dcwDict;
+    extract(dcw) {        // returns the dcwList of a doc [[__recId, {S,C}],...] as a DFDict
+        this.dcwDict = new DFDict();
+        this. _extract(dcw);  // turn the dch into a stream
+        return this.dcwDict;
     }
 
-    async _extract(dcw) {
-        debugger; const dch = dcw._s_dch;
+    _extract(dcw) { // no async/await as no longer reaching into uncharted territory(into the dch itself)
         let style = {};
-        if (dch._s_sysDiv.style.left   != '') { style.L = parseInt(dch._s_sysDiv.style.left);   }
-        if (dch._s_sysDiv.style.right  != '') { style.R = parseInt(dch._s_sysDiv.style.right);  }
-        if (dch._s_sysDiv.style.width  != '') { style.W = parseInt(dch._s_sysDiv.style.width);  }
-        if (dch._s_sysDiv.style.top    != '') { style.T = parseInt(dch._s_sysDiv.style.top);    }
-        if (dch._s_sysDiv.style.bottom != '') { style.B = parseInt(dch._s_sysDiv.style.bottom); }
-        if (dch._s_sysDiv.style.height != '') { style.H = parseInt(dch._s_sysDiv.style.height); }
-        for (let idx = 0; idx < dch._s_children; idx++) {
-            await this._extract(dch._s_children[idx]);
-        }
-        this.meta[dch.__recId] = {
+        if (dcw._s_sysDiv.style.left   != '') { style.L = parseInt(dcw._s_sysDiv.style.left);   }
+        if (dcw._s_sysDiv.style.right  != '') { style.R = parseInt(dcw._s_sysDiv.style.right);  }
+        if (dcw._s_sysDiv.style.width  != '') { style.W = parseInt(dcw._s_sysDiv.style.width);  }
+        if (dcw._s_sysDiv.style.top    != '') { style.T = parseInt(dcw._s_sysDiv.style.top);    }
+        if (dcw._s_sysDiv.style.bottom != '') { style.B = parseInt(dcw._s_sysDiv.style.bottom); }
+        if (dcw._s_sysDiv.style.height != '') { style.H = parseInt(dcw._s_sysDiv.style.height); }
+        const data = {
             S: style, 
-            C: dcw._s_children
+            C: dcw._s_children.length
         };
+        this.dcwDict.append(dcw._s_dch.__recId, data);              // must happen before walking children
+        for (let idx = 0; idx < dcw._s_children.length; idx++) {
+            this._extract(dcw._s_children[idx]);
+        }
     }
 };

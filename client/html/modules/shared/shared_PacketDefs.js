@@ -72,7 +72,9 @@ WS.registerPacketClass(class SetExtra extends PacketBASE { // get any element fr
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class Changed extends PacketBASE {    // Something changed  (serverSend only) sent to all clients
-    constructor(){super();debugger;} //    dict;       // B->F dict containing {what:"something"} and any other data
+// action;     // B->F  PacketName of packet that caused change (ModDoc,NewDch,DelDB,etc..)
+// id;         // B->F  ID of relevant rec in db
+// bump        // B->F  bumpVal of relevant rec
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,31 +89,32 @@ WS.registerPacketClass(class GetDocTree extends PacketBASE { // get docTree tabl
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
 //   uuid;       // B<-F uuid of doc to get 
-//   data;       // B->F {name,meta,bump}
+//   rec;        // B->F {name,dcwList,bump}
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 WS.registerPacketClass(class NewDch extends PacketBASE {    // adding a new dch to current doc
-    constructor(){super();debugger;} //   uuid        // B<-F uuid of doc this belongs to
-//   data        // B<-F data pulled from dch
+//   uuid        // B<-F uuid of doc this belongs to
+//   rec         // B<-F {name:"BOX", content:Uint8Array}
 //   id          // B->F id of rec that was inserted
+//   bump        // B->F bump# of newly inserted dch
 });
 
 
 WS.registerPacketClass(class GetDch extends PacketBASE {    // load a doc from the db via its uuid
 //   id;      // B<--F id's of dch rec to fetch
-//   data;    // B-->F {id,name,content}
+//   rec;    // B-->F {id:recId, name:"BOX", content:Uint8Array}
 });
 WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
     constructor(){super();debugger;}     dict;       // --> {uuid,version,name,listOrder,parent,doc}
 // <-- returns with a GetDocTree packet instead of this one!
 });
 WS.registerPacketClass(class ModDoc extends PacketBASE {    // save doc back into the database
-    constructor(){super();debugger;}
-    uuid;      // B<-F uuid of doc to mod
-    name;      // B<-F name of doc 
-    meta;      // B<-F meta of connected dch's
+//    uuid;      // B<-F uuid of doc to mod
+//    name;      // B<-F name of doc 
+//    dcwList;   // B<-F dcwList of connected dcw/dch's
+//    bump:      // B->F bump# of modded doc
 });
 WS.registerPacketClass(class RenameDoc extends PacketBASE {  // Delete a document from the system
     constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 

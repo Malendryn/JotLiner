@@ -1,16 +1,16 @@
 
-// this file loads sqlite3 and opens the db, creating it as well if needed
+// this file loads better-sqlite3 and opens the db, creating it as well if needed
 
 import path from "path";
-import sqlite3 from "sqlite3";
-import fs from "fs"; //'node:fs/promises'; <-- this works too
-
+import Database from "better-sqlite3";
+// import fs from "fs"; //'node:fs/promises'; <-- this works too
 
 class DBHandler {
     db = null;
-    lastAccessed;
+    lastAccessed = 0;
     timeoutId = 0;
     dbName;
+
     //        async open(dbPath)              // create[if necessary], and open dbPath
     //              close()
     // stmt = async run(sql, params=[])       // returns Statement object, use stmt.lastID to get id of any newly inserted recs
@@ -18,38 +18,30 @@ class DBHandler {
     // bool = async tableExists(tableName)    // return true/false
     //        async updateDb(array[])         // update DB by running a series of CREATE/UPDATE sql stmts
 
-
-    open = async (dbName) => {
+    open(dbName) {
         this.dbName = dbName;
-        return new Promise((resolve, reject) => {
-            let dbPath = path.join(BG.serverPath, "db", this.dbName);
-            this.db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
-                if (err) {
-                    reject(err);
-                    return;
-                } else {
-                    this.db.configure('busyTimeout', 5000);  // wait up to 5 seconds before throwing SQLITE_BUSY
-                    this.lastAccessed = Date.now();
+        const dbPath = path.join(BG.serverPath, "db", this.dbName);
+        this.db = new Database(dbPath, { fileMustExist: false });
+        this.db.pragma("journal_mode = WAL");
+        this.db.pragma("busy_timeout = 5000");
+        this.lastAccessed = Date.now();
 
-                    // const timeout = 15 * 60 * 1000;     // 15 minutes
-                    // this.timeoutId = setInterval(() => {
-                    //     const now = Date.now();
-                    //     if (now - this.lastAccessed > timeout) {
-                    //         console.log("Reopening DB '" + this.dbName + "' due to inactivity...");
-                    //         this.close();
-                    //         this.open(this.dbName);     // reopen same db as was opened to begin with
-                    //     }
-                    // }, 60 * 1000); // check every minute
-                      
-                    resolve();
-                    return;
-                }
-            });
-        });
+        // Optional: timeout logic for closing and reopening DB on inactivity
+        /*
+        const timeout = 15 * 60 * 1000; // 15 minutes
+        this.timeoutId = setInterval(() => {
+        const now = Date.now();
+        if (now - this.lastAccessed > timeout) {
+            console.log(`Reopening DB '${this.dbName}' due to inactivity...`);
+            this.close();
+            this.open(this.dbName);
+        }
+        }, 60 * 1000);
+        */
     }
 
 
-    close = () => {
+    close() {
         if (this.db) {
             if (this.timeoutId) {
                 clearInterval(this.timeoutId);
@@ -60,104 +52,47 @@ class DBHandler {
     }
 
 
-    run = async (sql, params = []) => {
+    run(sql, params = []) {                  // for INSERT, UPDATE or DELETE that has no RETURNING
         this.lastAccessed = Date.now();
-    
-        return new Promise((resolve, reject) => {
-            this.db.serialize(() => {
-                const stmt = this.db.prepare(sql, (err) => {
-                    if (err) {
-                        reject(err.message);
-                        return;
-                    }
-    
-                    stmt.run(...params, function (err) {
-                        if (err) {
-                            reject(err.message);
-                            return;
-                        }
-    
-                        const lastId = this.lastID;
-    
-                        stmt.finalize((err) => {
-                            if (err) {
-                                reject(err.message);
-                                return;
-                            }
-                            resolve(lastId);
-                        });
-                    });
-                });
-            });
-        });
+        const stmt = this.db.prepare(sql);
+        const info = stmt.run(...params);
+        return info.lastInsertRowid || info.changes; // return insertedID if INSERT(autoinc) or rowcount of changes
     }
 
 
-    query = async (sql, params = []) => {
-        return new Promise((resolve, reject) => {
-            this.lastAccessed = Date.now();
-            this.db.serialize(() => {
-                this.db.all(sql, params, (err, rows) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    resolve(rows);
-                    return;
-                });
-            });
-        });
+    get(sql, params = []) {                   // for UPDATE that has RETURNING (or any query expecting a single-row response)
+        this.lastAccessed = Date.now();
+        const stmt = this.db.prepare(sql);
+        return stmt.get(...params);
     }
 
 
-    tableExists = async (tableName) => {
-        const rows = await this.query("SELECT tbl_name FROM sqlite_master WHERE type='table' AND tbl_name=?;", [tableName]);
-        return rows.length > 0;
+    query(sql, params = []) {
+        this.lastAccessed = Date.now();
+        const stmt = this.db.prepare(sql);
+        return stmt.all(...params);
     }
 
-    iter = async (sql, callback, params = []) => {
-        return new Promise((resolve, reject) => {
-            this.lastAccessed = Date.now();
-    
-            const stmt = this.db.prepare(sql, params, (err) => {
-                if (err) {
-                    return reject(err);
-                }
-    
-                const next = () => {
-                    stmt.get(async (err, row) => {
-                        this.lastAccessed = Date.now();
-                        if (err) {
-                            stmt.finalize(() => reject(err));
-                            return;
-                        }
-    
-                        if (!row) {
-                            stmt.finalize((err) => {
-                                if (err) {
-                                    reject(err);
-                                } else {
-                                    resolve();
-                                }
-                            });
-                            return;
-                        }
-    
-                        const cont = await callback(this, row);
-                        if (!cont) {
-                            return resolve();
-                        }
-                        next();
-                    });
-                };
-                next();
-            });
-        });
-    };
 
-    constructor() {
+    tableExists(tableName) {
+        const row = this.get("SELECT 1 FROM sqlite_master WHERE type='table' AND tbl_name=?;", [tableName]);
+        return !!row;
     }
-};
+
+
+    iter(sql, callback, params = []) {
+        this.lastAccessed = Date.now();
+        const stmt = this.db.prepare(sql);
+        const iterator = stmt.iterate(...params);
+
+        for (const row of iterator) {
+            const cont = callback(this, row);
+            if (cont === false) {
+                break;
+            }
+        }
+    }
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

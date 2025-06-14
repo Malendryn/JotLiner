@@ -38,8 +38,9 @@ class DCH_BASE {   // base class of all document components
     async loadStyle(str, which) str= "<style></style>", "./path/x.css" or "https://site/x.css" and places it at 'which'
                                 which= a dict {toolbar:true,host:false} where either missing assumes false
 
-    autoSave(delay)   when any changes made to dch content, call this to save to backend. autocalled when destroy()'d
-                      delay=millis, [optional, defaults to 1000 (1 sec)], call with (0) for instant save
+          autoSave([delay])   when any changes made to dch content, call this to save to backend.
+                              delay=millis, [optional, defaults to 1000 (1 sec)], call with (0) for instant save
+    async flushAll()          process all waiting autoSaves immediately (autocalled on destroy)
 
 // listener add/remove functions --------------------------------------------------------------------------------------
     id = this.tracker.add(el, type, cb, opts = false)     aka el.addEventListener(type, cb, opts) ... returns id
@@ -101,12 +102,16 @@ class DCH_BASE {   // base class of all document components
     translateChildren(x,y) { this.#owner._c_translateChildren(x,y); }     // special just for BOX
     async loadStyle(str, which={}) {  await this.#owner.loadStyle(str, which); }
 
-    autosave(delay = null) {
-        debugger; FF.autoSave({modDch:this}, delay);
+    autosave(delay = 1000) {
+        debugger; FF.autoSave("modDch", this, delay);
+    }
+    async flushAll() {
+        debugger; await FF.flushAll();
     }
 
     #owner;       // DCW_BASE that owns us
     __recId = 0;  // database record id
+    __bump  = 0;  // database rec bumpVal (for update comparisons)
 };
 export { DCH_BASE };
 

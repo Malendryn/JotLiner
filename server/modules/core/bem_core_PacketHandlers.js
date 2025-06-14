@@ -18,24 +18,24 @@ WS.classes.GetBackendInfo.prototype.process = async function(client) {
     return this;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes.GetExtra.prototype.process = async function(client) {
-    debugger; logPkt("GetExtra");
-    this.txt = null;
-    if (!client.db) { return WS.fault("Database not selected"); }
-    let tmp = await client.db.query("SELECT value FROM extra WHERE key=?", [this.key]);
-    delete this.key;
+// WS.classes.GetExtra.prototype.process = async function(client) {
+//     debugger; logPkt("GetExtra");
+//     this.txt = null;
+//     if (!client.db) { return WS.fault("Database not selected"); }
+//     let tmp = await client.db.query("SELECT value FROM extra WHERE key=?", [this.key]);
+//     delete this.key;
 
-    if (tmp.length == 1) {
-        this.val = tmp[0].value;
-    }
-    return this;
-}
-WS.classes.SetExtra.prototype.process = async function(client) {
-    debugger; logPkt("SetExtra");
-    if (!client.db) { return WS.fault("Database not selected"); }
-    let tmp = await client.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
-    return null;
-}
+//     if (tmp.length == 1) {
+//         this.val = tmp[0].value;
+//     }
+//     return this;
+// }
+// WS.classes.SetExtra.prototype.process = async function(client) {
+//     debugger; logPkt("SetExtra");
+//     if (!client.db) { return WS.fault("Database not selected"); }
+//     let tmp = await client.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
+//     return null;
+// }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,10 +77,10 @@ WS.classes.GetDocTree.prototype.process = async function(client) {
 WS.classes.GetDoc.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
     logPkt("GetDoc");
     if (!client.db) { return WS.fault("Database not selected"); }
-    const tmp = await client.db.query("SELECT name,meta,bump FROM doc WHERE uuid=?", [this.uuid]);
+    const tmp = await client.db.query("SELECT name,dcwList,bump FROM doc WHERE uuid=?", [this.uuid]);
     delete this.uuid;
     if (tmp.length > 0) {
-        this.data = tmp[0];
+        this.rec = tmp[0];
     }
     return this;        // this is now sendWaited
 }
@@ -88,7 +88,7 @@ WS.classes.GetDch.prototype.process = async function(client) { // must use 'func
     logPkt("GetDch");
     const recs = await client.db.query("SELECT name,content FROM dch WHERE id = ?", [this.id]);
     delete this.id;
-    this.data = recs[0];
+    this.rec = recs[0];
     return this;
 }
 
@@ -122,89 +122,95 @@ WS.classes.GetDch.prototype.process = async function(client) { // must use 'func
 //         await client.db.run("ROLLBACK TRANSACTION");
 //         return new WS.classes["Fault"](err.message);
 //     }
-//     WS.onChanged(client.ws, {what:"docTree"});
+//     WS.onChanged(this, id:x x, bump:bump});
 //     this.dict = {}; // empty packetdata for faster returnPkt
 //     return this;    // send self back cus client called using .sendWait() (and we added docId and docTreeId to the class on return)
 // };
 WS.classes.ModDoc.prototype.process = async function(client) {    // this.dict={uuid, doc(u8a)}
-    debugger; logPkt("ModDoc");
+    logPkt("ModDoc");
+    let rec;
     if (!client.db) { return WS.fault("Database not selected"); }
     try {
         await client.db.run("BEGIN TRANSACTION");
-        let list = [BG.DOCVERSION, this.dict.doc, this.dict.uuid];
-        await client.db.run("UPDATE doc SET version=?,content=? WHERE uuid=?", [list]);               // insert the doc
+        let list = [this.dcwList, this.uuid];
+        rec = await client.db.get("UPDATE doc SET dcwList=?,bump=bump+1 WHERE uuid=? RETURNING bump", [list]);  // insert the doc
         await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
         await client.db.run("ROLLBACK TRANSACTION");
         return new WS.classes["Fault"](err.message);
     }
-    WS.onChanged(client.ws, {what:"doc", uuid:this.dict.uuid});
-    this.dict = {}; // empty packetdata for faster returnPkt
+    WS.onChanged(this, this.uuid, rec.bump);
+    delete this.name;
+    delete this.dcwList;
+    delete this.uuid;
+    this.bump = rec.bump;
     return this;    // send self back cus client called using .sendExpect()
 };
-WS.classes.RenameDoc.prototype.process = async function(client) {    // rename a document
-    debugger; logPkt("RenameDoc");
-    if (!client.db) { return WS.fault("Database not selected"); }
-    await client.db.run("BEGIN TRANSACTION");
-    await client.db.run("UPDATE doc SET name=?,bump=bump+1 WHERE uuid=?", [this.name, this.uuid]);
-    await client.db.run("COMMIT TRANSACTION");
+// WS.classes.RenameDoc.prototype.process = async function(client) {    // rename a document
+//     debugger; logPkt("RenameDoc");
+//     let rec;
+//     if (!client.db) { return WS.fault("Database not selected"); }
+//     await client.db.run("BEGIN TRANSACTION");
+//     rec = await client.db.get("UPDATE doc SET name=?,bump=bump+1 WHERE uuid=? RETURNING bump", [this.name, this.uuid]);
+//     await client.db.run("COMMIT TRANSACTION");
 
-    debugger;/*TEST*/ // docTree did NOT change, doc.name did
-    WS.onChanged(client.ws, {what: "ModDoc", id: this.uuid, });      // tell the world that something about the doc changed!
-    delete this.uuid;
-    delete this.name;
-    return this;                            // send self back cuz client used .sendWait()
-}
-WS.classes.DeleteDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
-    debugger; logPkt("DeleteDoc");
-    if (!client.db) { return WS.fault("Database not selected"); }
-    try {
-        await client.db.run("BEGIN TRANSACTION");
+//     debugger;/*TEST*/ // docTree did NOT change, doc.name did
+//     WS.onChanged(this, this.uuid, rec.bump);      // tell the world that something about the doc changed!
+//     delete this.uuid;
+//     delete this.name;
+//     return this;                            // send self back cuz client used .sendWait()
+// }
+// WS.classes.DeleteDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
+//     debugger; logPkt("DeleteDoc");
+//     if (!client.db) { return WS.fault("Database not selected"); }
+//     try {
+//         await client.db.run("BEGIN TRANSACTION");
 
-        async function deleteRec(rootId) {
-            let recs = await client.db.query("SELECT id from docTree where parent=?", [rootId]);  // get all children whos parent is recToDelete
-            for (let idx = 0; idx < recs.length; idx++) {                                         // recursively delete them and their children
-                await deleteRec(recs[idx].id);
-            }
-            recs = await client.db.query("SELECT listOrder,parent,uuid from docTree where id=?", [rootId]); // get info about rec to delete
-            let rec = recs[0];
-            await client.db.run("DELETE FROM doc WHERE uuid=?", [rec.uuid]);  // delete entry from doc table
-            await client.db.run("DELETE FROM docTree WHERE id=?", [rootId]);  // delete entry from docTree table
-            await client.db.run("UPDATE docTree SET listOrder = listOrder - 1"
-                              + " WHERE parent = ? and listOrder > ?", [rec.parent, rec.listOrder]);  // decrement listOrders to close the gap
-        }
-        let rootId = await client.db.query("SELECT id from docTree where uuid=?", [this.uuid]);     // get id of rec who's uuid=
-        rootId = rootId[0].id;
-        await deleteRec(rootId);
+//         async function deleteRec(rootId) {
+//             let recs = await client.db.query("SELECT id from docTree where parent=?", [rootId]);  // get all children whos parent is recToDelete
+//             for (let idx = 0; idx < recs.length; idx++) {                                         // recursively delete them and their children
+//                 await deleteRec(recs[idx].id);
+//             }
+//             recs = await client.db.query("SELECT listOrder,parent,uuid from docTree where id=?", [rootId]); // get info about rec to delete
+//             let rec = recs[0];
+//             await client.db.run("DELETE FROM doc WHERE uuid=?", [rec.uuid]);  // delete entry from doc table
+//             await client.db.run("DELETE FROM docTree WHERE id=?", [rootId]);  // delete entry from docTree table
+//             await client.db.run("UPDATE docTree SET listOrder = listOrder - 1"
+//                               + " WHERE parent = ? and listOrder > ?", [rec.parent, rec.listOrder]);  // decrement listOrders to close the gap
+//         }
+//         let rootId = await client.db.query("SELECT id from docTree where uuid=?", [this.uuid]);     // get id of rec who's uuid=
+//         rootId = rootId[0].id;
+//         await deleteRec(rootId);
 
-        await client.db.run("COMMIT TRANSACTION");
-    } catch (err) {
-        await client.db.run("ROLLBACK TRANSACTION");
-        return new WS.classes["Fault"](err.message);
-    }
-    WS.onChanged(client.ws, {what:"docTree"});      // tell the world that the docTree changed!
-    this.uuid = ""; // empty packetdata for faster returnPkt
-    return this;    // send self back cus client called using .sendWait()
-};
+//         await client.db.run("COMMIT TRANSACTION");
+//     } catch (err) {
+//         await client.db.run("ROLLBACK TRANSACTION");
+//         return new WS.classes["Fault"](err.message);
+//     }
+//     debugger; WS.onChanged(this, this.uuid, 0);      // tell the world that the docTree changed!
+//     this.uuid = ""; // empty packetdata for faster returnPkt
+//     return this;    // send self back cus client called using .sendWait()
+// };
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.classes.NewDch.prototype.process = async function(client) {  // add new dch to db (but don't attach to doc!!!)
                                                                 // a 2nd call ModDoc will follow immediately to do that
-    debugger; let recs = await client.db.query("UPDATE doc SET bump=bump+1 WHERE uuid=? RETURNING id,bump", this.uuid);
-    const doc = recs[0];
+    await client.db.run("BEGIN TRANSACTION");
+    let rec = await client.db.get("UPDATE doc SET bump=bump+1 WHERE uuid=? RETURNING id,bump", [this.uuid]);
     const list = [
-        doc.id,
+        rec.id,
         this.name,
         this.content,
-        doc.bump
+        rec.bump
     ];
-    await client.db.run("BEGIN TRANSACTION");
-    let id = await client.db.run("INSERT INTO dch (docId,name,content,bump} VALUES (?,?,?,?)", list);
+    let id = await client.db.run("INSERT INTO dch (docId,name,content,bump) VALUES (?,?,?,?)", list);
     await client.db.run("COMMIT TRANSACTION");
     delete this.uuid;
     delete this.name;
     delete this.content;
     this.id = id;
+    this.bump = rec.bump;
+// DO NOT send onChanged here as a ModDoc pkt will immediately follow, and clients wouldn't recognize THIS until THAT
     return this;
 }
 
@@ -215,28 +221,28 @@ WS.classes.GetDBList.prototype.process = async function(client) {    // delete /
     this.list = await BF.getDBList();
     return this;
 };
-WS.classes.CreateDB.prototype.process = async function(client) {    // create new db, return null=good, text=errormsg
-    debugger; logPkt("CreateDB");
-    const err = BF.checkDBName(this.name);    // test filename for validity
-    delete this.name;
-    if (err) {                            // return it if bad
-        this.error = err;
-        return this;
-    }
+// WS.classes.CreateDB.prototype.process = async function(client) {    // create new db, return null=good, text=errormsg
+//     debugger; logPkt("CreateDB");
+//     const err = BF.checkDBName(this.name);    // test filename for validity
+//     delete this.name;
+//     if (err) {                            // return it if bad
+//         this.error = err;
+//         return this;
+//     }
 
-    let list = await BF.getDBList();                // check if already exists! 
-    if (list.includes(this.text)) {
-        this.error = "Database '" + this.text + "' already exists";
-        return this;
-    }
+//     let list = await BF.getDBList();                // check if already exists! 
+//     if (list.includes(this.text)) {
+//         this.error = "Database '" + this.text + "' already exists";
+//         return this;
+//     }
 
 
-    await BF.detachDB(client);              // detach any currently open db on this client
-    await BF.attachDB(this.text, client);
+//     await BF.detachDB(client);              // detach any currently open db on this client
+//     await BF.attachDB(this.text, client);
 
-    WS.onChanged(client.ws, {what:"dbList"});      // tell the world that the dbList changed!
-    return this;
-};
+//     WS.onChanged(this, 0, 0);      // tell the world that the dbList changed!
+//     return this;
+// };
 WS.classes.SelectDB.prototype.process = async function(client) {    // make other db current, return null=good, text=errormsg
     logPkt("SelectDB");
     let name = this.name;
@@ -258,36 +264,36 @@ WS.classes.SelectDB.prototype.process = async function(client) {    // make othe
 
     return this;
 };
-WS.classes.DeleteDB.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
-    debugger; logPkt("DeleteDB");
-    if (!client.db) { return WS.fault("Database not selected"); }
-    const err = BF.checkDBName(this.text);    // test filename for validity
-    if (err) {                            // return it if bad
-        this.text = err;
-        return this;
-    }
+// WS.classes.DeleteDB.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
+//     debugger; logPkt("DeleteDB");
+//     if (!client.db) { return WS.fault("Database not selected"); }
+//     const err = BF.checkDBName(this.text);    // test filename for validity
+//     if (err) {                            // return it if bad
+//         this.text = err;
+//         return this;
+//     }
 
-// validate db is empty here, THEN...
+// // validate db is empty here, THEN...
 
-    debugger; if (BF.openedDBs[client.dbName].clients > 1) {
-        this.text = "Cannot delete DB while other clients are using it";
-        return this;
-    }
-    await BF.detachDB(client);      // close the db off the client so we can delete it
+//     debugger; if (BF.openedDBs[client.dbName].clients > 1) {
+//         this.text = "Cannot delete DB while other clients are using it";
+//         return this;
+//     }
+//     await BF.detachDB(client);      // close the db off the client so we can delete it
 
-    client.db = null;
+//     client.db = null;
     
-debugger; try {
-        await client.db.run("BEGIN TRANSACTION");
-//...
-        await client.db.run("COMMIT TRANSACTION");
-    } catch (err) {
-        await client.db.run("ROLLBACK TRANSACTION");
-        return new WS.classes["Fault"](err.message);
-    }
+// debugger; try {
+//         await client.db.run("BEGIN TRANSACTION");
+// //...
+//         await client.db.run("COMMIT TRANSACTION");
+//     } catch (err) {
+//         await client.db.run("ROLLBACK TRANSACTION");
+//         return new WS.classes["Fault"](err.message);
+//     }
 
-    WS.onChanged(client.ws, {what:"dbList"});      // tell the world that the dbList changed!
+//     WS.onChanged(this, this.text, 0);      // tell the world that the dbList changed!
 
-    this.text = null;
-    return this;
-}
+//     this.text = null;
+//     return this;
+// }

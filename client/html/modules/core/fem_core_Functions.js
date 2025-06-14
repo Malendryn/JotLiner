@@ -22,8 +22,8 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 {...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
---------       autoSave(delay=5000)     uses a reTimer() to autoSave FG.curDoc after (delay) millisecs has passed
--------- async waitDirty()              spin-wait up to 15 secs while (FG.curdoc && FG.curDoc.dirty)
+--------       autoSave("action", data, delay=1000)    uses a DFTimedQueue() to save docs, dchs, new/deldbs and docTrees
+-------- async flushAll()               spin-wait untill all queued autosaves are instaProcessed
 
 
 ==== FROM fem_core_WSockHandler.js ====================================================================================
@@ -59,22 +59,12 @@ import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 import { DFTimedQueue } from "/public/classes/DFTimedQueue.js"
 
 
-FF.shutdown = async (event) => {            // webpage closing/changing, do final terminations/cleanups
-    if (FG.curDoc && FG.curDoc.dirty) {     // if something's still dirty
-        debugger; FF.autoSave({}, 0);       // force immediate saving
-        FF.waitDirty();                     // and wait for it to complete
+FF.shutdown = async (event) => {          // webpage closing/changing, do final terminations/cleanups
+    if (FG.curDoc) {
+        debugger; await FF.flushAll();    // process any pending actions
     }
-
-// obsolete, with waitDirty() we don't need to pop any dialogs any more
-	// if (true) {		// to ask before exiting do this:   (THIS IS NOT STOPPING ME FROM LEAVING THE PAGE,  howto prevent?)
-	// 	event.preventDefault();
-	// 	const confirmationMessage = 'Are you sure you want to leave?';
-	// 	event.returnValue = confirmationMessage;	
-	// 	return confirmationMessage;
-	// } else {		// or to leave with no confirmation do this:
-	// 	return;
-	// }
 }
+
 window.addEventListener("beforeunload", FF.shutdown);
 
 
@@ -110,13 +100,10 @@ FF.setToolbarHeight = (px) => {
 FF.clearDoc = async() => {
     WS.clearExpectByName("GetDoc");       // remove any pending GetDoc waitfors
     if (FG.curDoc) {
-        WS.clearBatchExpect("GetDchData", FG.curDoc.uuid); // remove any pending GetDchData batch waitfors  
+        // WS.clearBatchExpect("GetDchData", FG.curDoc.uuid); // remove any pending GetDchData batch waitfors  
     
-        if (FG.curDoc.dirty) {
-            debugger; FF.autoSave(0);
-            await FF.waitDirty();       // wait until doc save is clean
-            console.log("beep");
-        }
+        await FF.flushAll();          // wait until doc save is clean
+
         await FG.curDoc.rootDcw.destroy();	// detach all listeners and remove entire document tree
         FG.curDoc = null;
     }
@@ -274,32 +261,14 @@ function _cmpTQEntry(op1, op2) {
     debugger;
 }
 
-async function _dispatchTQEntry(op) {        // process DFTimedQueue entry  (op={action: data})
-    WS[op.action](op.data); // since 100% of dispatches are due to talking to backend lets just put it all on the WebSock/PacketHandler
+async function _dispatchTQEntry(op) {  // process DFTimedQueue entry  (op={action: data})
+    const [action,data] = op;
+    await WS.dispatch[action](data);   // since 100% of dispatches are due to talking to backend lets just put it all on the WebSock/PacketHandler
 };
 
 const _tq = new DFTimedQueue(_cmpTQEntry, _dispatchTQEntry);
-FF.autoSave   = _tq.autoSave;   // FF.autoSave(val, delay=1000)
-FF.flushAll   = _tq.flushAll;   // FF.flushAll()
-FF.awaitQueue = _tq.awaitQueue; // async FF.awaitQueue()
-
-
-FF.waitDirty = async function() {   // we may have to obsolete this func if we cant figure out how to handle it
-    debugger; // REPLACED BY FF.awaitQueue
-    // let tm, end = Date.now() + 15000;   // set end 15secs into the future
-    // return new Promise(async (resolve, reject) => {
-    //     function waitOnDirty() {
-    //         if (FG.curDoc && FG.curDoc.dirty && Date.now() < end) { // if doc and dirty and notyet15secs...
-    //             tm(10);                     // spin very fast to not delay 'user experience'
-    //         } else {
-    //             resolve();
-    //             return;
-    //         }
-    //     }
-    //     tm = FF.reTimer(waitOnDirty);
-    //     tm(10);                             // start the dirtychecker
-    // });
-};
+FF.autoSave   = _tq.autoSave;   // ----- FF.autoSave(action, val, delay=1000)
+FF.flushAll   = _tq.flushAll;   // async FF.flushAll()    // process all autoSave immediately, wait til all are done
 
 
 FF.showLS = function() {

@@ -17,7 +17,7 @@ FG.docTree       = [];       // [{id,uuid,name,listOrder,parent,li}[,...]] order
                                 // note that li is not from the db but is added during showDocTree()
 
 FG.curDbName     = "";       // "" or currently selected DB name  ("" cuz localStorage only stores strings)
-FG.curDoc        = null;     // "" or dict{ uuid, name, rootDcw, dirty }
+FG.curDoc        = null;     // "" or dict{ uuid, name, rootDcw }
 
 FG.DocAttacher   = null;     // CLASS to import a stringstream into a doc (see fem_core_DocAttacher.js)
 FG.DocExtracter   = null;    // CLASS to extract current loaded doc for saving/exporting  (see fem_core_DocExtracter.js)

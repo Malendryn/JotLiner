@@ -16,7 +16,7 @@
 // -------- async detachDB(client)         decrement usercount, close&remove from BG.openedDBs accordingly
 
 // ==== FROM bem_core_WSockHandler.js ====================================================================================
-// --------       onChanged(table,uuid)    whenever any action changes a table, this function must get called
+// --------       onChanged(this, id, bump) call this when tabledata changed
 
 
 import path from 'path';

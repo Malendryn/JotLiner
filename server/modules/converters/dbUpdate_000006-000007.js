@@ -12,13 +12,20 @@ once this is proven, 5) THEN remove doc.content column and this will no longer b
 */
 
 import { DFEncoder, DFDecoder } from "../../../client/html/public/classes/DFCoder.mjs";
-
+import { DFDict } from "../../../client/html/public/classes/DFDict.mjs";
 
 async function iterCallback(db, rec) {
     let decoder = new DFDecoder(rec.content);
-    let docContent = decoder.decode();
+    let docContent;
+    try {
+        docContent = decoder.decode();
+    }
+    catch(err) {
+        console.log(err.message);
+        docContent = {dchList:[]};
+    }
 
-    const meta = {};
+    const dict = new DFDict();
     for (const dch of docContent.dchList) {
         let encoder = new DFEncoder();
         let tmp = encoder.encode(dch.data);         // encode only the plugin's data
@@ -30,10 +37,10 @@ async function iterCallback(db, rec) {
             S: dch.style,       // style taken from the OLD dch, for the NEW dcw
             C: dch.children,
         };
-        meta[id] = entry;  // { id:{S,C} }
+        dict.append(id, entry);
     }
 
-    await db.run("UPDATE doc set meta=? where id=?", [JSON.stringify(meta), rec.id]);
+    await db.run("UPDATE doc set dcwList=? where id=?", [dict.export(), rec.id]);
 
     return true;
 
@@ -52,11 +59,9 @@ async function iterCallback(db, rec) {
     return true;
 }
 
-
 async function updateDb(db) { 
-if (1) {
     await db.run("ALTER TABLE doc DROP COLUMN version;");
-    await db.run("ALTER TABLE doc ADD COLUMN meta TEXT NOT NULL DEFAULT '';");
+    await db.run("ALTER TABLE doc ADD COLUMN dcwList TEXT NOT NULL DEFAULT '';");
     await db.run("ALTER TABLE doc ADD COLUMN bump INTEGER NOT NULL DEFAULT 0;");
     
     const sql = 
@@ -68,10 +73,6 @@ if (1) {
     + ", bump       INTEGER NOT NULL"
     + ");";
     await db.run(sql);
-}
-
-if (1) {
     await db.iter("SELECT * FROM doc ORDER BY id", iterCallback);
-}
 }
 export { updateDb };

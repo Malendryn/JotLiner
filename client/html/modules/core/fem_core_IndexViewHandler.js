@@ -6,6 +6,7 @@ import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
+import { DFDict } from "/public/classes/DFDict.mjs";
 
 let _dlgTmp;    // used to exfer exploded file to _onCtxImport2_onDlgButton()  {?name?,{dchList:},error}
 async function _onCtxImport2_onDlgButton(btnLabel, formData) {        // btn pressed in 2nd dialog (child/sibling and rename)
@@ -259,7 +260,7 @@ function onIdxContextMenuAction(action) {
 
 
 FF.newDoc = async () => {
-    await FF.waitDirty();   // save any currently loaded and dirty doc elements
+    await FF.flushAll();   // save any still unprocessed autoSaves instantly
     await FF.clearDoc();
     
     // then create a new doc by adding a single BOX handler as the docRoot
@@ -273,9 +274,9 @@ debugger; let dch = await DCW_BASE.create(null, null);	// blowout any loaded han
     dch.create("BOX", {zX:0, zY:0});      // turn it into a 'BOX'
     FG.curDoc = {
         uuid:    FF.makeUUID(),
-//        name:    "",
+        name:    "unnamed",
         rootDcw: dch,
-        dirty:   false,
+        bump:    0
     };
 };
     
@@ -525,11 +526,10 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
     if (uuid.length > 0) {
         const info = FF.getDocInfo(uuid);
         if (info) {
-            if (FG.curDoc && FG.curDoc.dirty) {        // if dirty, force immediate save and wait for dirtyflag to clear
-                debugger; FF.autoSave({}, 0);                 
-                await FF.waitDirty();
+            if (FG.curDoc) {
+                await FF.flushAll();             // process any pending autoSave's immediately
             }
-            /*NOwait*/ FF.loadDoc(uuid, force);  //  ONLY reload doc if forced...
+            /*NOwait*/ FF.loadDoc(uuid, force);            //  reload doc if needed or forced...
             info.li.style.backgroundColor = bgColorSel;    //...mark treeEntry as 'selected'
         }
     } else {
@@ -707,14 +707,14 @@ async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
     el.innerHTML = "";
 
     const attacher = new FG.DocAttacher();
-    const meta = JSON.parse(pkt.data.meta);
-    const rootDcw = await attacher.attach(meta, null, false);    // this doc has no parent(null) so will become our new rootDcw
+    // const meta = JSON.parse(pkt.data.meta);
+    const rootDcw = await attacher.attach(pkt.rec.dcwList, null, false);    // this doc has no parent(null) so will become our new rootDcw
 
     FG.curDoc = { 
         uuid:    uuid,
-//        name:    pkt.name,
+        name:    pkt.rec.name,
         rootDcw: rootDcw,
-        dirty:   false,
+        bump:    pkt.rec.bump
     };
 
     LS.curDoc = uuid;

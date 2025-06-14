@@ -85,12 +85,15 @@ WS.fault = function(msg) {
 }
 
 
-WS.onChanged = (ws, dict) => {
-    const pkt = new WS.classes.Changed();
-    pkt.dict = dict;
-    for (const client of BG.clients.values()) {
-        if (ws != client.ws) {      // don't send this packet to 'self' as we are the ones who made the change!
-            WS.send(client.ws, pkt);
+WS.onChanged = (pkt, id, bump) =>  {
+    setTimeout( () => {     // cause deferral until originator sendWait/Expect finished so this arrives /after/ 
+        const name = pkt.constructor.name;
+        pkt = new WS.classes.Changed();
+        pkt.action = name;
+        pkt.id = id;
+        pkt.bump = bump;
+        for (const client of BG.clients.values()) {
+            WS.send(client.ws, pkt);    // send to ALL clients, including originator
         }
-    }
+    }, 0);
 };
