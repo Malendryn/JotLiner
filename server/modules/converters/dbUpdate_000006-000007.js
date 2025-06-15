@@ -14,7 +14,7 @@ once this is proven, 5) THEN remove doc.content column and this will no longer b
 import { DFEncoder, DFDecoder } from "../../../client/html/public/classes/DFCoder.mjs";
 import { DFDict } from "../../../client/html/public/classes/DFDict.mjs";
 
-async function iterCallback(db, rec) {
+function iterCallback(db, rec) {
     let decoder = new DFDecoder(rec.content);
     let docContent;
     try {
@@ -30,7 +30,7 @@ async function iterCallback(db, rec) {
         let encoder = new DFEncoder();
         let tmp = encoder.encode(dch.data);         // encode only the plugin's data
         const list = [rec.id, dch.name, tmp, 0];
-        let id = await db.run("INSERT INTO dch (docId,name,content,bump) values (?,?,?,?)", list);
+        let id = db.run("INSERT INTO dch (docId,name,content,bump) values (?,?,?,?)", list);
 
         dch.style.Z=0;             // stick 'Z' into the style block
         let entry = {
@@ -40,7 +40,7 @@ async function iterCallback(db, rec) {
         dict.append(id, entry);
     }
 
-    await db.run("UPDATE doc set dcwList=? where id=?", [dict.export(), rec.id]);
+    db.run("UPDATE doc set dcwList=? where id=?", [dict.export(), rec.id]);
 
     return true;
 

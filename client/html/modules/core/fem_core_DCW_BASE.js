@@ -8,60 +8,27 @@ import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 class DCW_BASE {   // base 'wrapper' class of all document components (where resize/anchor/depth are controlled)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// static async create(parentDcw, style) {  // create with only the most basic ._c_host, give it style and parentage
+//        async attachDch(name); // new dch() --> dch._wh_construct() (which attaches #host and #toolbar --> dch.construct())
+//        async destroy(); // recurse, children first; --> this._s_dch._wh_destroy(); removeall <div>'s, unlink from _s_parentDcw
 
-//  loadStyle(code)   adds a style in <head> but tracks it via returned id and auto-prevents duplication if plugin loaded more than once
-//                      (code can be a "path-or-URL" to a .css file-or- direct "<style>text</style>" textblock)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////// internal functions, (comms between dch and dcw) /////////////////////////////////////////////////
+// _hw_ prefixed: items get called from the dch to the dcw:
+// _wh_ prefixed: items get called from the dcw into the dch
+// ****** _wh_ and _hw_ functions should NEVER BE ACCESSED OUTSIDE of these two classes! ******
+// _s_  prefixed: are available systemwide to everyone /including/ the DCH_BASE but /not/ the plugin itself!
+// #    prefixed: private to just the class
+//      noprefix: called from somewhere outside the class
+
+// _hw_autoSave(delay = 1000)
+// _hw_loadStyle(style, which) adds style to this.#hostStyle
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// child-CAN-IMPLEMENT functions -------------------------------------------------------------------------------------
-// ****NOTE it is CRITICAL that these functions fully complete their ops before returning (EG must be async/await)
-    async construct()      {}   // called by static create() after this._c_host created and saved styles applied
-                                   // if data != null, it contains a {} of data to be put on 'this' as properties
-                                   // in here is where to add your own <el>s and listeners to ._c_host, etc..
-    async destruct()       {}   // called immediately before removing all listeners and html, and destroying object
-    async update()         {}   // called right after imported or properties of it (or its children) were modified
-                                // if hasChildren, updates the children's transform() based on this's zX,zY
-
-    // onResize()  {}
-    // onMove()    {}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// baseclass helper properties and functions for convenience ----------------------------------------------------------
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// create/destroy and other helper functions on baseclass (do not override!)-------------------------------------------
-    // static async create(parentDcw, style) {  // create with only the most basic ._c_host, give it style and parentage
-
-    // async attachDch(name); // create dch, attach ShadowHost and shadowToolbar if needed
-    // async destroy(); // recursive, calls this.destruct() on attached dch, then removes all listeners, then destroys 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// internal functions,  (do not override!)-----------------------------------------------------------------------------
-//  none!
-
-
-
-    async attachDch(name) {     // return true=good false=failed
-        this._c_srcUrl = DCH[name].srcUrl; // set this here&now so keep the ability to change it out of DCH_BASE
-
-        let msg = null;
-        try {
-            this._s_dch = new DCH[name].dchClass(this);        // create handler, do nothing else!
-        } catch (err) {
-            msg = err.message;
-        }
-        if (msg) {
-            this._c_host.overflow = "auto";        // allow errormsg to wrap/scroll
-            this._c_host.innerHTML = name + " Create fail: " + msg;
-            console.warn("Failed to create plugin '" + name + "', reason: " + msg);
-            return false;
-            // await this.destroy();
-        } else {
-            this._c_host.innerHTML = "";        // get rid of 'loading...' msg cuz things like BOX won't.
-            await this._s_dch.__construct();  // creates shadowHost&Toolbar as needed, then calls dch's .construct()
-        }
-        return true;
-    }
-
 
     static async create(parentDcw, style) {
         let parentDiv;
@@ -129,9 +96,8 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         return dcw;
     }
 
-
     createShadowHost() {
-        this.#host = this._c_host;  // hijack the temporary _c_host and use it as our faux-host for the shadowDom
+        debugger; this.#host = this._c_host;  // hijack the temporary _c_host and use it as our faux-host for the shadowDom
         this.addDbgId(this.#host, "(was)_c_host (now)#host");
         this.#host.classList.add("shadowWrapper__host");         // see index.css
         // this.#host.style.position = "absolute";
@@ -164,7 +130,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
 
     createShadowToolbar() {
-        let toolbarDiv = document.getElementById("divToolbar");
+        debugger; let toolbarDiv = document.getElementById("divToolbar");
         this.#toolWrap = document.createElement("div"); // we NEED this cuz a shadowDiv has no .style for us to .display="none"
         this.addDbgId(this.#toolWrap, "#toolWrap");
         this.#toolWrap.classList.add("DCW_DefaultToolbar");           // see index.css
@@ -203,7 +169,87 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
 
-    async loadStyle(style, which={}) {
+    showToolbar() {
+        debugger; if (this._c_toolbar) {
+            this.#toolWrap.style.display = "";
+            if (this.toolbarHeight !== undefined) {
+                FF.setToolbarHeight(this.toolbarHeight);
+            }
+        }
+    }
+
+    hideToolbar() {  // works, but never used
+        debugger; if (this._c_toolbar) {
+            this.#toolWrap.style.display = "none";
+            FF.setToolbarHeight(FG.defaultToolbarHeight);
+        }
+    }
+
+
+    async attachDch(name) {     // return true=good false=failed
+        this._c_srcUrl = DCH[name].srcUrl; // set this here&now so keep the ability to change it out of DCH_BASE
+
+        let msg = null;
+        try {
+            this._s_dch = new DCH[name].dchClass(this);        // create handler, do nothing else!
+        } catch (err) {
+            msg = err.message;
+        }
+        if (msg) {
+            this._c_host.overflow = "auto";        // allow errormsg to wrap/scroll
+            this._c_host.innerHTML = name + " Create fail: " + msg;
+            console.warn("Failed to create plugin '" + name + "', reason: " + msg);
+            return false;
+            // await this.destroy();
+        } else {
+            this._c_host.innerHTML = "";        // get rid of 'loading...' msg cuz things like BOX won't.
+            await this._s_dch._wh_construct();  // creates shadowHost&Toolbar as needed, then calls dch's .construct()
+        }
+        return true;
+    }
+
+
+// override above pre-defs in the help comments at the top of the class
+    async destroy() { // recurse, children first; detach this dcw and owned dch from doc, removing all listeners too, and destroy it
+        while(this._s_children.length) {                          // destroy all children first
+debugger;   const child = this._s_children[this._s_children.length - 1];    // last to first cuz created first to last (just feels right!)
+            await child.destroy();
+        }
+        this._s_dch._wh_destroy();                  // give the dch a chance to cleanup
+        this._s_sysDiv.remove();             // remove our dcw toplevel div
+        if (this.#toolWrap) {
+            this.#toolWrap.remove();       // if it had a toolbar, remove that too
+        }
+        if (this._s_parentDcw) {                // if not at topmost dcw, remove us from our parents children
+            const idx = this._s_parentDcw._s_children.indexOf(this);
+            this._s_parentDcw._s_children.splice(idx, 1);
+        }
+    }
+
+
+    async importDchData(u8a) {
+        debugger; this._s_dch._w_importData(u8a);
+    }
+
+    async exportDchData() {
+        debugger; const data = await this._s_dch._w_exportData();
+        debugger; /*RSTODO create/send a ModDch packet here*/
+    }
+
+    async isDirty() {
+        return await this._s_dch._w_isDirty();
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    translateChildren(zX, zY) { // called via fem_core_DocViewHandler.js AND from dch_BOX.js
+        for (let idx = 0; idx < this._s_children.length; idx++) {        // get the bounding box around all children
+            const child = this._s_children[idx];
+            child._s_sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)";
+        }
+    }
+
+    async _hw_loadStyle(style, which={}) {
         if (Object.keys(which).length == 0) {
             throw new Error("loadStyle missing at least one destination parameter");
         }
@@ -240,64 +286,10 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         }
     }
 
-    showToolbar() {
-        if (this._c_toolbar) {
-            this.#toolWrap.style.display = "";
-            if (this.toolbarHeight !== undefined) {
-                FF.setToolbarHeight(this.toolbarHeight);
-            }
-        }
-    }
-    // hideToolbar() {  // works, but never used
-    //     debugger; if (this._c_toolbar) {
-    //         this.#toolWrap.style.display = "none";
-    //         FF.setToolbarHeight(FG.defaultToolbarHeight);
-    //     }
-    // }
+    _hw_autoSave(delay) {       // dirty flag gets set on _s_dch, not this obj  (see async exportData() below)
+        FF.autoSave(delay);
+    } 
 
-
-// override above pre-defs in the help comments at the top of the class
-    async destruct() {
-        for (let idx = this._s_children.length - 1; idx >= 0; idx--) {     // destroy them (in reverse cuz destroy() uses splice() )
-            const child = this._s_children[idx];
-            await child.destroy();
-        }
-    }
-
-
-    async update() {
-        if (this._s_dch) {
-            this._s_dch.update();
-        }
-    }
-
-    
-    async destroy() { // detach this dcw and owned dch from doc, removing all listeners too, and destroy it
-        await this.destruct();
-        this._s_dch.__destroy();                  // give the dch a chance to cleanup
-        this._s_sysDiv.remove();             // remove our dcw toplevel div
-        if (this.#toolWrap) {
-            this.#toolWrap.remove();       // if it had a toolbar, remove that too
-        }
-        if (this._s_parentDcw) {                // if not at topmost dcw, remove us from our parents children
-            const idx = this._s_parentDcw._s_children.indexOf(this);
-            this._s_parentDcw._s_children.splice(idx, 1);
-        }
-    }
-
-
-    constructor() {     // RSTODO move all the other 'on class' defines into here, supposedly it's 'the right way'
-    }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// special function JUST for BOX as it needs to know about its children
-    _c_translateChildren(zX, zY) {
-        for (let idx = 0; idx < this._s_children.length; idx++) {        // get the bounding box around all children
-            const child = this._s_children[idx];
-            child._s_sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)";
-        }
-    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // system-only properties and functions, they should never be modified or overridden by the child class in any way

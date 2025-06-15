@@ -44,7 +44,7 @@ export class DocAttacher {   // create and return a DCH from a stream
         pkt = await WS.sendWait(pkt);         // consider lazyloading this in the future
 
         if (await dcw.attachDch(pkt.rec.name)) {
-            dcw._s_dch.__recId = recId;   // dch needs to know its recId for autoSave
+            dcw._s_dch._s_recId = recId;   // dch needs to know its recId for autoSave
             const decoder = new DFDecoder(pkt.rec.content);
             const dict = decoder.decode();
             dcw._s_dch.importData(dict);

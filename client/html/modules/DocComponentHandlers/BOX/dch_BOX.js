@@ -15,26 +15,23 @@ class DCH_BOX extends DCH_BASE {
         // most styles are now in the DCH_BOX.css file
         // this._s_sysDiv.classList.add("DCH_BOX");
         this.host.classList.add("DCH_BOX"); // now = "DCW_DefaultRect DCH_BOX"
-        await this.update();                     // applies the transform:translate() if needed
+        await this.__getOwner().translateChildren(this.zX, this.zY);     // applies the transform:translate() if needed
     }
 
     async importData(data) {    // populate this component with data
-        // if (Object.keys(data).length > 0) {
-            this.zX      = parseInt(data.zX);  // transform:translate(zX,zY) of all children of BOX to give the infinite canvas illusion
-            this.zY      = parseInt(data.zY);  // NOTE: parseInt() not needed for FileFormat > 1.0, here only for backwards compatibility
-        // }
+        this.zX      = parseInt(data.zX);  // transform:translate(zX,zY) of all children of BOX to give the infinite canvas illusion
+        this.zY      = parseInt(data.zY);  // (parseInt() not needed for FileFormat > 1.0, only for backwards compatibility)
     }
 
     async exportData() {       // return data to be preserved/exported as a {}
-        return {
+        debugger; return {
             zX: this.zX,
             zY: this.zY,
         };
     }
 
-
-    async update() {
-        this.translateChildren(this.zX, this.zY);
+    async isDirty() {
+        return false;   // changes in here don't matter, changes to doc always read all BOX's
     }
 };
 export { DCH_BOX as DCH };      // always export 'as DCH' so DCH_BASE can load-on-the-fly and attach to globalThis.DCH

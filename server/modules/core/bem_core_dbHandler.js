@@ -67,7 +67,7 @@ class DBHandler {
     }
 
 
-    query(sql, params = []) {
+    query(sql, params = []) {                 // for SELECT Statements, (statements that return multiple rows)
         this.lastAccessed = Date.now();
         const stmt = this.db.prepare(sql);
         return stmt.all(...params);
@@ -80,12 +80,26 @@ class DBHandler {
     }
 
 
+// works but fails if I try to add/mod/del recs in callback() 
+// w/'Unhandled rejection: TypeError: This database connection is busy executing a query    '
+// iter(sql, callback, params = []) {   
+    //     this.lastAccessed = Date.now();
+    //     const stmt = this.db.prepare(sql);
+    //     const iterator = stmt.iterate(...params);
+
+    //     for (const row of iterator) {
+    //         const cont = callback(this, row);
+    //         if (cont === false) {
+    //             break;
+    //         }
+    //     }
+    // }
     iter(sql, callback, params = []) {
         this.lastAccessed = Date.now();
         const stmt = this.db.prepare(sql);
-        const iterator = stmt.iterate(...params);
+        const rows = stmt.all(...params);
 
-        for (const row of iterator) {
+        for (const row of rows) {
             const cont = callback(this, row);
             if (cont === false) {
                 break;
@@ -131,7 +145,7 @@ BF.openDB = async function(dbName) {
         try {
             mod = await mod.updateDb(db);                                               // do the upgdate/upgrade
             curVer = after;
-            await db.query(`UPDATE extra set value='${curVer}' where key='dbVersion'`);   // update the dbVersion to the 'after' value
+            await db.run(`UPDATE extra set value='${curVer}' where key='dbVersion'`);   // update the dbVersion to the 'after' value
             await db.run("COMMIT TRANSACTION");                             // commit!
         } catch (err) {
             await db.run("ROLLBACK TRANSACTION");

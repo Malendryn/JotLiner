@@ -139,7 +139,7 @@ WS.classes.ModDoc.prototype.process = async function(client) {    // this.dict={
         await client.db.run("ROLLBACK TRANSACTION");
         return new WS.classes["Fault"](err.message);
     }
-    WS.onChanged(this, this.uuid, rec.bump);
+    WS.onChanged(this, {uuid:this.uuid, bump:rec.bump});
     delete this.name;
     delete this.dcwList;
     delete this.uuid;
@@ -155,7 +155,7 @@ WS.classes.ModDoc.prototype.process = async function(client) {    // this.dict={
 //     await client.db.run("COMMIT TRANSACTION");
 
 //     debugger;/*TEST*/ // docTree did NOT change, doc.name did
-//     WS.onChanged(this, this.uuid, rec.bump);      // tell the world that something about the doc changed!
+//     WS.onChanged(this, {uuid:this.uuid, bump:rec.bump}); // tell the world that something about the doc changed!
 //     delete this.uuid;
 //     delete this.name;
 //     return this;                            // send self back cuz client used .sendWait()
@@ -187,7 +187,7 @@ WS.classes.ModDoc.prototype.process = async function(client) {    // this.dict={
 //         await client.db.run("ROLLBACK TRANSACTION");
 //         return new WS.classes["Fault"](err.message);
 //     }
-//     debugger; WS.onChanged(this, this.uuid, 0);      // tell the world that the docTree changed!
+//     debugger; WS.onChanged(this, {uuid:this.uuid);      // tell the world that the docTree changed!
 //     this.uuid = ""; // empty packetdata for faster returnPkt
 //     return this;    // send self back cus client called using .sendWait()
 // };
@@ -240,7 +240,7 @@ WS.classes.GetDBList.prototype.process = async function(client) {    // delete /
 //     await BF.detachDB(client);              // detach any currently open db on this client
 //     await BF.attachDB(this.text, client);
 
-//     WS.onChanged(this, 0, 0);      // tell the world that the dbList changed!
+//     WS.onChanged(this, {});      // tell the world that the dbList changed!
 //     return this;
 // };
 WS.classes.SelectDB.prototype.process = async function(client) {    // make other db current, return null=good, text=errormsg
@@ -292,7 +292,7 @@ WS.classes.SelectDB.prototype.process = async function(client) {    // make othe
 //         return new WS.classes["Fault"](err.message);
 //     }
 
-//     WS.onChanged(this, this.text, 0);      // tell the world that the dbList changed!
+//     WS.onChanged(this, {name:dbName});      // tell the world that the dbList changed!
 
 //     this.text = null;
 //     return this;

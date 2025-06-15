@@ -356,6 +356,7 @@ async function insertDoc(dict) {
         dict.doc = encoder.encode(tmp);  // encodes only the {dchlist:[]}, no uuid,name,version
     }
 
+trace("moveTo fem_core_PacketHandlersFtoB.js and add a onChanged() func instead of calling FF.loadDocTree()...");
     let pkt = WS.makePacket("NewDoc")
     pkt.dict = {
         name:       dict.docName,
@@ -527,10 +528,10 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
         const info = FF.getDocInfo(uuid);
         if (info) {
             if (FG.curDoc) {
-                await FF.flushAll();             // process any pending autoSave's immediately
+                await FF.flushAll();                               // process any pending autoSave's immediately
             }
-            /*NOwait*/ FF.loadDoc(uuid, force);            //  reload doc if needed or forced...
-            info.li.style.backgroundColor = bgColorSel;    //...mark treeEntry as 'selected'
+            /*NOwait*/ FF.loadDoc(uuid, force);              //  reload doc if needed or forced...
+            info.li.style.backgroundColor = bgColorSel;      //...mark treeEntry as 'selected'
         }
     } else {
         await FF.clearDoc();

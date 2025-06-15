@@ -1,5 +1,5 @@
 /*!
- * DFDialog.js
+ * DFContextMenu.js
  * Copyright (c) Malendryn Tiger (Ron Stanions @ DragonsFire Creations)
  *
  * This software is licensed under the GNU Affero General Public License v3.0.

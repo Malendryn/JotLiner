@@ -1,4 +1,13 @@
-
+/*!
+ * DFCoder.js
+ * Copyright (c) Malendryn Tiger (Ron Stanions @ DragonsFire Creations)
+ *
+ * This software is licensed under the GNU Affero General Public License v3.0.
+ * You may obtain a copy of the License at https://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+*/
 // this filename ends in .mjs cuz the node backend uses it too
 
 class DFEncoder {

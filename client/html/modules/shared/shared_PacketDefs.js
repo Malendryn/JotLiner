@@ -1,3 +1,4 @@
+
 // globalThis.WS = {} is defined in index.js or server.js
 
 // WS is defined in server.js AND index.js
@@ -44,14 +45,15 @@ class PacketBASE {
 /////////////////////////////////////// Packet class definitions go below this line ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // see bem_core_PacketHandlers.js for the CLASS.prototype.process(){} backend overrides for these classes
-//                <-- means server to client (being replaced by B<--F)
-//                --> means client to server (being replaced by B-->F)
+//                B<-F means frontend sending to backend
+//                B->F means backend sending/responding to frontend 
+//
 // note that under the 'updated' packet structure, classes when defined have NO properties in them!  They must be added
 // during packet building
 //
 // if a property was sent during transmission, but is not relevant on the return trip, then it will be removed by the 
-// hander.  using GetExtra as an example, (only 'key' is set before sending, and is then deleted by the handler 
-// before returning,  and MAY add 'value' (only if 'key' existed) on returning)
+// backend.  using GetExtra as an example, (only 'key' is set before sending, and is then deleted by the handler 
+// before returning,  and MAY add 'value' property, but only if 'key' was found
 
 WS.registerPacketClass(class Fault extends PacketBASE { // if error thrown, it's sent back as a Fault
 constructor(){super();debugger;} //    msg;        // <-- "msg" indicating what the fault was
@@ -78,53 +80,6 @@ WS.registerPacketClass(class Changed extends PacketBASE {    // Something change
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.registerPacketClass(class GetDCHList extends PacketBASE { // get list of all available DocComponentHandlers
-    //    list;       // B->F  ["DOC","BOX"] etc... 
-});
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.registerPacketClass(class GetDocTree extends PacketBASE { // get docTree table contents
-    //    list;       // B->F [{T.id,T.docUuid,T.listOrder,T.parent,T.bump,D.docName}[,{}...]] etc...  (T=table:docTree, D=table:doc)
-});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
-//   uuid;       // B<-F uuid of doc to get 
-//   rec;        // B->F {name,dcwList,bump}
-});
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-WS.registerPacketClass(class NewDch extends PacketBASE {    // adding a new dch to current doc
-//   uuid        // B<-F uuid of doc this belongs to
-//   rec         // B<-F {name:"BOX", content:Uint8Array}
-//   id          // B->F id of rec that was inserted
-//   bump        // B->F bump# of newly inserted dch
-});
-
-
-WS.registerPacketClass(class GetDch extends PacketBASE {    // load a doc from the db via its uuid
-//   id;      // B<--F id's of dch rec to fetch
-//   rec;    // B-->F {id:recId, name:"BOX", content:Uint8Array}
-});
-WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
-    constructor(){super();debugger;}     dict;       // --> {uuid,version,name,listOrder,parent,doc}
-// <-- returns with a GetDocTree packet instead of this one!
-});
-WS.registerPacketClass(class ModDoc extends PacketBASE {    // save doc back into the database
-//    uuid;      // B<-F uuid of doc to mod
-//    name;      // B<-F name of doc 
-//    dcwList;   // B<-F dcwList of connected dcw/dch's
-//    bump:      // B->F bump# of modded doc
-});
-WS.registerPacketClass(class RenameDoc extends PacketBASE {  // Delete a document from the system
-    constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 
-    name;       // -->  new document name
-});
-WS.registerPacketClass(class DeleteDoc extends PacketBASE {   // Delete a document from the system
-    constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 
-});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.registerPacketClass(class CreateDB extends PacketBASE {  // Delete a document from the system
     constructor(){super();debugger;} //  name;       // F->B string name of db to create
 //  error;      // B->F error string if bad name or null if succeeded
@@ -139,5 +94,58 @@ WS.registerPacketClass(class DeleteDB extends PacketBASE {  // Delete /CURRENT/ 
 });
 WS.registerPacketClass(class GetDBList extends PacketBASE {  // Delete /CURRENT/ DB from backend
 //  list;       // B-->F array[] of database names (without .db extension)]
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.registerPacketClass(class GetDCHList extends PacketBASE { // get list of all available DocComponentHandlers
+    //    list;       // B->F  ["DOC","BOX"] etc... 
+});
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.registerPacketClass(class GetDocTree extends PacketBASE { // get docTree table contents
+    //    list;       // B->F [{T.id,T.docUuid,T.listOrder,T.parent,T.bump,D.docName}[,{}...]] etc...  (T=table:docTree, D=table:doc)
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
+    constructor(){super();debugger;}  // RSREWORK   dict;       // --> {uuid,version,name,listOrder,parent,doc}
+// <-- returns with a GetDocTree packet instead of this one!
+});
+WS.registerPacketClass(class ModDoc extends PacketBASE {    // save  back into the database
+    constructor(){super();debugger;}       //    uuid;      // B<-F uuid of doc to mod
+//    name;      // B<-F name of doc  or unassigned if name ! changed
+//    dcwList;   // B<-F dcwList of connected dcw/dch's or unassigned if dcwList ! changed
+//    bump:      // B->F bump# of modded doc
+});
+WS.registerPacketClass(class DelDoc extends PacketBASE {   // Delete a document from the system
+    constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 
+});
+
+WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
+//   uuid;       // B<-F uuid of doc to get 
+//   rec;        // B->F {name,dcwList,bump}
+});
+    
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.registerPacketClass(class NewDch extends PacketBASE {    // adding a new dch to current doc
+    constructor(){super();debugger;}//   uuid        // B<-F uuid of doc this belongs to
+//   rec         // B<-F {name:"BOX", content:Uint8Array}
+//   id          // B->F id of rec that was inserted
+//   bump        // B->F bump# of newly inserted dch
+});
+
+WS.registerPacketClass(class ModDch extends PacketBASE {    // adding a new dch to current doc
+    constructor(){super();debugger;}//   uuid        // B<-F uuid of doc this belongs to
+});
+
+WS.registerPacketClass(class DelDch extends PacketBASE {    // adding a new dch to current doc
+    constructor(){super();debugger;}//   uuid        // B<-F uuid of doc this belongs to
+});
+
+WS.registerPacketClass(class GetDch extends PacketBASE {    // load a doc from the db via its uuid
+// id;          // B<--F id of dch rec to fetch
+// u8a          // B->F
+// bump         // B->F
 });
 

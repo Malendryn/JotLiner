@@ -85,13 +85,12 @@ WS.fault = function(msg) {
 }
 
 
-WS.onChanged = (pkt, id, bump) =>  {
+WS.onChanged = (pkt, dict) =>  {
     setTimeout( () => {     // cause deferral until originator sendWait/Expect finished so this arrives /after/ 
         const name = pkt.constructor.name;
         pkt = new WS.classes.Changed();
         pkt.action = name;
-        pkt.id = id;
-        pkt.bump = bump;
+        pkt.dict = dict;
         for (const client of BG.clients.values()) {
             WS.send(client.ws, pkt);    // send to ALL clients, including originator
         }

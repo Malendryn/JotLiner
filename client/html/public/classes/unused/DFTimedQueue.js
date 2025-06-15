@@ -1,7 +1,19 @@
+/*!
+ * DFTimedQueue.js
+ * Copyright (c) Malendryn Tiger (Ron Stanions @ DragonsFire Creations)
+ *
+ * This software is licensed under the GNU Affero General Public License v3.0.
+ * You may obtain a copy of the License at https://www.gnu.org/licenses/agpl-3.0.html
+ *
+ * This program is distributed WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+*/
+import { DFSortedDict } from "./DFSortedDict.js"
 
-import { DFSortedList } from "./DFSortedList.js"
-
-export class DFTimedQueue extends DFSortedList {
+/*
+A timestamp-ordered list of actions to 
+*/
+export class DFTimedQueue extends DFSortedDict {
     constructor(compareFn, callback) {
         super();
         this._compareFn = compareFn;
@@ -76,5 +88,6 @@ export class DFTimedQueue extends DFSortedList {
 }
 
 
-
-setTimeout(()=>{console.log("foo")},2000)
+//test
+// setTimeout(()=>{console.log("foo")},2000)
+//test end

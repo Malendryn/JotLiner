@@ -1,3 +1,4 @@
+
 // globalThis.WS = {} is defined already.  (see index.js or server.js)
 
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";

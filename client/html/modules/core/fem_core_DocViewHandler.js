@@ -1,7 +1,5 @@
 // DocViewHandler = Toplevel Keyboard and Mouse Event Handlers
 
-const trace = FF.trace;
-
 import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 
 let el = document.getElementById("divDocView");
@@ -361,7 +359,7 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
                     }
                 }
                 setKMStateMode(0);  // obliterate all ghosting and modeing 
-                const recId = dcw._s_dch.__recId;
+                const recId = dcw._s_dch._s_recId;
                 await dcw.destroy();
                 debugger; FF.autoSave("delDch", recId);
                 break;
@@ -773,7 +771,7 @@ function doDchOpMode2() { // only called when FG.kmStates.mode == 2  (mousemove 
         if (deltaX || deltaY) {
             dcw._s_dch.zX += deltaX;
             dcw._s_dch.zY += deltaY;
-            dcw.update();
+            dcw.translateChildren(dcw._s_dch.zX, dcw._s_dch.zY);
             debugger; FF.autoSave("modDoc", "");   // autosave after n secs
         }
     }

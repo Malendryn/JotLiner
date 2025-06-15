@@ -15,7 +15,7 @@ import { DFDict } from "/public/classes/DFDict.mjs";
 
 export class DocExtracter {
     dcwDict;
-    extract(dcw) {        // returns the dcwList of a doc [[__recId, {S,C}],...] as a DFDict
+    extract(dcw) {        // returns the dcwList of a doc [[_s_recId, {S,C}],...] as a DFDict
         this.dcwDict = new DFDict();
         this. _extract(dcw);  // turn the dch into a stream
         return this.dcwDict;
@@ -33,7 +33,7 @@ export class DocExtracter {
             S: style, 
             C: dcw._s_children.length
         };
-        this.dcwDict.append(dcw._s_dch.__recId, data);              // must happen before walking children
+        this.dcwDict.append(dcw._s_dch._s_recId, data);              // must happen before walking children
         for (let idx = 0; idx < dcw._s_children.length; idx++) {
             this._extract(dcw._s_children[idx]);
         }

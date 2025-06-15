@@ -22,8 +22,8 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 {...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
---------       autoSave("action", data, delay=1000)    uses a DFTimedQueue() to save docs, dchs, new/deldbs and docTrees
--------- async flushAll()               spin-wait untill all queued autosaves are instaProcessed
+--------       autoSave("action", data, delay=1000)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees
+-------- async flushAll()               convenience call to FF.autoSave(0) to trigger saving immediately
 
 
 ==== FROM fem_core_WSockHandler.js ====================================================================================
@@ -56,12 +56,12 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
-import { DFTimedQueue } from "/public/classes/DFTimedQueue.js"
+import { DFReTimer } from "/public/classes/DFReTimer.js";
 
 
 FF.shutdown = async (event) => {          // webpage closing/changing, do final terminations/cleanups
     if (FG.curDoc) {
-        debugger; await FF.flushAll();    // process any pending actions
+        await FF.flushAll();    // process any pending actions
     }
 }
 
@@ -228,64 +228,41 @@ FF.__FILE__ = function(all = false) {   // see 'FF.trace' right below this func 
 	}
 };
 
-FF.trace = function(...args) {
-    let fn_ln = "???:?";
-
-    const err = new Error();
-    const stack = err.stack.split('\n');
-    const line = stack[2];      // 0=error, 1=thisFunc, 3=callerOfThisFunc
-    const match = line.match(/\(?([^():]+):(\d+):(\d+)\)?$/);
-    if (match) {
-        const fName = match[1].split('/').pop(); // get filename only
-        const lineNo = match[2];
-        fn_ln = fName + ":" + lineNo;
+async function _onAutoSave() {  // process autosaving
+    const list = FF.getAllDcw();
+    for (const entry of list) {
+        if (await entry._s_dch.isDirty()) { // check if dcw's dch is dirty
+            debugger; WS.pktFtoB.modDch(entry._s_dch);
+        }
     }
-    console.log("TRACE:" + fn_ln, ...args);
-}
+// walk all dch and call isDirty() on them,  (return true if saveme, false if nothing changed)
+// check if doc=dirty
+// check if docTree=dirty
+// check if dbList=dirty
 
-
-/*
-autosave ops = {  // passed to _cmpTQEntry as well as _processTQEntry
-    newDch: dcw   -- new dch, tell server to saveData and return new id, THEN also save/bump doc --> wanSend 'Changed'
-    modDch: dcw   -- dch was modded, send exported data to server, bump dchData rec and bump doc --> wanSend 'Changed'
-    delDch: recId -- dch was removed/deleted, tell server to delete dch, THEN also save/bump doc --> wanSend 'Changed'
-    newDoc: uuid  -- tell backend new doc, backend adds doc, adds to docTree,   --> wanSend 'Changed' doc + docTree
-    modDoc: ""    -- tell backend mod doc, backend updates doc,                 --> wanSend 'Changed' doc  (uuid pulled from FG.curDoc.uuid)
-    delDoc: uuid  -- tell backend del doc, backend dels doc, rmvs from docTree, --> wanSend 'Changed' doc + docTree
-    newDb:
-   xmodDbx --modding is handled by above ops, 
-    delDb:
-}
-*/
-function _cmpTQEntry(op1, op2) {
-    debugger;
-}
-
-async function _dispatchTQEntry(op) {  // process DFTimedQueue entry  (op={action: data})
-    const [action,data] = op;
-    await WS.dispatch[action](data);   // since 100% of dispatches are due to talking to backend lets just put it all on the WebSock/PacketHandler
+// await WS.dispatch[pktName](data);   // since 100% of dispatches are due to talking to backend lets just put it all on the WebSock/PacketHandler
 };
 
-const _tq = new DFTimedQueue(_cmpTQEntry, _dispatchTQEntry);
-FF.autoSave   = _tq.autoSave;   // ----- FF.autoSave(action, val, delay=1000)
-FF.flushAll   = _tq.flushAll;   // async FF.flushAll()    // process all autoSave immediately, wait til all are done
+const _reTimer = new DFReTimer(_onAutoSave);
+FF.autoSave   = _reTimer.setDelay;
+FF.flushAll   = async function () { 
+    _reTimer.setDelay(0); 
+    await _reTimer.deadlock(); 
+}
 
 
-FF.showLS = function() {
+
+FF.showLS = function() {            // show localStorage
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         const value = localStorage.getItem(key);
         console.log(`${key}: ${value}`);
     }
 };
-
-
-FF.dump1 = function(u8a) {
+FF.dump1 = function(u8a) {          // bindump a short Uint8array to console
     console.log(Array.from(u8a).map(byte => byte.toString(16).padStart(2, '0')).join(' '));
 };
-
-
-FF.dump2 = function(u8a) {
+FF.dump2 = function(u8a) {          // bindump a large Uint8Array to console 16 bytes-per-line
     let ss = "";
     for (let idx = 0; idx < u8a.byteLength; idx++) {
         if (idx % 16 == 0) {

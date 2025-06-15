@@ -1,18 +1,51 @@
 
 globalThis.FG  = {}; // global 'Frontend Globals' variables   (see fem_core_Globals.js for details)
 globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Functions.js for details)
-// globalThis.SH  = {}; // global 'Front And Backend' functions (see fem_core_Shared.js for details)
 globalThis.DCH = {}; // DocumentComponentHandler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
 globalThis.WS  = {}; // WebSocket and Packet transmit/receive CLASSES, funcs, etc
 globalThis.LS  = {}; // see fem_core_LocalStore.js
 
 WS.wssPort = 3000;      // must match port in server/server.js
 
-/* to create key and cert files do the following:  (replace 192.168.10.10 to your machine's IP address)
+/**********************************************************************************************************************
+to create key and cert files do the following:  (replace 192.168.10.10 to your machine's IP address)
 openssl req -x509 -newkey rsa:2048 -nodes -keyout localhost.key.pem -out localhost.cert.pem -days 365 \
   -subj "/CN=192.168.10.10" \
   -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:192.168.10.10"
-*/
+**********************************************************************************************************************/
+
+function __parseTraceNL(line) {
+    let fn_ln = "???:?";
+    try {
+        const match = line.match(/\(?([^():]+):(\d+):(\d+)\)?$/);
+        if (match) {
+            const fName = match[1].split('/').pop(); // get filename only
+            const lineNo = match[2];
+            fn_ln = fName + ":" + lineNo;
+        }
+    }
+    catch(err) {}   // catch-and-ignore
+    return fn_ln;
+}
+globalThis.trace = function(...args) {
+    const lines = (new Error()).stack.split('\n');
+    const fn_ln = __parseTraceNL(lines[2]);
+    console.log("TRACE:" + fn_ln, ...args);
+}
+globalThis.trace2 = function(...args) {
+    const lines = (new Error()).stack.split('\n');
+    const fn_ln2 = __parseTraceNL(lines[2]);
+    const fn_ln3 = __parseTraceNL(lines[3]);
+    console.log("TRACE:" + fn_ln3 + "-->" + fn_ln2, ...args);
+}
+globalThis.trace3 = function(...args) {
+    const lines = (new Error()).stack.split('\n');
+    const fn_ln2 = __parseTraceNL(lines[2]);
+    const fn_ln3 = __parseTraceNL(lines[3]);
+    const fn_ln4 = __parseTraceNL(lines[4]);
+    console.log("TRACE:" + fn_ln4 + "-->" + fn_ln3 + "-->" + fn_ln2, ...args);
+}
+
 FF.loadModule = async (modulePath) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -57,7 +90,8 @@ window.addEventListener('load', async function() {
     await FF.loadModule("./modules/core/fem_core_DocViewHandler.js");      // handle all the docview and Alt+Shift stuff
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");
-    await FF.loadModule("./modules/core/fem_core_PacketHandlers.js");      // for packets sent from backend that are not expect/wait responses
+    await FF.loadModule("./modules/core/fem_core_PacketHandlersFtoB.js");      // for packets sent from backend that are not expect/wait responses
+    await FF.loadModule("./modules/core/fem_core_PacketHandlersBtoF.js");      // for packets sent from backend that are not expect/wait responses
     mod = await FF.loadModule("./modules/core/fem_core_DocAttacher.js");
     FG.DocAttacher = mod.DocAttacher;
     mod = await FF.loadModule("./modules/core/fem_core_DocExtracter.js");   // extracts FG.curDoc.s dcw entries as a DFDict

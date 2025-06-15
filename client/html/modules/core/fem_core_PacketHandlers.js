@@ -1,10 +1,7 @@
 
-const trace = FF.trace;
-
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 
-WS.dispatch = {};    // see bottom of file for autoSave handler/dispatchers
-
+WS.pktFtoB = {};    // dict of F to B funcs (see bottom of file for autoSave handler/dispatchers
 
 /* When a packet comes in from the server that is not a response to a packet sent from here, it will look for a prototype.process() function on 
 the packet, and if found will call it.  
@@ -16,15 +13,9 @@ Here below if we receive a packet of class Changed, it will call .process() belo
 */
 
 WS.classes.Changed.prototype.process = async function() {    // insert new doc into db,  return with a GetDocTree packet
+    trace("pkt:Changed:", JSON.stringify([this.action, {id:this.id, bump:this.bump}]));
     const pkt = WS.parsePacket([this.action, {id:this.id, bump:this.bump}]);
-    pkt.onChanged();
-    
-    // } else if (this.dict.what === "docTree") {    // fetch an entirely new docTree & remove doc too if wasdeleted from docTree
-    //     debugger; await FF.loadDocTree();                                     // download new doctree from server
-    //     await FF.selectAndLoadDoc(FG.curDoc && FG.curDoc.uuid);     // download and display new tree, re-select curDoc too
-    // } else if (this.dict.what === "dbList") {
-    //     debugger; FF.updateDBSelector();      // get available dbs from server, populate dbDropdown in titlebar, fireup FF.selectDB() workhorse!
-    // }
+    await pkt.onChanged(); // really don't need await, but it sure makes debugging easier! 
 };
 
 
@@ -39,8 +30,8 @@ WS.dispatch.newDch = async (dcw) => { // we were given the actual dch so we need
     pkt.name    = FF.getDchName(dcw._s_dch);
     pkt.content = encoder.encode(dcw._s_dch.exportData());    // get data from dch and encode it for transport
     pkt = await WS.sendWait(pkt);
-    dcw._s_dch.__recId = pkt.id;
-    dcw._s_dch.__bump = pkt.bump;
+    dcw._s_dch._s_recId = pkt.id;
+    dcw._s_dch._s_bump = pkt.bump;
 
     const extractor = new FG.DocExtracter();
     const dcwDict = extractor.extract(FG.curDoc.rootDcw);  // no longer need await here
@@ -57,14 +48,12 @@ WS.dispatch.delDch = async (dcw) => {
 }
 
 WS.classes.ModDoc.prototype.onChanged = async function(client) {
-    debugger; if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // curDoc is not changed so ignore packet
+    if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // curDoc is not changed so ignore packet
         return;
     }
     if (FG.curDoc.bump == this.bump) {                  // if bumps match, WE did it, ignore packet
         return;
     }
-
-    
 /* 
 arriving here means something in the doc's dcwList changed, either add,remove,or move
 so while we could be smart about this, we could also be dumb for now and just reload the doc
@@ -76,3 +65,10 @@ to be smart we have to go fetch the docRec and compare the dchList against curre
     trace("RSTODO: add SMART 'ModDoc.onChanged()' logic");
     await FF.selectAndLoadDoc(this.uuid, true);         // download and redisplay doc (force reload)
 }
+
+    // } else if (this.dict.what === "docTree") {    // fetch an entirely new docTree & remove doc too if wasdeleted from docTree
+    //     debugger; await FF.loadDocTree();                                     // download new doctree from server
+    //     await FF.selectAndLoadDoc(FG.curDoc && FG.curDoc.uuid);     // download and display new tree, re-select curDoc too
+    // } else if (this.dict.what === "dbList") {
+    //     debugger; FF.updateDBSelector();      // get available dbs from server, populate dbDropdown in titlebar, fireup FF.selectDB() workhorse!
+    // }

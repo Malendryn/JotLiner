@@ -1,5 +1,5 @@
 /*!
- * DFListenerTracker.js
+ * DFSingleFire.js
  * Copyright (c) Malendryn Tiger (Ron Stanions @ DragonsFire Creations)
  *
  * This software is licensed under the GNU Affero General Public License v3.0.
@@ -9,8 +9,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 /*
-call anything only once, but track how many times the same call and same params were passed so we can remove it later
-
+call anything 'only once', but track how many times the same call and same params were passed so we can remove it later
+   (EX: to prevent duplication of addEventListener count,  loadStyle())
+   
 usage:
 create 2 functions like this:
     function onFirst(payload) {...}  // same data with __DFId added, throws error if fails
