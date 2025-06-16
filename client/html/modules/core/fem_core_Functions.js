@@ -232,7 +232,7 @@ async function _onAutoSave() {  // process autosaving
     const list = FF.getAllDcw();
     for (const entry of list) {
         if (await entry._s_dch.isDirty()) { // check if dcw's dch is dirty
-            debugger; WS.pktFtoB.modDch(entry._s_dch);
+            debugger; WS.pktFtoB.ModDch(entry._s_dch);
         }
     }
 // walk all dch and call isDirty() on them,  (return true if saveme, false if nothing changed)

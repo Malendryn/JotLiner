@@ -34,13 +34,15 @@ function iterCallback(db, rec) {
 
         dch.style.Z=0;             // stick 'Z' into the style block
         let entry = {
-            S: dch.style,       // style taken from the OLD dch, for the NEW dcw
+            N: dch.name,     // stow name always so we can at least apply dch if importData/exportData fails
+            S: dch.style,    // style taken from the OLD dch, for the NEW dcw
             C: dch.children,
         };
         dict.append(id, entry);
     }
 
-    db.run("UPDATE doc set dcwList=? where id=?", [dict.export(), rec.id]);
+    const flatTree = JSON.stringify(dict.export());
+    db.run("UPDATE doc set dcwFlatTree=? where id=?", [flatTree, rec.id]);
 
     return true;
 
@@ -61,7 +63,7 @@ function iterCallback(db, rec) {
 
 async function updateDb(db) { 
     await db.run("ALTER TABLE doc DROP COLUMN version;");
-    await db.run("ALTER TABLE doc ADD COLUMN dcwList TEXT NOT NULL DEFAULT '';");
+    await db.run("ALTER TABLE doc ADD COLUMN dcwFlatTree TEXT NOT NULL DEFAULT '';");
     await db.run("ALTER TABLE doc ADD COLUMN bump INTEGER NOT NULL DEFAULT 0;");
     
     const sql = 

@@ -22,7 +22,7 @@ class DCH_BASE {   // base class of all document components
 //  async construct()      // MUST: called this.host created, (plugins construct their interface in here.)
 //  async destruct()       // CAN : called right before removing all listeners and html, and destroying object
 
-//  async importData(data) // MUST: data = key-value pairs to populate this component with. (uses Object.assign if NOT overridden)
+//  async importData(u8a)  // MUST: data = Uint8Array (dch must support zeroLen when dch first instanced)
 //  async exportData()     // MUST: return an object of key-value pairs to be preserved/exported
 
 //  async isDirty()        // MUST: return true/false, called right before removing this dch
@@ -66,7 +66,7 @@ class DCH_BASE {   // base class of all document components
 // overridable functions the plugin can (and in some cases must) override
     async construct()      { throw new Error("Subclass must implement construct()"); }
     async destruct()       {}                              // do any other kind of cleanup before class destruction
-    async importData(data) { throw new Error("Subclass must implement importData()"); }  // populate this component with data
+    async importData(u8a)  { throw new Error("Subclass must implement importData()"); }  // populate this component with data
     async exportData()     { throw new Error("Subclass must implement exportData()"); }  // *overridable* return data to be preserved/exported as a {}
     async isDirty()        { throw new Error("Subclass must implement isDirty()"); }
 
@@ -97,7 +97,7 @@ class DCH_BASE {   // base class of all document components
 
 
     async _wh_destroy() { // called from DCW_BASE.destroy()
-        this.tracker.removeAll();
+        await this.tracker.removeAll();
         await this.destruct();  // destruct, not destroy, to pair with construct
     }
 
@@ -122,9 +122,9 @@ class DCH_BASE {   // base class of all document components
     #throwErr(propName) { throw new Error(`${this.constructor.name} attempted to set readonly property '${propName}'`); }
 
 // extending classes must never talk to owner directly so we have these passthrough get/setters
-    get srcUrl()   { return this.#owner._c_srcUrl;     }    set srcUrl(v)   { this.#throwErr("srcUrl");   }
-    get host()     { return this.#owner._c_host;       }    set host(v)     { this.#throwErr("host");     }
-    get toolbar()  { return this.#owner._c_toolbar;    }    set toolbar(v)  { this.#throwErr("toolbar");  }
+    get srcUrl()   { return this.#owner._h_srcUrl;     }    set srcUrl(v)   { this.#throwErr("srcUrl");   }
+    get host()     { return this.#owner._h_host;       }    set host(v)     { this.#throwErr("host");     }
+    get toolbar()  { return this.#owner._h_toolbar;    }    set toolbar(v)  { this.#throwErr("toolbar");  }
 
     async loadStyle(str, which={}) {  await this.#owner._hw_loadStyle(str, which); }
 

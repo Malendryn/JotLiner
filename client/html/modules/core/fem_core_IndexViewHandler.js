@@ -276,7 +276,8 @@ debugger; let dch = await DCW_BASE.create(null, null);	// blowout any loaded han
         uuid:    FF.makeUUID(),
         name:    "unnamed",
         rootDcw: dch,
-        bump:    0
+        bump:    0,
+        dchState: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
     };
 };
     
@@ -709,13 +710,14 @@ async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
 
     const attacher = new FG.DocAttacher();
     // const meta = JSON.parse(pkt.data.meta);
-    const rootDcw = await attacher.attach(pkt.rec.dcwList, null, false);    // this doc has no parent(null) so will become our new rootDcw
+    const rootDcw = await attacher.attach(pkt.rec.dcwFlatTree, null, false);    // this doc has no parent(null) so will become our new rootDcw
 
     FG.curDoc = { 
         uuid:    uuid,
         name:    pkt.rec.name,
         rootDcw: rootDcw,
-        bump:    pkt.rec.bump
+        bump:    pkt.rec.bump,
+        dchState: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
     };
 
     LS.curDoc = uuid;

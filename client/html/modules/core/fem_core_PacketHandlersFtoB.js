@@ -1,4 +1,5 @@
 
+import { DCW_BASE }            from "/modules/core/fem_core_DCW_BASE.js";
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 
 WS.pktFtoB = {};    // dict of F to B funcs (see bottom of file for autoSave handler/dispatchers
@@ -24,60 +25,45 @@ in essense: when autoSave fires, (see FF.autoSave()) it calls one of the functio
 //     debugger;
 // }
 
-WS.pktFtoB.modDoc = async (doc) => {
+WS.pktFtoB.ModDoc = async (doc) => {
     debugger;
 }
 
-WS.pktFtoB.delDoc = async (doc) => {
+WS.pktFtoB.DelDoc = async (doc) => {
     debugger;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.pktFtoB.newDch = async (dcw) => { // we were given the actual dcw so we need to yank its content here for sending
-    debugger; const encoder = new DFEncoder();
+WS.pktFtoB.NewDch = async (dchName, dcw, style) => { // we were given the actual dcw so we need to yank its content here for sending
+    FF.flushAll();
+
+    const nuDcw = await DCW_BASE.create(dcw, style);  // create nuDcw, parentTo dcw, set style
+    await nuDcw.attachDch(dchName);                 // creates real dch BUT no data AND no _s_recId
+
+    let extracter = new FG.DocExtracter();    //RSNOTE DOES NOT detach! ONLY extracts!!!!
+    const docFlatTree= await extracter.extract(dcw, true);
+// nice, this returns a proper flatTree with the new rec having recId=0! perfect!
+
+// thnking 'attachDch will only add a 'stub' dcw that doesnt actually have a dch YET as we have to go get it from the db
 
     let pkt = WS.makePacket("NewDch");
-    pkt.uuid    = FG.curDoc.uuid;
-    pkt.name    = FF.getDchName(dcw._s_dch);
-    pkt.content = encoder.encode(dcw._s_dch.exportData());    // get data from dch and encode it for transport
-    pkt = await WS.sendWait(pkt);
-    dcw._s_dch._s_recId = pkt.id;
-    dcw._s_dch._s_bump = pkt.bump;
-
-    const extractor = new FG.DocExtracter();
-    const dcwDict = extractor.extract(FG.curDoc.rootDcw);  // no longer need await here
-    pkt = WS.makePacket("ModDoc");
     pkt.uuid = FG.curDoc.uuid;
-    pkt.name = FG.curDoc.name;
-    pkt.dcwList = dcwDict.export();
-    pkt = await WS.sendWait(pkt);
-    FG.curDoc.bump = pkt.bump;
-/*
-we will never have to worry about more than one new dch at a time, autoSave(0)=immediate/flush
-(actually revisit autosave such that there's no queue just a single timer SO THAT something like an autoSave(0) means all-right-now
-    and we can get rid of the flushAll() too)
-    1) NewDch  B<-F docUuid, dchId, dcwList(with 0 where this NewDCH gets inserted)
-    2) insert rec into dch to get its recId
-    3) update dcwList
-    4) update doc with dcwList and get its bump+1
-    5) put bump into dch via recId
-    6) Changed B->F docUuid, newDchId, newdcwList
-since pktNewDch already forced a bump+1 on doc, pktModDoc doesn't /need/ to
-*/
+    pkt.tree = docFlatTree;
+    pkt = WS.send(pkt);
 };
 
 
-WS.pktFtoB.modDch = async (dcw) => {
-    const pkt = WS.makePacket("ModDch");     // first thing we have to do is get the list of DCH handlers
+WS.pktFtoB.ModDch = async (dcw) => {
+    debugger; const pkt = WS.makePacket("ModDch");     // first thing we have to do is get the list of DCH handlers
     pkt.id = dch._s_recId;
     pkt.u8a = dch.exportDchData();
     pkt = await WS.sendWait(pkt);
 }
 
 
-WS.pktFtoB.delDch = async (dcw) => {
-    let pkt = WS.makePacket("DelDch");
+WS.pktFtoB.DelDch = async (dcw) => {
+    debugger; let pkt = WS.makePacket("DelDch");
     pkt.id    = FG.curDoc.uuid;
     pkt = await WS.sendWait(pkt);
     dcw._s_dch._s_recId = pkt.id;

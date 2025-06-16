@@ -3,6 +3,7 @@ import fs from "fs"; //'node:fs/promises'; <-- this works too
 import path from "path";
 
 import { DFEncoder, DFDecoder } from "../../../client/html/public/classes/DFCoder.mjs";
+import { DFDict }               from "../../../client/html/public/classes/DFDict.mjs";
 
 //debugger; // only way to break during module load, brkpoints don't cut it!
 function logPkt(name) {
@@ -11,14 +12,14 @@ function logPkt(name) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes.GetBackendInfo.prototype.process = async function(client) {
+WS.classes.GetBackendInfo.prototype.onPktRecvd = async function(client) {
     logPkt("GetBackendInfo");
     this.version = BG.VERSION;
     this.docVersion = BG.DOCVERSION;
     return this;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// WS.classes.GetExtra.prototype.process = async function(client) {
+// WS.classes.GetExtra.prototype.onPktRecvd = async function(client) {
 //     debugger; logPkt("GetExtra");
 //     this.txt = null;
 //     if (!client.db) { return WS.fault("Database not selected"); }
@@ -30,7 +31,7 @@ WS.classes.GetBackendInfo.prototype.process = async function(client) {
 //     }
 //     return this;
 // }
-// WS.classes.SetExtra.prototype.process = async function(client) {
+// WS.classes.SetExtra.prototype.onPktRecvd = async function(client) {
 //     debugger; logPkt("SetExtra");
 //     if (!client.db) { return WS.fault("Database not selected"); }
 //     let tmp = await client.db.query("INSERT OR REPLACE INTO extra (key,value) VALUES(?,?)", [this.key, this.val]);
@@ -40,7 +41,7 @@ WS.classes.GetBackendInfo.prototype.process = async function(client) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes.GetDCHList.prototype.process = async function(client) {
+WS.classes.GetDCHList.prototype.onPktRecvd = async function(client) {
     logPkt("GetDCHList");
     const dirPath = path.join(BG.basePath, "client", "html", "modules", "DocComponentHandlers");
     const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
@@ -62,7 +63,7 @@ WS.classes.GetDCHList.prototype.process = async function(client) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes.GetDocTree.prototype.process = async function(client) {
+WS.classes.GetDocTree.prototype.onPktRecvd = async function(client) {
     logPkt("GetDocTree");
     if (!client.db) { return WS.fault("Database not selected"); }
     // this.list = await client.db.query("SELECT * from docTree order by parent,listOrder");
@@ -74,17 +75,17 @@ WS.classes.GetDocTree.prototype.process = async function(client) {
 }
 
 
-WS.classes.GetDoc.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
+WS.classes.GetDoc.prototype.onPktRecvd = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
     logPkt("GetDoc");
     if (!client.db) { return WS.fault("Database not selected"); }
-    const tmp = await client.db.query("SELECT name,dcwList,bump FROM doc WHERE uuid=?", [this.uuid]);
+    const tmp = await client.db.query("SELECT name,dcwFlatTree,bump FROM doc WHERE uuid=?", [this.uuid]);
     delete this.uuid;
     if (tmp.length > 0) {
         this.rec = tmp[0];
     }
     return this;        // this is now sendWaited
 }
-WS.classes.GetDch.prototype.process = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
+WS.classes.GetDch.prototype.onPktRecvd = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
     logPkt("GetDch");
     const recs = await client.db.query("SELECT name,content FROM dch WHERE id = ?", [this.id]);
     delete this.id;
@@ -92,7 +93,7 @@ WS.classes.GetDch.prototype.process = async function(client) { // must use 'func
     return this;
 }
 
-// WS.classes.NewDoc.prototype.process = async function(client) {    // this.dict={name,uuid,after,parent,u8aDoc}
+// WS.classes.NewDoc.prototype.onPktRecvd = async function(client) {    // this.dict={name,uuid,after,parent,u8aDoc}
 //     logPkt("NewDoc");
 //     if (!client.db) { return WS.fault("Database not selected"); }
 //     try {
@@ -122,31 +123,31 @@ WS.classes.GetDch.prototype.process = async function(client) { // must use 'func
 //         await client.db.run("ROLLBACK TRANSACTION");
 //         return new WS.classes["Fault"](err.message);
 //     }
-//     WS.onChanged(this, id:x x, bump:bump});
+//     WS.broadcast(this, id:x x, bump:bump});
 //     this.dict = {}; // empty packetdata for faster returnPkt
 //     return this;    // send self back cus client called using .sendWait() (and we added docId and docTreeId to the class on return)
 // };
-WS.classes.ModDoc.prototype.process = async function(client) {    // this.dict={uuid, doc(u8a)}
+WS.classes.ModDoc.prototype.onPktRecvd = async function(client) {    // this.dict={uuid, doc(u8a)}
     logPkt("ModDoc");
     let rec;
     if (!client.db) { return WS.fault("Database not selected"); }
     try {
         await client.db.run("BEGIN TRANSACTION");
-        let list = [this.dcwList, this.uuid];
-        rec = await client.db.get("UPDATE doc SET dcwList=?,bump=bump+1 WHERE uuid=? RETURNING bump", [list]);  // insert the doc
+        let list = [this.dcwFlatTree, this.uuid];
+        rec = await client.db.get("UPDATE doc SET dcwFlatTree=?,bump=bump+1 WHERE uuid=? RETURNING bump", [list]);  // insert the doc
         await client.db.run("COMMIT TRANSACTION");
     } catch (err) {
         await client.db.run("ROLLBACK TRANSACTION");
         return new WS.classes["Fault"](err.message);
     }
-    WS.onChanged(this, {uuid:this.uuid, bump:rec.bump});
+    WS.broadcast(this, {uuid:this.uuid, bump:rec.bump});
     delete this.name;
-    delete this.dcwList;
+    delete this.dcwFlatTree;
     delete this.uuid;
     this.bump = rec.bump;
     return this;    // send self back cus client called using .sendExpect()
 };
-// WS.classes.RenameDoc.prototype.process = async function(client) {    // rename a document
+// WS.classes.RenameDoc.prototype.onPktRecvd = async function(client) {    // rename a document
 //     debugger; logPkt("RenameDoc");
 //     let rec;
 //     if (!client.db) { return WS.fault("Database not selected"); }
@@ -155,12 +156,12 @@ WS.classes.ModDoc.prototype.process = async function(client) {    // this.dict={
 //     await client.db.run("COMMIT TRANSACTION");
 
 //     debugger;/*TEST*/ // docTree did NOT change, doc.name did
-//     WS.onChanged(this, {uuid:this.uuid, bump:rec.bump}); // tell the world that something about the doc changed!
+//     WS.broadcast(this, {uuid:this.uuid, bump:rec.bump}); // tell the world that something about the doc changed!
 //     delete this.uuid;
 //     delete this.name;
 //     return this;                            // send self back cuz client used .sendWait()
 // }
-// WS.classes.DeleteDoc.prototype.process = async function(client) {    // insert new doc into db,  return with nothing!
+// WS.classes.DeleteDoc.prototype.onPktRecvd = async function(client) {    // insert new doc into db,  return with nothing!
 //     debugger; logPkt("DeleteDoc");
 //     if (!client.db) { return WS.fault("Database not selected"); }
 //     try {
@@ -187,41 +188,61 @@ WS.classes.ModDoc.prototype.process = async function(client) {    // this.dict={
 //         await client.db.run("ROLLBACK TRANSACTION");
 //         return new WS.classes["Fault"](err.message);
 //     }
-//     debugger; WS.onChanged(this, {uuid:this.uuid);      // tell the world that the docTree changed!
+//     debugger; WS.broadcast(this, {uuid:this.uuid);      // tell the world that the docTree changed!
 //     this.uuid = ""; // empty packetdata for faster returnPkt
 //     return this;    // send self back cus client called using .sendWait()
 // };
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes.NewDch.prototype.process = async function(client) {  // add new dch to db (but don't attach to doc!!!)
+WS.classes.NewDch.prototype.onPktRecvd = async function(client) {  // add new dch to db (but don't attach to doc!!!)
                                                                 // a 2nd call ModDoc will follow immediately to do that
+    const dfDict = new DFDict(this.tree);
     await client.db.run("BEGIN TRANSACTION");
-    let rec = await client.db.get("UPDATE doc SET bump=bump+1 WHERE uuid=? RETURNING id,bump", [this.uuid]);
+    let rec = await client.db.get("SELECT id,bump FROM doc WHERE uuid=?", [this.uuid]);
+    const docId = rec.id;
+    let   bump  = rec.bump;
+    bump++;
+
+    for (let idx = 0; idx < dfDict.length; idx++) {
+        const pair = dfDict.getByIdx(idx);
+
+        const [key,val] = pair;
+        if (key === 0) {                // found an entry with a recId of 0!
+            const list = [
+                docId,
+                val.N,      //dchName
+                new Uint8Array(),
+                bump
+            ];
+            let id = await client.db.run("INSERT INTO dch (docId,name,content,bump) VALUES (?,?,?,?)", list);
+            dfDict.updateKeyByIdx(idx, id);
+        }
+    }
+
+    const tree = JSON.stringify(dfDict.export());
     const list = [
-        rec.id,
-        this.name,
-        this.content,
-        rec.bump
+        tree,
+        bump,
+        docId
     ];
-    let id = await client.db.run("INSERT INTO dch (docId,name,content,bump) VALUES (?,?,?,?)", list);
+    await client.db.run("UPDATE doc SET dcwFlatTree=?,bump=? WHERE id=?", list);
+
     await client.db.run("COMMIT TRANSACTION");
-    delete this.uuid;
-    delete this.name;
-    delete this.content;
-    this.id = id;
-    this.bump = rec.bump;
-// DO NOT send onChanged here as a ModDoc pkt will immediately follow, and clients wouldn't recognize THIS until THAT
-    return this;
+    pkt = new WS.classes["ModDoc"]();
+    pkt.uuid = this.uuid;
+    pkt.tree = tree;
+
+    return null;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes.GetDBList.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
+WS.classes.GetDBList.prototype.onPktRecvd = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
     logPkt("GetDBList");
     this.list = await BF.getDBList();
     return this;
 };
-// WS.classes.CreateDB.prototype.process = async function(client) {    // create new db, return null=good, text=errormsg
+// WS.classes.CreateDB.prototype.onPktRecvd = async function(client) {    // create new db, return null=good, text=errormsg
 //     debugger; logPkt("CreateDB");
 //     const err = BF.checkDBName(this.name);    // test filename for validity
 //     delete this.name;
@@ -240,10 +261,10 @@ WS.classes.GetDBList.prototype.process = async function(client) {    // delete /
 //     await BF.detachDB(client);              // detach any currently open db on this client
 //     await BF.attachDB(this.text, client);
 
-//     WS.onChanged(this, {});      // tell the world that the dbList changed!
+//     WS.broadcast(this, {});      // tell the world that the dbList changed!
 //     return this;
 // };
-WS.classes.SelectDB.prototype.process = async function(client) {    // make other db current, return null=good, text=errormsg
+WS.classes.SelectDB.prototype.onPktRecvd = async function(client) {    // make other db current, return null=good, text=errormsg
     logPkt("SelectDB");
     let name = this.name;
     delete this.name;
@@ -264,7 +285,7 @@ WS.classes.SelectDB.prototype.process = async function(client) {    // make othe
 
     return this;
 };
-// WS.classes.DeleteDB.prototype.process = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
+// WS.classes.DeleteDB.prototype.onPktRecvd = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
 //     debugger; logPkt("DeleteDB");
 //     if (!client.db) { return WS.fault("Database not selected"); }
 //     const err = BF.checkDBName(this.text);    // test filename for validity
@@ -292,7 +313,7 @@ WS.classes.SelectDB.prototype.process = async function(client) {    // make othe
 //         return new WS.classes["Fault"](err.message);
 //     }
 
-//     WS.onChanged(this, {name:dbName});      // tell the world that the dbList changed!
+//     WS.broadcast(this, {name:dbName});      // tell the world that the dbList changed!
 
 //     this.text = null;
 //     return this;

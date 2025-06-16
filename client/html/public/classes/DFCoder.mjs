@@ -107,11 +107,17 @@ class DFDecoder {
         this.idx = 0;
     }
 
+    EOSTREAM = Symbol("NOSTREAM");
+
     decode() {  // decode ONE AND ONLY ONE value,  repeated calls to this will decode more if more is available
 // if (this.idx == 257) {
 // debugger;
 // }
-        let [dType,len] = this._parseHeader();
+        if (this.u8a.byteLength == 0) {
+            return this.NOSTREAM   // special case, only likely to happen if u8a had zerolength to begin with
+        }
+        const header = this._parseHeader();
+        let [dType,len] = header;
         let val;
         if (dType < 16) {       // 0-15 = types with no datalen
             switch(dType) {  
@@ -154,6 +160,9 @@ class DFDecoder {
     }
 
     _parseHeader() {
+        if (this.idx >= this.u8a.byteLength) {      // stream is finished
+            return null;
+        }
         const tmp = this.u8a[this.idx++];
         let sLen = tmp >> 6;       // parseout sizeLen
         const dType = tmp & 0x3F;  // parseout dataType

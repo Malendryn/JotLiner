@@ -20,6 +20,6 @@ FG.curDbName     = "";       // "" or currently selected DB name  ("" cuz localS
 FG.curDoc        = null;     // "" or dict{ uuid, name, rootDcw }
 
 FG.DocAttacher   = null;     // CLASS to import a stringstream into a doc (see fem_core_DocAttacher.js)
-FG.DocExtracter   = null;    // CLASS to extract current loaded doc for saving/exporting  (see fem_core_DocExtracter.js)
+FG.DocExtracter  = null;     // CLASS to extract current loaded doc for saving/exporting  (see fem_core_DocExtracter.js)
 
 FG.kmStates      = {};       // kbd and mouse states at any instant in time (see fem_core_DocViewHandler.js)

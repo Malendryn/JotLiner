@@ -16,7 +16,7 @@
 // -------- async detachDB(client)         decrement usercount, close&remove from BG.openedDBs accordingly
 
 // ==== FROM bem_core_WSockHandler.js ====================================================================================
-// --------       onChanged(this, id, bump) call this when tabledata changed
+// --------       broadcast(pkt)           send pkt to all connected clients
 
 
 import path from 'path';

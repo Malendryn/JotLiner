@@ -246,7 +246,7 @@ function onContextDCHLayout() {
         form.removeEventListener("input", onFormInput);
         form.removeEventListener("click", onFormClick);
         if (formChanged) {
-            debugger; FF.autoSave("modDoc", "", 0);         // save immediately
+            debugger; FF.autoSave(0);         // save immediately
         }
         FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
         onStateChange({});          // just to bump an update so ghost clears
@@ -333,12 +333,7 @@ try {
         FG.kmStates.modal = false;
         if (action.startsWith("insert_")) {
             let dchName = action.substr(7);
-console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
-            const style = {L:startX, T:startY, W:100, H:100};
-             const nuDcw = await DCW_BASE.create(dcw, style);  // create nuDcw, parentTo dcw, set style
-            await nuDcw.attachDch(dchName);
-            // dcw._s_children.push(nuDch);
-            FF.autoSave("newDch", nuDcw, 0);  // save the new dch (through it's dcw) (and the doc) immediately
+            WS.pktFtoB.NewDch(dchName, dcw, {L:startX, T:startY, W:100, H:100}); // ("name", parent, style{})
         }
         switch (action) {                                     // 'go do' whatever was clicked
             case "export":
@@ -347,7 +342,7 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
                 console.log(str);
                 break;
             case "delete":
-                const dchName = FF.getDchName(dcw._s_dch);
+                debugger; const dchName = FF.getDchName(dcw._s_dch);
                 let yes = window.confirm("Delete node '" + dchName + ", are you sure?");
                 if (!yes) {
                     return;
@@ -361,17 +356,18 @@ console.log(FF.__FILE__(), "nuDch X=", startX, ", Y=", startY);
                 setKMStateMode(0);  // obliterate all ghosting and modeing 
                 const recId = dcw._s_dch._s_recId;
                 await dcw.destroy();
-                debugger; FF.autoSave("delDch", recId);
+                debugger; FF.autoSave();
                 break;
             case "setLayout":
-                onContextDCHLayout();
+                debugger; onContextDCHLayout();
                 break;
             case "setProps":
-                onContextDCHProps();
+                debugger; onContextDCHProps();
                 break;
         }
     }
 
+    FF.flushAll();  // save everything before opening menu
     FG.kmStates.modal = true;
     _dchContextMenu.open(entries, onContextMenuClose, FG.kmStates.clientX, FG.kmStates.clientY);
 }
@@ -725,7 +721,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             }
         }
 
-        debugger; FF.autoSave("modDoc", "");          // autosave after n secs
+        debugger; FF.autoSave();          // autosave after short delay
         setKBModeToolbarText(FG.kmStates.dcw);
     }
 }

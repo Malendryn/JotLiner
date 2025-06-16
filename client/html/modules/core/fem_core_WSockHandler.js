@@ -103,6 +103,10 @@ function process(buf) {     // this function must not await, anything that happe
             }
         }
     } else {
-        pkt.process();
+        try {
+            pkt.onPktRecvd();
+        } catch (err) {
+            console.log("Could not process rcvd packet '" + pkt.constructor.name + "'; reason: " + err.message)
+        }
     }
 }

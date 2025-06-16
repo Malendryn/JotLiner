@@ -65,7 +65,7 @@ async function process(ws, buf) {
     const client = BG.clients.get(ws);
 
     const pkt = WS.parsePacket(buf);
-    const response = await pkt.process(client);  
+    const response = await pkt.onPktRecvd(client);  
     if (response) {
         response.__id = pkt.__id;       // put original id into response packet
         response.__r = 1;               // and add '__r' so client knows without doubt this is a response packet
@@ -85,14 +85,23 @@ WS.fault = function(msg) {
 }
 
 
-WS.onChanged = (pkt, dict) =>  {
+WS.broadcast = (pkt) =>  {
     setTimeout( () => {     // cause deferral until originator sendWait/Expect finished so this arrives /after/ 
-        const name = pkt.constructor.name;
-        pkt = new WS.classes.Changed();
-        pkt.action = name;
-        pkt.dict = dict;
         for (const client of BG.clients.values()) {
             WS.send(client.ws, pkt);    // send to ALL clients, including originator
         }
     }, 0);
 };
+
+
+// WS.broadcast = (pkt, dict) =>  {
+//     setTimeout( () => {     // cause deferral until originator sendWait/Expect finished so this arrives /after/ 
+//         const name = pkt.constructor.name;
+//         pkt = new WS.classes.Changed();
+//         pkt.action = name;
+//         pkt.dict = dict;
+//         for (const client of BG.clients.values()) {
+//             WS.send(client.ws, pkt);    // send to ALL clients, including originator
+//         }
+//     }, 0);
+// };

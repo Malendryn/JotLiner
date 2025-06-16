@@ -97,8 +97,16 @@ class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor
         return { "C" : this.el.innerHTML };   // "C" for content
     }
     
+    async isDirty() {
+        return false;   // changes in here already handled by autoSave() so just return false-always
+    }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// below here is DCH Plugin's  stuff ////////////////////////////////////////////////
     async onContentChanged(evt) {
         debugger; this.autoSave();
     }
+
 };
 export { DCH_CTE as DCH };      // always export 'as DCH' so DCH_<type>BASE can load-on-the-fly and attach to globalThis.DCH

@@ -7,14 +7,17 @@ howto: 'Changed' rec:
 
 scenario: if we add a new dch
 1) it inserts, returns recId, DOES NOT ISSUE Changed cuz no doc presently exists that would recognize it
-2) it immediately calls ModDoc with the new dcwList  (and passes the name too but that didnt get changed)
+2) it immediately calls ModDoc with the new dcwFlatTree  (and passes the name too but that didnt get changed)
 now, we have to send a Changed:
 * we know it was a ModDoc packet that caused it
 * we know the uuid of the doc that changed
-* we dont actually KNOW whether the name or the dcwList changed...  (we COULD but that's extra work!)
-(well modDoc only mods the dcwList... RenameDoc renames it!)
+* we dont actually KNOW whether the name or the dcwFlatTree changed...  (we COULD but that's extra work!)
+(well modDoc only mods the dcwFlatTree... RenameDoc renames it!)
 
 -----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+* Consider renaming everything 'dch' to 'dcp'  Document Component/Plugin'  ??  cuz we're always talking about them as
+    plugins, NOT as handlers
 -----------------------------------------------------------------------------------------------------------------------
 RSTODO rework FG.DocAttacher such that it builds the _s_sysDiv frames but inserts a 'loading...' msg into each one
 and then fires requests to the server for all the dchData needed to fill them.

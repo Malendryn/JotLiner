@@ -13,9 +13,13 @@ WS.registerPacketClass = function(clazz) {
 
 
 WS.makePacket = function(name)  {
-    const pkt = new WS.classes[name]();   // DO NOT set __id in 'new' cuz .parsePacket will overwrite it
-    pkt.__id = WS.__nextNewPacketID++;      // set and increment it here, instead
-    return pkt;
+    try {
+        const pkt = new WS.classes[name]();   // DO NOT set __id in 'new' cuz .parsePacket will overwrite it
+        pkt.__id = WS.__nextNewPacketID++;      // set and increment it here, instead
+        return pkt;
+    } catch (err) {
+        console.log("Could not create packet '" + name + "'; reason: " + err.message);
+    }
 }
 
 
@@ -114,9 +118,9 @@ WS.registerPacketClass(class NewDoc extends PacketBASE {    // create a new doc 
 });
 WS.registerPacketClass(class ModDoc extends PacketBASE {    // save  back into the database
     constructor(){super();debugger;}       //    uuid;      // B<-F uuid of doc to mod
-//    name;      // B<-F name of doc  or unassigned if name ! changed
-//    dcwList;   // B<-F dcwList of connected dcw/dch's or unassigned if dcwList ! changed
-//    bump:      // B->F bump# of modded doc
+//    name;        // B<-F name of doc  or unassigned if name ! changed
+//    dcwFlatTree; // B<-F dcwFlatTree of connected dcw/dch's or unassigned if dcwFlatTree ! changed
+//    bump:        // B->F bump# of modded doc
 });
 WS.registerPacketClass(class DelDoc extends PacketBASE {   // Delete a document from the system
     constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 
@@ -124,15 +128,15 @@ WS.registerPacketClass(class DelDoc extends PacketBASE {   // Delete a document 
 
 WS.registerPacketClass(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
 //   uuid;       // B<-F uuid of doc to get 
-//   rec;        // B->F {name,dcwList,bump}
+//   rec;        // B->F {name,dcwFlatTree,bump}
 });
     
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.registerPacketClass(class NewDch extends PacketBASE {    // adding a new dch to current doc
-    constructor(){super();debugger;}//   uuid        // B<-F uuid of doc this belongs to
-//   rec         // B<-F {name:"BOX", content:Uint8Array}
-//   id          // B->F id of rec that was inserted
-//   bump        // B->F bump# of newly inserted dch
+/////////////////// the following packets are 'Fire and Forget' and will be handled by a broadcasted response pkt /////
+
+WS.registerPacketClass(class NewDch extends PacketBASE {    // adding dch to current doc, broadcasts ModDoc
+//  uuid        // B<-F uuid of doc this belongs to
+//  tree        // B<-F a new dcwFlatTree for doc rec
 });
 
 WS.registerPacketClass(class ModDch extends PacketBASE {    // adding a new dch to current doc

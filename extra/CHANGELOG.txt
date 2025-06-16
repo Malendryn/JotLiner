@@ -8,17 +8,21 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
+* renamed all _c_ to _h_ (dCh to dcH) to be more inline with _w_ dcW 
+* renamed table:doc.dcwList to dcwFlatTree
+* figured out some logic on packet handling and inserting new DCH's etc,  still much to do tho!
+
+* 
 2025-06-15------------------------------------------------------------------------------------------------------------
 * added trace2() and 3() to see caller->caller->msg, etc...
 * reworking some more paradigms, changed autoSave back to 'only one timer' cuz really all things must happen in order
 * fixed some bugs that cropped up in the better-sqlite3 replacement
-
-* 
+* refined the autoSave(),  added deadlock() to wait for autosave to complete (so remember to autosave(0) first!)
 
 2025-06-14 ------------------------------------------------------------------------------------------------------------
 * cleanup, changed all autoSave to new format, changed all waitDirty to flushAll aind got rid of all dirty flags
 * discovered an oversight in the way obj{}'s handle ordering that blew things up.  created a new DFDict class to resolve
-* renamed table:doc.meta to table:doc.dcwList as meta was starting to feel 'overly generic' and since the dch/dcw split
+* renamed table:doc.meta to table:doc.dcwFlatTree as meta was starting to feel 'overly generic' and since the dch/dcw split
     this felt more appropriate,  also with the changeover to the new DFDict this table had to be reconstructed anyway
 * replaced sqlite3 with better-sqlite3 and rewrote DBHandler class.  
 * added get() to DBHandler which returns single recs and thus supports INSERT...RETURNING which we need for bumping
