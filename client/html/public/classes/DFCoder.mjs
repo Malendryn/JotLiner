@@ -107,14 +107,14 @@ class DFDecoder {
         this.idx = 0;
     }
 
-    EOSTREAM = Symbol("NOSTREAM");
+    EOSTREAM = Symbol("EOSTREAM");
 
     decode() {  // decode ONE AND ONLY ONE value,  repeated calls to this will decode more if more is available
 // if (this.idx == 257) {
 // debugger;
 // }
         if (this.u8a.byteLength == 0) {
-            return this.NOSTREAM   // special case, only likely to happen if u8a had zerolength to begin with
+            return this.EOSTREAM   // special case, only likely to happen if u8a had zerolength to begin with
         }
         const header = this._parseHeader();
         let [dType,len] = header;

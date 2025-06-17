@@ -1,6 +1,7 @@
 
 globalThis.FG  = {}; // global 'Frontend Globals' variables   (see fem_core_Globals.js for details)
 globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Functions.js for details)
+globalThis.SF  = {}; // just like BF except shared_Functions (functions both backend and frontend have in common)
 globalThis.DCH = {}; // DocumentComponentHandler CLASSES, by name (EG {"_BASE": class DCH__BASE, "DOC": class DCH_DOC)
 globalThis.WS  = {}; // WebSocket and Packet transmit/receive CLASSES, funcs, etc
 globalThis.LS  = {}; // see fem_core_LocalStore.js
@@ -76,8 +77,9 @@ function __onUnhandledRejection(err) {
 window.onunhandledrejection = __onUnhandledRejection;
 
 window.addEventListener('load', async function() {
-    await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate basics of FG
-    await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate basics of FF
+    await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate FG
+    await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate FF
+    await FF.loadModule("./modules/shared/shared_Functions.js");           // populate SF
 
     let el;
     el = this.document.getElementById("divToolbar");
@@ -103,6 +105,7 @@ window.addEventListener('load', async function() {
     pkt = await WS.sendWait(pkt);
     FG.VERSION = pkt.version;
     FG.DOCVERSION = pkt.docVersion;
+    WS.connId     = pkt.connId
 
     el = this.document.getElementById("__tbm3");
     el.innerHTML = `Project: JotLiner &nbsp; &nbsp; v${FG.VERSION}`;

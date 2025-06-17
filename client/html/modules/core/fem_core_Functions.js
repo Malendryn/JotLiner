@@ -22,8 +22,8 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 {...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
---------       autoSave("action", data, delay=1000)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees
--------- async flushAll()               convenience call to FF.autoSave(0) to trigger saving immediately
+--------       autoSave("action", data, delay)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees
+-------- async flushAll()               convenience call to flush any FF.autoSave waiting to trigger saving immediately
 
 
 ==== FROM fem_core_WSockHandler.js ====================================================================================
@@ -44,7 +44,7 @@ pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 -------- async selectAndLoadDoc(uuid,force)   update selection in indexView, load selected doc in dchView, update localStorage
 
 ==== FROM fem_core_DocViewHandler.js ==================================================================================
-[]     =       getAllDcw()              get list of all dcw's in FF.curDoc.rootDcw. (in same order as exporter puts them)
+[]     =       getDcwList()             get list of all dcw's in FF.curDoc.rootDcw. (in same order as exporter puts them)
 --------       getDchName(dch)          return name of dch as the subdirName in DocComponentHandlers
 --------       getRawRect(el)           return LWRTHB of el direct from .style property
 --------       moveDivRelative(el, deltaX, deltaY)  move a div by x/y pixels, accounting for LWRTHB anchors too
@@ -228,8 +228,17 @@ FF.__FILE__ = function(all = false) {   // see 'FF.trace' right below this func 
 	}
 };
 
+
+const _aSaveReTimer = new DFReTimer(_onAutoSave);
+let   _aSaveKeyword;
+let   _aSavePayload;
 async function _onAutoSave() {  // process autosaving
-    const list = FF.getAllDcw();
+    switch(_aSaveKeyword) {
+
+    }
+    _aSaveKeyword = undefined;
+
+    const list = FF.getDcwList();
     for (const entry of list) {
         if (await entry._s_dch.isDirty()) { // check if dcw's dch is dirty
             debugger; WS.pktFtoB.ModDch(entry._s_dch);
@@ -243,11 +252,20 @@ async function _onAutoSave() {  // process autosaving
 // await WS.dispatch[pktName](data);   // since 100% of dispatches are due to talking to backend lets just put it all on the WebSock/PacketHandler
 };
 
-const _reTimer = new DFReTimer(_onAutoSave);
-FF.autoSave   = _reTimer.setDelay;
+
+
+FF.autoSave   = (keyword, payload, delay=1000) => {
+    if (kwd == _aSaveKeyword || payload != _aSavePayload) {
+        FF.flushAll();
+        _aSaveKeyword = keyword;
+        _aSavePayload = payload
+    } 
+    _aSaveReTimer.setDelay;
+}
+
 FF.flushAll   = async function () { 
-    _reTimer.setDelay(0); 
-    await _reTimer.deadlock(); 
+    _aSaveReTimer.setDelay(0);
+    await _aSaveReTimer.deadlock(); 
 }
 
 

@@ -273,11 +273,11 @@ debugger; let dch = await DCW_BASE.create(null, null);	// blowout any loaded han
 
     dch.create("BOX", {zX:0, zY:0});      // turn it into a 'BOX'
     FG.curDoc = {
-        uuid:    FF.makeUUID(),
-        name:    "unnamed",
-        rootDcw: dch,
-        bump:    0,
-        dchState: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
+        uuid:      FF.makeUUID(),
+        name:      "unnamed",
+        rootDcw:   dch,
+        bump:      0,
+        dchStates: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
     };
 };
     
@@ -713,18 +713,18 @@ async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
     const rootDcw = await attacher.attach(pkt.rec.dcwFlatTree, null, false);    // this doc has no parent(null) so will become our new rootDcw
 
     FG.curDoc = { 
-        uuid:    uuid,
-        name:    pkt.rec.name,
-        rootDcw: rootDcw,
-        bump:    pkt.rec.bump,
-        dchState: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
+        uuid:      uuid,
+        name:      pkt.rec.name,
+        rootDcw:   rootDcw,
+        bump:      pkt.rec.bump,
+        dchStates: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
     };
 
     LS.curDoc = uuid;
 }
 
 
-FF.loadDoc = async function(uuid, force=false) {                    // returns T/F if doc loaded. (sets curDoc.uuid and .rootDcw if True)
+FF.loadDoc = async function(uuid, force=false) {          // returns T/F if doc loaded. (sets curDoc.uuid and .rootDcw if True)
     if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded
         // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=true");
         return true;

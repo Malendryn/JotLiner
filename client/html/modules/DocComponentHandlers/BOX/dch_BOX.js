@@ -11,11 +11,19 @@ class DCH_BOX extends DCH_BASE {
     zX = 0;            // how far ALL children are shifted to give the appearance of infinite canvas
     zY = 0;
 
+    setZXY(x, y) {
+        debugger; if (zX != x || zY != y) {
+            this.zX = x;
+            this.zY = y;
+            this._hw_translateChildren(dcw._s_dch.zX, dcw._s_dch.zY);
+            this.autoSave();
+        }
+    }
     async construct() {
         // most styles are now in the DCH_BOX.css file
         // this._s_sysDiv.classList.add("DCH_BOX");
         this.host.classList.add("DCH_BOX"); // now = "DCW_DefaultRect DCH_BOX"
-        await this.__getOwner().translateChildren(this.zX, this.zY);     // applies the transform:translate() if needed
+        await this.__getOwner()._hw_translateChildren(this.zX, this.zY);     // applies the transform:translate() if needed
     }
 
     async importData(data) {    // populate this component with data

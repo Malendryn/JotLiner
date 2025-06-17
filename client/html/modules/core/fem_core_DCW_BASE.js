@@ -28,7 +28,6 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 // _hw_ prefixed: called from the dch to the dcw: (see DCH_BASE for actual useFunc)
 //      noprefix: called from somewhere outside the class NOT by DCH_BASE or the plugin itself
 
-//      noprefix: called from somewhere outside the class NOT by DCH_BASE or the plugin itself
 // static async create(parentDcw, style{})  --> docAttacher._attachNext(parentDcw, dcwEntry.S)
 // ------ ----- createShadowHost()
 // ------ ----- createShadowToolbar()
@@ -40,6 +39,10 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 // u8a  = async exportDchData()    --> this._s_dch._wh_exportDchData()
 // ------ async isDirty()          --> this._s_dch._wh_isDirty()
 // ------ ----- translateChildren(zX,zY) --> foreach child:  child._s_sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)"
+
+// ------ ----- recId       (set/get) this._s_dch._s_recId
+// ------ ----- bump        (set/get) this._s_dch._s_bump
+
 
 // _hw_ prefixed: called from the dch to the dcw: (see DCH_BASE for actual useFunc)
 // _hw_loadStyle(style, which) adds style to this.#hostStyle
@@ -252,17 +255,21 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
     async exportDchData() {
-        debugger; const data = await this._s_dch._wh_exportData();
-        debugger; /*RSTODO create/send a ModDch packet here*/
+        debugger; return await this._s_dch._wh_exportData();
     }
 
-    async isDirty() {
-        return await this._s_dch._wh_isDirty();
-    }
+    // async isDirty() {
+    //     return await this._s_dch._wh_isDirty();
+    // }
 
 
+    get recId()    { return this._s_dch._s_recId; }
+    set recId(v)   { this._s_dch._s_recId = v;    }
+    get bump()     { debugger; return this._s_dch._s_bump;  }
+    set bump(v)    { debugger; this._s_dch._s_bump = v;     }
+    
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    translateChildren(zX, zY) { // called via fem_core_DocViewHandler.js AND from dch_BOX.js
+    _hw_translateChildren(zX, zY) { // called via fem_core_DocViewHandler.js AND from dch_BOX.js
         for (let idx = 0; idx < this._s_children.length; idx++) {        // get the bounding box around all children
             const child = this._s_children[idx];
             child._s_sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)";
@@ -307,7 +314,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
     _hw_autoSave(delay) {       // dirty flag gets set on _s_dch, not this obj  (see async exportData() below)
-        FF.autoSave(delay);
+        FF.autoSave("DCH", this, delay);
     } 
 
 

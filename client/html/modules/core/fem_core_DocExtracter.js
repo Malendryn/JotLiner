@@ -35,7 +35,7 @@ export class DocExtracter {
             C: dcw._s_children.length,
         };
 
-        this.dcwDict.append(dcw._s_dch._s_recId, data);              // must happen before walking children
+        this.dcwDict.append(dcw.recId, data);              // must happen before walking children
         for (let idx = 0; idx < dcw._s_children.length; idx++) {
             this._extract(dcw._s_children[idx]);
         }

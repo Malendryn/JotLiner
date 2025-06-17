@@ -18,6 +18,8 @@ it supports JSON via export/import,     like {} but not Map()
 */
 
 export class DFDict {
+    // NOEXIST = Symbol("NOEXIST");
+    
     get length() { return this.#keys.length; }
 
     

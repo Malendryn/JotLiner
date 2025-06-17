@@ -331,14 +331,14 @@ try {
     
     async function onContextMenuClose(action) { 
         FG.kmStates.modal = false;
+        let extracter = new FG.DocExtracter();    //RSNOTE DOES NOT detach! ONLY extracts!!!!
         if (action.startsWith("insert_")) {
             let dchName = action.substr(7);
-            WS.pktFtoB.NewDch(dchName, dcw, {L:startX, T:startY, W:100, H:100}); // ("name", parent, style{})
-        }
-        switch (action) {                                     // 'go do' whatever was clicked
+            let dchFlatTree = [0, {N:dchName, S:{L:startX, T:startY, W:100, H:100},"C":0}];     // create faux dchFlatTree entry
+            WS.pktFtoB.AddDch(dcw, dchFlatTree);
+        } else switch (action) {                                                 // 'go do' whatever was clicked
             case "export":
-/*RSTODO 2.0*/  debugger; let extracter = new FG.DocExtracter();    //RSNOTE DOES NOT detach! ONLY extracts!!!!
-                let str = await extracter.extract(dcw, true);
+                debugger; trace("RSTODO 'extract' needs work!"); let str = await extracter.extract(dcw);
                 console.log(str);
                 break;
             case "delete":
@@ -353,10 +353,8 @@ try {
                         return;
                     }
                 }
-                setKMStateMode(0);  // obliterate all ghosting and modeing 
-                const recId = dcw._s_dch._s_recId;
-                await dcw.destroy();
-                debugger; FF.autoSave();
+                setKMStateMode(0);      // obliterate all ghosting and modeing
+                WS.pktFtoB.DelDch(dcw);
                 break;
             case "setLayout":
                 debugger; onContextDCHLayout();
@@ -478,7 +476,7 @@ function setKBModeToolbarText(dcw) {
 }
 
 
-FF.getAllDcw = function() {  // return a straight [] of all dcw's in this doc
+FF.getDcwList = function() {  // return a straight [] of all dcw's in this doc
     if (!FG.curDoc) {
         return [];
     }
@@ -519,7 +517,7 @@ function getChildrenBoundingRect(dcw) {
 function showOOB() {
     console.log(FF.__FILE__(), "showOOB");
     FG.ghosts.showOOB = true;
-    const dcwList = FF.getAllDcw();
+    const dcwList = FF.getDcwList();
     for (const dcw of dcwList) {
         if (FF.getDchName(dcw._s_dch) == "BOX") {  // only do this to BOXes
             let pRect = dcw._s_sysDiv.getBoundingClientRect();
@@ -544,7 +542,7 @@ function showOOB() {
 // function clearOOB() {
 //     console.log(FF.__FILE__(), "clearOOB");
 //     FG.ghosts.showOOB = false;
-//     const dcwList = FF.getAllDcw();
+//     const dcwList = FF.getDcwList();
 //     for (const dcw of dcwList) {
 //         dcw._s_sysDiv.classList.remove("border-T");
 //         dcw._s_sysDiv.classList.remove("border-R");
@@ -567,7 +565,7 @@ function showGhosts(dcw) {
             FG.ghosts.divGhost.remove();
             FG.ghosts.divGhost = null;      // RSTODO can we eliminate this 'divGhost' entirely now that we use __divGhost ?
         }
-        let dcwList = FF.getAllDcw();       // also delete all child ghosts everywhere
+        let dcwList = FF.getDcwList();       // also delete all child ghosts everywhere
         for (const dcw of dcwList) {
             if (dcw.__divGhost) {
                 dcw.__divGhost.remove();
@@ -721,7 +719,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             }
         }
 
-        debugger; FF.autoSave();          // autosave after short delay
+        debugger; FF.autoSave("ModDoc");          // autosave after short delay
         setKBModeToolbarText(FG.kmStates.dcw);
     }
 }
@@ -765,10 +763,7 @@ function doDchOpMode2() { // only called when FG.kmStates.mode == 2  (mousemove 
         const deltaX = FG.kmStates.clientX - FG.kmPrior.clientX;
         const deltaY = FG.kmStates.clientY - FG.kmPrior.clientY;
         if (deltaX || deltaY) {
-            dcw._s_dch.zX += deltaX;
-            dcw._s_dch.zY += deltaY;
-            dcw.translateChildren(dcw._s_dch.zX, dcw._s_dch.zY);
-            debugger; FF.autoSave("modDoc", "");   // autosave after n secs
+            dcw._s_dch.setZXY(dcw._s_dch.zX += deltaX, dcw._s_dch.zY += deltaY);
         }
     }
     setKBModeTitlebarText(dcw);
@@ -952,6 +947,9 @@ function setKMState(states) {
 
 
 function onTkmKeyDown(evt) {
+    if (!WS.connected) {
+        return;
+    }
     const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
@@ -966,6 +964,9 @@ function onTkmKeyDown(evt) {
 }
 
 function onTkmKeyUp(evt) {
+    if (!WS.connected) {
+        return;
+    }
     const states = {
         keyCtrl:  evt.ctrlKey,
         keyAlt:   evt.altKey,
@@ -993,6 +994,9 @@ function onTkmContextMenu(evt) {
 
 let sizerStartPos = null;         // 'sizerStartPos' = mouse Operation (presently only for click+drag of divHandlers)
 function onTkmMousedown(evt) {
+    if (!WS.connected) {
+        return;
+    }
     if (FG.kmStates.modal) {
         return;
     }
@@ -1045,6 +1049,9 @@ FF.setSizerPos = function(pos) {
 
 
 function onTkmMouseMove(evt) {
+    if (!WS.connected) {
+        return;
+    }
     setInDocView(evt);                  // sets FG.kmStates.inDocView
     if (sizerStartPos) {                //check/move dragging sizerBar BEFORE checking inDocView
         const m = sizerStartPos;
@@ -1062,6 +1069,9 @@ function onTkmMouseMove(evt) {
 
 
 function onTkmMouseUp(evt) {
+    if (!WS.connected) {
+        return;
+    }
     if (sizerStartPos) {                                // if was dragging the sizerbar
         const el = document.getElementById("divIndexDocSizer");
         el.style.cursor = "";

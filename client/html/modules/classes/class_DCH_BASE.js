@@ -25,8 +25,9 @@ class DCH_BASE {   // base class of all document components
 //  async importData(u8a)  // MUST: data = Uint8Array (dch must support zeroLen when dch first instanced)
 //  async exportData()     // MUST: return an object of key-value pairs to be preserved/exported
 
-//  async isDirty()        // MUST: return true/false, called right before removing this dch
-
+// *** OBSOLETE  async isDirty()        // MUST: return true/false, called right before removing this dch
+// *** RSTODO async getDeltas()      // RSTODO: return [undoDelta, redoDelta] (and reset self for next delta)
+// ***    also add flag for 'canDelta'
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* helper properties and functions ------------------------------------------------------------------------------------
@@ -68,7 +69,7 @@ class DCH_BASE {   // base class of all document components
     async destruct()       {}                              // do any other kind of cleanup before class destruction
     async importData(u8a)  { throw new Error("Subclass must implement importData()"); }  // populate this component with data
     async exportData()     { throw new Error("Subclass must implement exportData()"); }  // *overridable* return data to be preserved/exported as a {}
-    async isDirty()        { throw new Error("Subclass must implement isDirty()"); }
+    // async isDirty()        { throw new Error("Subclass must implement isDirty()"); }
 
     constructor(owner) {
         if (this.constructor.pluginName == DCH_BASE.pluginName) {
@@ -103,21 +104,21 @@ class DCH_BASE {   // base class of all document components
 
 
     async _wh_importData(u8a) {  // called from DCW_BASE.importDchData();
-        debugger; this.#dirty = false;
-        let decoder = new DFDecoder(u8a)
+        // this.#dirty = false;
+        debugger; let decoder = new DFDecoder(u8a)
         this.importData(decoder.decode())
     }
 
     async _wh_exportData() {     // called from DCW_BASE.exportDchData();
-        debugger; this.#dirty = false;
-        let encoder = new DFEncoder();
+        // this.#dirty = false;
+        debugger; let encoder = new DFEncoder();
         let u8a = encoder.encode(this.exportData());
         return u8a;
     }
 
-    async _wh_isDirty() {     // called from DCW_BASE.isDirty();
-        debugger; return await this.isDirty() || this.#dirty;   // return if plugin says its dirty OR if #dirty was set via autoSave()
-    }
+    // async _wh_isDirty() {     // called from DCW_BASE.isDirty();
+    //     debugger; return await this.isDirty() || this.#dirty;   // return if plugin says its dirty OR if #dirty was set via autoSave()
+    // }
 
     #throwErr(propName) { throw new Error(`${this.constructor.name} attempted to set readonly property '${propName}'`); }
 
@@ -128,15 +129,15 @@ class DCH_BASE {   // base class of all document components
 
     async loadStyle(str, which={}) {  await this.#owner._hw_loadStyle(str, which); }
 
-    autoSave(delay = 1000) {
-        debugger; this.#dirty = true;
-        this.#owner._w_autoSave(delay);
+    autoSave(delay) {
+        // this.#dirty = true;
+        debugger; this.#owner._hw_autoSave(delay);
     }
 
     __getOwner() { return this.#owner; }     // special just for BOX
 
     #owner;       // DCW_BASE that owns us
-    #dirty;
+    // #dirty;
     _s_recId = 0;  // database record id
     _s_bump  = 0;  // database rec bumpVal (for comparisons)
 };
