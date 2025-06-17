@@ -21,8 +21,6 @@ BG.clients     = new Map(); // map of <wsockHandle>: {client} which is currently
     //     db:     db,     // handle to open db, or null if dbName is null
     // };
 
-BG.nextWSockId = 0;         // attached-then-incremented to each new ws connectiona as ws._id
-
 BG.openedDBs = {
     // "dbName": {          // for each db open, name is the key here (as per BG.clients above)
     //     db:      null,   // handle to the now-opened db

@@ -22,7 +22,9 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 {...}  =       parseRgba(rgbString)     turn "rgb(1,2,3)" or "rgba(1,2,3,4)"" into {r:1, g:2, b:3[, a:4]}
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
---------       autoSave("action", data, delay)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees
+--------       autoSave("action", data, delay)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees, actions are:
+                                            "DCH" dch data content needs saving
+                                            "DOC" doc's dcw's were moved/resized/reordered (not added/deleted, those are immediate acts)
 -------- async flushAll()               convenience call to flush any FF.autoSave waiting to trigger saving immediately
 
 
@@ -234,25 +236,15 @@ let   _aSaveKeyword;
 let   _aSavePayload;
 async function _onAutoSave() {  // process autosaving
     switch(_aSaveKeyword) {
-
+        case "DCH":         // content of plugin has changed
+            debugger;
+            break;
+        case "DOC":         // doc's dcw's were moved/resized/reordered (NOT added/deleted, that's handled differently!)
+            debugger;
+            break;
     }
     _aSaveKeyword = undefined;
-
-    const list = FF.getDcwList();
-    for (const entry of list) {
-        if (await entry._s_dch.isDirty()) { // check if dcw's dch is dirty
-            debugger; WS.pktFtoB.ModDch(entry._s_dch);
-        }
-    }
-// walk all dch and call isDirty() on them,  (return true if saveme, false if nothing changed)
-// check if doc=dirty
-// check if docTree=dirty
-// check if dbList=dirty
-
-// await WS.dispatch[pktName](data);   // since 100% of dispatches are due to talking to backend lets just put it all on the WebSock/PacketHandler
 };
-
-
 
 FF.autoSave   = (keyword, payload, delay=1000) => {
     if (kwd == _aSaveKeyword || payload != _aSavePayload) {

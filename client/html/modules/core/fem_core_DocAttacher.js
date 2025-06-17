@@ -22,7 +22,7 @@ export class DocAttacher {   // create and return a DCH from a stream
 // take a dcwDict and insert/update/reorder/delete its entries from at-or-beneath parentDcw(inclusive)
 /*
 we cant rely on only one dch changing at a time cuz copy/paste
-so for each GetDch packet we send a faux recId that we match the response packet to
+so for each GetDch packet we send a faux dchRecId that we match the response packet to
    ... we can't do that cuz broadcase, has to work for other clients that won't have a faux recid to match to
 
 so, ok, hmm...
@@ -48,7 +48,7 @@ BUT FIRST lets get attach to construct a dch-less tree and then go fetch all the
     }
 
     async _attachNext(parentDcw) {
-        if (this.idx > this.dcwDict.length) {      // no more recs to process 
+        if (this.idx >= this.dcwDict.length) {      // no more recs to process 
             return null;
         }
         const [recId, dcwEntry] = this.dcwDict.getByIdx(this.idx++); 
@@ -62,11 +62,11 @@ BUT FIRST lets get attach to construct a dch-less tree and then go fetch all the
         pkt = await WS.sendWait(pkt);           // consider lazyloading this in the future
 
         if (await dcw.attachDch(pkt.rec.name)) {
-            dcw.recId = recId;                  // dch needs to know its recId for autoSave
+            dcw.dchRecId = recId; 
             const decoder = new DFDecoder(pkt.rec.content);
             const dict = decoder.decode();      // will return undefined if u8a is empty
             if (dict != decoder.EOSTREAM) {     // if stream was empty
-                dcw._s_dch.importData(dict);
+                dcw.dch.importData(dict);
             }
         }
         for (let idx = 0; idx < dcwEntry.C; idx++) {    // load children of component (if any) (only if BOX component)

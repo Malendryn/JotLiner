@@ -17,6 +17,7 @@ to gen ssl (.pem) files for https do the following:
 //// Absolute minimum to get the ball rolling /////////////////////////////////////////////////////////////////////////
 globalThis.BG  = {}; // global 'Backend Globals' variables   (see bem_core_Globals.js for details)
 globalThis.BF  = {}; // global 'Backend Functions' functions (see bem_core_Functions.js for details)
+globalThis.SF  = {}; // just like BF except shared_Functions (functions both backend and frontend have in common)
 globalThis.WS  = {}; // WebSocket and Packet transmit/receive CLASSES, funcs, etc
 
 WS.wssPort = 3000;      // must match wssPort in client/index.js
@@ -27,8 +28,9 @@ BG.basePath = dirname(BG.serverPath);               // "file:///<somewhere>"
 
 
 async function start() {
-    await BF.loadModule("./modules/core/bem_core_Globals.js");      // load globals first, cuz everything lives off globals, and connect it to globalThis.SG
-    await BF.loadModule("./modules/core/bem_core_Functions.js");    // load functions next, and connect it to globalThis.SF
+    await BF.loadModule("./modules/core/bem_core_Globals.js");                 // populate FG
+    await BF.loadModule("./modules/core/bem_core_Functions.js");               // populate FF
+    await BF.loadModule("../client/html/modules/shared/shared_Functions.js");  // populate SF
 
     await getConverters(); // get files in converters subdir to see if db or anything needs updating
 
@@ -36,8 +38,8 @@ async function start() {
 
     await BF.loadModule("../client/html/modules/shared/shared_PacketDefs.js");   // load the known SHARED baseline packet definitions
     await BF.loadModule("./modules/core/bem_core_PacketHandlers.js");            // load the serverside handlers for incoming packets
-    // await BF.loadModule("./modules/core/bem_core_DocExporter.js");               // export doc into latest streamformat
-    // await BF.loadModule("./modules/core/bem_core_DocExploder.js");              // validate, upgrade, explode, rebuild doc based on version
+    // await BF.loadModule("./modules/core/bem_core_DocExporter.js");            // export doc into latest streamformat
+    // await BF.loadModule("./modules/core/bem_core_DocExploder.js");            // validate, upgrade, explode, rebuild doc based on version
 
     const app = express();
     app.use(express.static(path.join(BG.basePath, 'client/html')));

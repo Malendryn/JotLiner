@@ -97,9 +97,9 @@ class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor
         return { "C" : this.el.innerHTML };   // "C" for content
     }
     
-    async isDirty() {
-        return false;   // changes in here already handled by autoSave() so just return false-always
-    }
+    // async isDirty() {
+    //     return false;   // changes in here already handled by autoSave() so just return false-always
+    // }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

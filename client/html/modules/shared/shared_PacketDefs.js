@@ -123,9 +123,9 @@ _register(class GetDoc extends PacketBASE {    // load a doc from the db via its
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 _register(class AddDch extends PacketBASE {    // add dch flatTree(in cases of paste) to current doc, broadcasts "ModDoc"
-//  uuid        // B<-F uuid of doc this belongs to
-//  flatTree    // B<-F ...[[0, {N:"BOX",S:{...},C:1}],[0, {N:"BOX",S:{...},C:0}]]
-//  childOf     // B<-F recId to insert this new dch as a child of (always as last child)
+//  uuid            // B<-F uuid of doc this belongs to
+//  newDcwFlatTree  // B<-F ...[[0, {N:"BOX",S:{...},C:1}],[0, {N:"BOX",S:{...},C:0}]]  (with 0's for recId's to create)
+//  childOf         // B<-F dchRecId to insert this new dch as a child of (always as last child)
 });
 
 _register(class ModDch extends PacketBASE {    // add a new dch to current doc
@@ -134,7 +134,7 @@ _register(class ModDch extends PacketBASE {    // add a new dch to current doc
 
 _register(class DelDch extends PacketBASE {    // deleting dch(and all children) from current doc, broadcasts "ModDoc"
 //  uuid        // B<-F uuid of doc this belongs to
-//  dchId       // B<-F recId of dchRec to remove
+//  dchId       // B<-F dchRecId of dchRec to remove
 });
 
 _register(class GetDch extends PacketBASE {    // load a doc from the db via its uuid

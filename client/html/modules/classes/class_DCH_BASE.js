@@ -138,8 +138,6 @@ class DCH_BASE {   // base class of all document components
 
     #owner;       // DCW_BASE that owns us
     // #dirty;
-    _s_recId = 0;  // database record id
-    _s_bump  = 0;  // database rec bumpVal (for comparisons)
 };
 export { DCH_BASE };
 

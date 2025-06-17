@@ -3,38 +3,62 @@ globally available functions to keep the main files cleaner  (SF stands for 'Sha
 ***********************************************************************************************************************/
 
 
-SF.flatToReal = function(tree) { //[[22,{N,S,C:1}],[33,{N,S,C:0}]] to [22,{N,S,C:[[33,{N,S,C:[]}]]}]
+
+// SF.xflatToReal = function(tree) { //[[22,{N,S,C:1}],[33,{N,S,C:0}]] to [22,{N,S,C:[[33,{N,S,C:[]}]]}]
+//     let idx = 0;
+//     const real = [];
+//     function extract() {
+//         const kids = [];
+//         let   [recId,dict] = tree[idx++];
+//         dict = Object.assign({}, dict);     // make sure our mod to the dict is not to the original
+//         let   kidCt = dict.C;
+//         while (--kidCt >= 0) {
+//             kids.push(extract());
+//         }
+//         dict.C = kids;
+//         return [recId, dict];
+//     }
+//     return extract();
+// }
+
+
+// cvt [[11,{N,S,C:0}]] to '{recId:11,data:{N,S},parent:null,index:0,children:[]}'
+SF.flatToReal = function (flat) {
     let idx = 0;
-    const real = [];
-    function extract() {
-        const kids = [];
-        let   [recId,dict] = tree[idx++];
-        dict = Object.assign({}, dict);     // make sure our mod to the dict is not to the original
-        let   kidCt = dict.C;
-        while (--kidCt >= 0) {
-            kids.push(extract());
+    function extract(flat, parent=null) {  
+        const [recId, data] = flat[idx++];
+        let kidsLeft = data.C;
+        const node = {
+            recId:  recId,
+            data:   {N: data.N, S: Object.assign({}, data.S)}, // lose the C: cuz it's now 'children:[]'
+            parent: parent,                                    // for adding/removing
+            index:  (parent) ? parent.children.length : 0,     // for reordering/relocating
+            children: []
+        };
+        while (kidsLeft-- > 0) {
+            const childNode = extract(flat, node);
+            node.children.push(childNode);
         }
-        dict.C = kids;
-        return [recId, dict];
+        return node;
     }
-    return extract();
+    return extract(flat);
 }
 
-SF.realToFlat = function(tree) { 
+
+SF.realToFlat = function(tree) {
     const flat = [];
     function extract(tree) {
-        let  [recId,dict] = tree;
-        dict = Object.assign({}, dict);     // make sure our mod to the dict is not to the original
-        let kids = dict.C;
-        dict.C = kids.length;
-        flat.push([recId, dict]);
-        for (let idx = 0; idx < kids.length; idx++) {
-            extract(kids[idx]);
+        let pair = [tree.recId, Object.assign({}, tree.data)];     // [ 33, {N,S} ]
+        pair[1].C = tree.children.length;       // [ 33, {N:S,C:#} ]
+        flat.push(pair);
+        for (let idx = 0; idx < tree.children.length; idx++) {
+            extract(tree.children[idx]);
         }
     }
     extract(tree);
     return flat;
 }
+
 
 /*test
 debugger;

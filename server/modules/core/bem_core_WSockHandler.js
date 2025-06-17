@@ -2,6 +2,9 @@
 
 import { DFEncoder, DFDecoder } from "../../../client/html/public/classes/DFCoder.mjs";
 
+let _nextWSockId = 1;    // attached-then-incremented to each new ws connectiona as ws._id
+let _sourceId;           // see function process(...) below
+
 export async function init() {                      // load, init, and establish wss before returning
     return new Promise(async (resolve, reject) => {
         const module = await import("ws");
@@ -10,7 +13,7 @@ export async function init() {                      // load, init, and establish
         wss.on('connection', (ws) => {      
             console.log('Client connected');
 
-            ws._id = ++BG.nextWSockId;  // starts as 0 so increment before attaching
+            ws._id = _nextWSockId++;  // starts as 0 so increment before attaching
             const client = {
                 ws:     ws,
                 dbName: null,   // client's currently selected db, or null if none
@@ -65,6 +68,7 @@ async function process(ws, buf) {
     const client = BG.clients.get(ws);
 
     const pkt = WS.parsePacket(buf);
+    _sourceId = pkt.__id;  // so when .broadcast() is called it embeds this into it
     const response = await pkt.onPktRecvd(client);  
     if (response) {
         response.__id = pkt.__id;       // put original id into response packet
@@ -85,12 +89,16 @@ WS.fault = function(msg) {
 }
 
 
-WS.broadcast = (pkt) =>  {
+WS.broadcast = function(pktName, dict) {
+    const pkt = new WS.classes[pktName]();
+    pkt.__id = _sourceId;
+    Object.assign(pkt, dict);
     setTimeout( () => {     // cause deferral until originator sendWait/Expect finished so this arrives /after/ 
         for (const client of BG.clients.values()) {
             WS.send(client.ws, pkt);    // send to ALL clients, including originator
         }
     }, 0);
+    return null;
 };
 
 

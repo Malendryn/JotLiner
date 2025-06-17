@@ -29,9 +29,9 @@ class DCH_TXA extends DCH_BASE {
         return { "C" : this.el.value };   // C for content
     }
     
-    async isDirty() {
-        debugger; return false;   // changes in here already handled by autoSave() so just return false-always
-    }
+    // async isDirty() {
+    //     debugger; return false;   // changes in here already handled by autoSave() so just return false-always
+    // }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

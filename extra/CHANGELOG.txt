@@ -6,13 +6,22 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-17 ------------------------------------------------------------------------------------------------------------
+* renamed NewDch packet to AddDch (just feels more inline with Add/Mod/Del)
+* moving to a 'send instrux to server, deal with broadcast response to handle' model rather than make mods to client
+    before telling server about changes and then having to handle the broadcast response via 'if I sent it I do
+    X while all other clients do Y' and thus doubling the workload.
+* added html/modules/shared/shared_Functions.js as globalThis.SF
+* added dcwRealTree = SF.flatToReal(dcwFlatTree) and dcwFlatTree = SF.realToFlat(dcwRealTree)
+* AddDch and DelDch (and ModDoc response) have all been coded, but not yet tested,  tomorrow...!
+
+* changed many _s_ props on DCW_BASE to #props (#dch, #dchRecId, #sysDiv, ...) and now have get/setters for them
+
+2025-06-16 ------------------------------------------------------------------------------------------------------------
 * renamed all _c_ to _h_ (dCh to dcH) to be more inline with _w_ dcW 
 * renamed table:doc.dcwList to dcwFlatTree
 * figured out some logic on packet handling and inserting new DCH's etc,  still much to do tho!
 
-* 
 2025-06-15------------------------------------------------------------------------------------------------------------
 * added trace2() and 3() to see caller->caller->msg, etc...
 * reworking some more paradigms, changed autoSave back to 'only one timer' cuz really all things must happen in order

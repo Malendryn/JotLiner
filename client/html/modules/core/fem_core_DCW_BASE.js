@@ -10,17 +10,13 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // static async create(parentDcw, style) {  // create with only the most basic ._h_host, give it style and parentage
 //        async attachDch(name); // new dch() --> dch._wh_construct() (which attaches #host and #toolbar --> dch.construct())
-//        async destroy(); // recurse, children first; --> this._s_dch._wh_destroy(); removeall <div>'s, unlink from _s_parentDcw
+//        async destroy(); // recurse, children first; --> this.#dch._wh_destroy(); removeall <div>'s, unlink from #parentDcw
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////// internal prefixed properties and functions, (comms between dch, dcw, and system ) ///////////////
 
 // as a general rule of thumb, things with 
-// '#' are private to this class only
-
-// '_h_' are accessable to DCH's (dcH aka 'H'andler(plugin)) attached to this (through a getter)
-// _s_  prefixed: are available systemwide to everyone /including/ the DCH_BASE but /not/ the plugin itself!
 // #    prefixed: private to just the class
 
 // funcall rules:
@@ -35,18 +31,18 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 // ------ ----- hideToolbar()
 // ------ async attachDch(name)
 // ------ async destroy()          --> recurse children first; 
-// ------ async importDchData(u8a) --> this._s_dch._wh_importData(u8a)
-// u8a  = async exportDchData()    --> this._s_dch._wh_exportDchData()
-// ------ async isDirty()          --> this._s_dch._wh_isDirty()
-// ------ ----- translateChildren(zX,zY) --> foreach child:  child._s_sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)"
+// ------ async importDchData(u8a) --> this.#dch._wh_importData(u8a)
+// u8a  = async exportDchData()    --> this.#dch._wh_exportDchData()
+// ------ async isDirty()          --> this.#dch._wh_isDirty()
+// ------ ----- translateChildren(zX,zY) --> foreach child:  child.#sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)"
 
-// ------ ----- recId       (set/get) this._s_dch._s_recId
-// ------ ----- bump        (set/get) this._s_dch._s_bump
+// ------ ----- dch       (set/get) this.#dch
+// ------ ----- dchRecId  (set/get) this.#dch.#dchRecId
+// ------ ----- bump      (set/get) this.#dch.#bump
 
-
-// _hw_ prefixed: called from the dch to the dcw: (see DCH_BASE for actual useFunc)
+// _hw_ prefixed: called from DCH_BASE to DCW_BASE: (see DCH_BASE for actual useFunc)
 // _hw_loadStyle(style, which) adds style to this.#hostStyle
-// _hw_autoSave(delay = 1000)
+// _hw_autoSave(delay = 1000)  --> FF.autoSave("DCH", this, delay)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,46 +58,46 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         }
 
         const dcw = new DCW_BASE();   // dcw = Document Component Wrapper
-        dcw.#dcwId = ++_dcwIdCounter;
-        dcw._s_parentDcw = parentDcw;
-        dcw._s_sysDiv = document.createElement("div");           // create div
-        dcw.addDbgId(dcw._s_sysDiv, "_s_sysDiv");
-        // dcw._s_sysDiv._dchMouseOp = "dchComponent";       // how to know mouse is over a dcw
-        dcw._s_sysDiv["el->Dcw"] = dcw;                         // howtoKnow mouse is over this dcw
+        dcw._dcwDbgId = ++_dcwDbgIdCounter;
+        dcw.#parentDcw = parentDcw;
+        dcw.#sysDiv = document.createElement("div");           // create div
+        dcw._addDbgId(dcw.#sysDiv, "#sysDiv");
+        // dcw.#sysDiv._dchMouseOp = "dchComponent";       // how to know mouse is over a dcw
+        dcw.#sysDiv["el->Dcw"] = dcw;                         // howtoKnow mouse is over this dcw
 
-        // dcw._s_sysDiv.tabIndex = -1;                          // doing this makes the ._s_sysDiv focussable but not tabbable
-        dcw._s_sysDiv.classList.add("DCW_DefaultRect");
-        // dcw._s_sysDiv.style.position  = "absolute";      // the wrapping 'dcw._s_sysDiv' is ALWAYS absolute!
-        // dcw._s_sysDiv.style.boxSizing = "border-box";    // prevent oversizing due to padding,borders,margin,...
-        // dcw._s_sysDiv.style.padding   = "0px";
-        // dcw._s_sysDiv.style.margin    = "0px";
-        dcw._s_sysDiv.style.minWidth = "20px";           //prevent resizing smaller than 20px
-        dcw._s_sysDiv.style.minHeight = "20px";
+        // dcw.#sysDiv.tabIndex = -1;                          // doing this makes the .#sysDiv focussable but not tabbable
+        dcw.#sysDiv.classList.add("DCW_DefaultRect");
+        // dcw.#sysDiv.style.position  = "absolute";      // the wrapping 'dcw.#sysDiv' is ALWAYS absolute!
+        // dcw.#sysDiv.style.boxSizing = "border-box";    // prevent oversizing due to padding,borders,margin,...
+        // dcw.#sysDiv.style.padding   = "0px";
+        // dcw.#sysDiv.style.margin    = "0px";
+        dcw.#sysDiv.style.minWidth = "20px";           //prevent resizing smaller than 20px
+        dcw.#sysDiv.style.minHeight = "20px";
 
-        dcw._s_sysDiv.style.left       = '';     // start by setting all these to '' (to override .css 'inset:0px;')
-        dcw._s_sysDiv.style.right      = '';
-        dcw._s_sysDiv.style.width      = '';
-        dcw._s_sysDiv.style.top        = '';
-        dcw._s_sysDiv.style.bottom     = '';
-        dcw._s_sysDiv.style.height     = '';
+        dcw.#sysDiv.style.left       = '';     // start by setting all these to '' (to override .css 'inset:0px;')
+        dcw.#sysDiv.style.right      = '';
+        dcw.#sysDiv.style.width      = '';
+        dcw.#sysDiv.style.top        = '';
+        dcw.#sysDiv.style.bottom     = '';
+        dcw.#sysDiv.style.height     = '';
 
         for (const key in style) {              // get and parse the style values
             const val = style[key] + "px";      // get the value and append "px"
             switch(key) {
-                case 'L':   dcw._s_sysDiv.style.left   = val;   break;
-                case 'R':   dcw._s_sysDiv.style.right  = val;   break;
-                case 'W':   dcw._s_sysDiv.style.width  = val;   break;
-                case 'T':   dcw._s_sysDiv.style.top    = val;   break;
-                case 'B':   dcw._s_sysDiv.style.bottom = val;   break;
-                case 'H':   dcw._s_sysDiv.style.height = val;   break;
+                case 'L':   dcw.#sysDiv.style.left   = val;   break;
+                case 'R':   dcw.#sysDiv.style.right  = val;   break;
+                case 'W':   dcw.#sysDiv.style.width  = val;   break;
+                case 'T':   dcw.#sysDiv.style.top    = val;   break;
+                case 'B':   dcw.#sysDiv.style.bottom = val;   break;
+                case 'H':   dcw.#sysDiv.style.height = val;   break;
             }
         }
-        parentDiv.appendChild(dcw._s_sysDiv);
+        parentDiv.appendChild(dcw.#sysDiv);
 
 // create a 'temporary non-shadow' _h_host until we discover what type of dch is loading
 
         dcw._h_host = document.createElement("div")          // this is now where all child elements get appended to
-        dcw.addDbgId(dcw._h_host, "host");
+        dcw._addDbgId(dcw._h_host, "host");
         dcw._h_host.classList.add("DCW_DefaultRect");
         dcw._h_host.innerHTML = "Loading...";
         // dcw._h_host.style.position = "absolute";
@@ -110,10 +106,10 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         // dcw._h_host.style.width = "100%";
         // dcw._h_host.style.height = "100%";                   // make sure _h_host always fills parent completely
 
-        dcw._s_sysDiv.appendChild(dcw._h_host);
+        dcw.#sysDiv.appendChild(dcw._h_host);
 
         if (parentDcw) {                       // if parent was passed, attach this to its children
-            parentDcw._s_children.push(dcw);
+            parentDcw.#children.push(dcw);
         }
 
         return dcw;
@@ -121,10 +117,10 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
     createShadowHost() {
         this.#host = this._h_host;  // hijack the temporary _h_host and use it as our faux-host for the shadowDom
-        this.addDbgId(this.#host, "(was)_h_host (now)#host");
+        this._addDbgId(this.#host, "(was)_h_host (now)#host");
         this.#host.classList.add("shadowWrapper__host");         // see index.css
         // this.#host.style.position = "absolute";
-        // this.#host.style.inset = "0px";           // make sure this div stays sized to the _s_sysDiv
+        // this.#host.style.inset = "0px";           // make sure this div stays sized to the #sysDiv
 
         this.#hostShadow = this.#host.attachShadow({ mode: "open" });
 //         this.#hostShadow.innerHTML = `
@@ -141,12 +137,12 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 // </style>
 // `;
         this.#hostStyle = document.createElement("div");   // this is now where all style elements get appended to
-        this.addDbgId(this.#hostStyle, "#hostStyle(InShadow)");
+        this._addDbgId(this.#hostStyle, "#hostStyle(InShadow)");
         this.#hostStyle.style.display = "none";            // hide this div
         this.#hostShadow.appendChild(this.#hostStyle);    // here is where all loadStyle() el's go
 
         this._h_host = document.createElement("div");      // create 'final' <body>-like div to pass to plugin
-        this.addDbgId(this._h_host, "_h_host(InShadow)");
+        this._addDbgId(this._h_host, "_h_host(InShadow)");
         this._h_host.classList.add("DCW_DefaultRect");
         this.#hostShadow.appendChild(this._h_host);
     }
@@ -155,7 +151,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     createShadowToolbar() {
         let toolbarDiv = document.getElementById("divToolbar");
         this.#toolWrap = document.createElement("div"); // we NEED this cuz a shadowDiv has no .style for us to .display="none"
-        this.addDbgId(this.#toolWrap, "#toolWrap");
+        this._addDbgId(this.#toolWrap, "#toolWrap");
         this.#toolWrap.classList.add("DCW_DefaultToolbar");           // see index.css
         this.#toolWrap.classList.add("shadowWrapper__toolbar");      // see index.css
         // this.#toolWrap.style.position = "absolute";
@@ -178,12 +174,12 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 // </style>
 // `;
         this.#toolStyle = document.createElement("div");       // this is now where all child elements get appended to
-        this.addDbgId(this.#toolStyle, this.constructor.name + "#toolStyle(InShadow)");
+        this._addDbgId(this.#toolStyle, this.constructor.name + "#toolStyle(InShadow)");
         this.#toolStyle.classList.add("DCW_DefaultToolbar");           // see index.css
         // this.#toolStyle.style.display = "none";                // hide this div
         this.#toolShadow.appendChild(this.#toolStyle);
         this._h_toolbar = document.createElement("div");
-        this.addDbgId(this._h_toolbar, "_h_toolbar(InShadow)");
+        this._addDbgId(this._h_toolbar, "_h_toolbar(InShadow)");
         this._h_toolbar.classList.add("DCW_DefaultToolbar");           // see index.css
         // this._h_toolbar["el->Dcw"] = this;                            // needed for 'hide all toolbars'
         this._h_toolbar.style.backgroundColor = "rgb(155, 253, 161)";
@@ -214,7 +210,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
         let msg = null;
         try {
-            this._s_dch = new DCH[name].dchClass(this);        // create handler, do nothing else!
+            this.#dch = new DCH[name].dchClass(this);        // create handler, do nothing else!
         } catch (err) {
             msg = err.message;
         }
@@ -226,7 +222,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
             // await this.destroy();
         } else {
             this._h_host.innerHTML = "";        // get rid of 'loading...' msg cuz things like BOX won't.
-            await this._s_dch._wh_construct();  // creates shadowHost&Toolbar as needed, then calls dch's .construct()
+            await this.#dch._wh_construct();  // creates shadowHost&Toolbar as needed, then calls dch's .construct()
         }
         return true;
     }
@@ -234,45 +230,53 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
 // override above pre-defs in the help comments at the top of the class
     async destroy() { // recurse, children first; detach this dcw and owned dch from doc, removing all listeners too, and destroy it
-        while(this._s_children.length) {                          // destroy all children first
-            const child = this._s_children[this._s_children.length - 1]; // last to first cuz created first to last (just feels right!)
+        while(this.#children.length) {                          // destroy all children first
+            const child = this.#children[this.#children.length - 1]; // last to first cuz created first to last (just feels right!)
             await child.destroy();  // recurse into HERE
         }
-        await this._s_dch._wh_destroy();                  // give the dch a chance to cleanup
-        this._s_sysDiv.remove();             // remove our dcw toplevel div
+        await this.#dch._wh_destroy();                  // give the dch a chance to cleanup
+        this.#sysDiv.remove();             // remove our dcw toplevel div
         if (this.#toolWrap) {
             this.#toolWrap.remove();       // if it had a toolbar, remove that too
         }
-        if (this._s_parentDcw) {                // if not at topmost dcw, remove us from our parents children
-            const idx = this._s_parentDcw._s_children.indexOf(this);
-            this._s_parentDcw._s_children.splice(idx, 1);
+        if (this.#parentDcw) {                // if not at topmost dcw, remove us from our parents children
+            const idx = this.#parentDcw.children.indexOf(this);
+            this.#parentDcw.children.splice(idx, 1);
         }
     }
 
 
     async importDchData(u8a) {
-        debugger; this._s_dch._wh_importData(u8a);
+        debugger; this.#dch._wh_importData(u8a);
     }
 
     async exportDchData() {
-        debugger; return await this._s_dch._wh_exportData();
+        debugger; return await this.#dch._wh_exportData();
     }
 
     // async isDirty() {
-    //     return await this._s_dch._wh_isDirty();
+    //     return await this.#dch._wh_isDirty();
     // }
 
 
-    get recId()    { return this._s_dch._s_recId; }
-    set recId(v)   { this._s_dch._s_recId = v;    }
-    get bump()     { debugger; return this._s_dch._s_bump;  }
-    set bump(v)    { debugger; this._s_dch._s_bump = v;     }
-    
+    get dch()       { return this.#dch;}
+    // set dch(v)      { this.#dch = v;   }
+    get recId()     { return this.#dchRecId; }
+    // set recId(v)    { this.#dchRecId = v;    }
+    get bump()      { return this.#bump; }
+    // set bump(v)     { this.#bump = v;    }
+
+// getters only
+    get parentDcw() { return this.#parentDcw; }
+    get children()  { return this.#children;  }
+    get sysDiv()    { return this.#sysDiv;    }
+
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     _hw_translateChildren(zX, zY) { // called via fem_core_DocViewHandler.js AND from dch_BOX.js
-        for (let idx = 0; idx < this._s_children.length; idx++) {        // get the bounding box around all children
-            const child = this._s_children[idx];
-            child._s_sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)";
+        for (let idx = 0; idx < this.#children.length; idx++) {        // get the bounding box around all children
+            const child = this.#children[idx];
+            child.#sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)";
         }
     }
 
@@ -297,23 +301,23 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
         if (which.host) {
             let el = document.createElement("style");
-            this.addDbgId(el, "#hostStyle(InShadow)");
+            this._addDbgId(el, "#hostStyle(InShadow)");
             el.textContent = style;
             this.#hostStyle.appendChild(el);
         }
 
         if (which.toolbar) {
-            if (this._s_dch.hasToolbar != true) {
+            if (this.#dch.hasToolbar != true) {
                 throw new Error("Attempt to load style into toolbar when 'hasToolbar' != true");
             }
             let el = document.createElement("style");
-            this.addDbgId(el, "#toolStyle(InShadow)");
+            this._addDbgId(el, "#toolStyle(InShadow)");
             el.textContent = style;
             this.#toolStyle.appendChild(el);
         }
     }
 
-    _hw_autoSave(delay) {       // dirty flag gets set on _s_dch, not this obj  (see async exportData() below)
+    _hw_autoSave(delay) {       // dirty flag gets set on #dch, not this obj  (see async exportData() below)
         FF.autoSave("DCH", this, delay);
     } 
 
@@ -324,11 +328,11 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 // RSTODO privatize these (#parent #sysDiv) and maybe rename _sysDiv to #dcwDiv)
 
 
-    _s_sysDiv     = null;  // toplevel absolute div  housing entire dcw element tree
-    #host         = null;  // _s_sysDiv.#host ... where we will .attachShadow() to
-    #hostShadow   = null;  // _s_sysDiv.#host.#hostShadow = #host.attachShadow() ||| handle to attached Shadow
-    #hostStyle    = null;  // _s_sysDiv.#host.#hostShadow.#hostStyle   (hidden)  ||| where <style/>s for host go
-    _h_host       = null;  // _s_sysDiv.#host.#hostShadow._h_host                ||| <div> where plugin places <body> stuff
+#sysDiv     = null;  // toplevel absolute div  housing entire dcw element tree
+    #host         = null;  // #sysDiv.#host ... where we will .attachShadow() to
+    #hostShadow   = null;  // #sysDiv.#host.#hostShadow = #host.attachShadow() ||| handle to attached Shadow
+    #hostStyle    = null;  // #sysDiv.#host.#hostShadow.#hostStyle   (hidden)  ||| where <style/>s for host go
+    _h_host       = null;  // #sysDiv.#host.#hostShadow._h_host                ||| <div> where plugin places <body> stuff
 
 
     #toolWrap   = null;    // <divToolBar>.#toolWrap
@@ -338,22 +342,24 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
     _h_srcUrl   = null;
 
-    _s_parentDcw = null;   // parent dcw (or null if topLevel, (ONLY the root BOX element will ever be null))
-    _s_children  = [];
+    #parentDcw = null;   // parent dcw (or null if topLevel, (ONLY the root BOX element will ever be null))
+    #children  = [];
 
-    _s_dch;   // attached dch or undefined
+    #dch;       // attached dch or undefined
+    #dchRecId;  // db dch rec id
+    #bump       // db rec bumpNum
 
-    #dcwId;
+    _dcwDbgId; 
 
-    addDbgId(el, str) {
-        let ss = "DcwId=" + this.#dcwId + " divId=" + _debugIdCounter++ + "   this." + str;
+    _addDbgId(el, str) {
+        let ss = "DcwDbgId=" + this._dcwDbgId + " divDbgId=" + _divDbgIdCounter++ + "   this." + str;
         el.dataset._dbgid = ss;
     }
 };
 export { DCW_BASE };
 
-let _debugIdCounter = 0;    // for debug purposes
-let _dcwIdCounter = 0;
+let _divDbgIdCounter = 0;    // for debug purposes
+let _dcwDbgIdCounter = 0;
 
 
  

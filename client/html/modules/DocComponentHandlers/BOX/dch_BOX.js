@@ -15,13 +15,13 @@ class DCH_BOX extends DCH_BASE {
         debugger; if (zX != x || zY != y) {
             this.zX = x;
             this.zY = y;
-            this._hw_translateChildren(dcw._s_dch.zX, dcw._s_dch.zY);
+            this._hw_translateChildren(dcw.dch.zX, dcw.dch.zY);
             this.autoSave();
         }
     }
     async construct() {
         // most styles are now in the DCH_BOX.css file
-        // this._s_sysDiv.classList.add("DCH_BOX");
+        // this.sysDiv.classList.add("DCH_BOX");
         this.host.classList.add("DCH_BOX"); // now = "DCW_DefaultRect DCH_BOX"
         await this.__getOwner()._hw_translateChildren(this.zX, this.zY);     // applies the transform:translate() if needed
     }
@@ -38,9 +38,9 @@ class DCH_BOX extends DCH_BASE {
         };
     }
 
-    async isDirty() {
-        return false;   // changes in here already handled by autoSave() so just return false-always
-    }
+    // async isDirty() {
+    //     return false;   // changes in here already handled by autoSave() so just return false-always
+    // }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
