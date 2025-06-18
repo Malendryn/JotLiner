@@ -116,7 +116,7 @@ BF.loadModule = async (modulePath, exitOnFail = true) => {       // load a modul
             resolve(module);
             return;
         } catch (error) {
-            debugger; console.error(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
+            console.error(`*** FAILED TO LOAD module '${modulePath}' ***  err='${error}'`);
             if (exitOnFail) {
                 process.exit(1);
             }

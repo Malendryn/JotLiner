@@ -32,7 +32,7 @@ function iterCallback(db, rec) {
         const list = [rec.id, dch.name, tmp, 0];
         let id = db.run("INSERT INTO dch (docId,name,content,bump) values (?,?,?,?)", list);
 
-        dch.style.Z=0;             // stick 'Z' into the style block
+        // dch.style.Z=0;             // stick 'Z' into the style block
         let entry = {
             N: dch.name,     // stow name always so we can at least apply dch if importData/exportData fails
             S: dch.style,    // style taken from the OLD dch, for the NEW dcw
