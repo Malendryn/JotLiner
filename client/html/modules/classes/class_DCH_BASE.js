@@ -123,9 +123,9 @@ class DCH_BASE {   // base class of all document components
     #throwErr(propName) { throw new Error(`${this.constructor.name} attempted to set readonly property '${propName}'`); }
 
 // extending classes must never talk to owner directly so we have these passthrough get/setters
-    get srcUrl()   { return this.#owner._h_srcUrl;     }    set srcUrl(v)   { this.#throwErr("srcUrl");   }
-    get host()     { return this.#owner._h_host;       }    set host(v)     { this.#throwErr("host");     }
-    get toolbar()  { return this.#owner._h_toolbar;    }    set toolbar(v)  { this.#throwErr("toolbar");  }
+    get srcUrl()   { return this.#owner.srcUrl;     }    set srcUrl(v)   { this.#throwErr("srcUrl");   }
+    get host()     { return this.#owner.host;       }    set host(v)     { this.#throwErr("host");     }
+    get toolbar()  { return this.#owner.toolbar;    }    set toolbar(v)  { this.#throwErr("toolbar");  }
 
     async loadStyle(str, which={}) {  await this.#owner._hw_loadStyle(str, which); }
 

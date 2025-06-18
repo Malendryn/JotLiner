@@ -31,8 +31,8 @@ SF.flatToReal = function (flat) {
         const node = {
             recId:  recId,
             data:   {N: data.N, S: Object.assign({}, data.S)}, // lose the C: cuz it's now 'children:[]'
-            parent: parent,                                    // for adding/removing
-            index:  (parent) ? parent.children.length : 0,     // for reordering/relocating
+            // parent: parent,                                    // for adding/removing
+            // index:  (parent) ? parent.children.length : 0,     // for reordering/relocating
             children: []
         };
         while (kidsLeft-- > 0) {
@@ -62,9 +62,9 @@ SF.realToFlat = function(tree) {
 
 /*test
 debugger;
-let vv =                       '[[5,{"N":"BOX","S":{"L":0,"R":0,"T":0,"B":0,"Z":0},"C":2}],[6,{"N":"CTE","S":{"L":113,"W":100,"T":97,"H":100,"Z":0},"C":0}],[7,{"N":"BOX","S":{"L":114,"W":100,"T":176,"H":100,"Z":0},"C":0}]]'
+let vv =                       '[[5,{"N":"BOX","S":{"L":0,"R":0,"T":0,"B":0,},"C":2}],[6,{"N":"CTE","S":{"L":113,"W":100,"T":97,"H":100},"C":0}],[7,{"N":"BOX","S":{"L":114,"W":100,"T":176,"H":100},"C":0}]]'
 let ww=JSON.parse(vv);
-let xx = SF.flatToReal(ww);  //'[5,{"N":"BOX","S":{"L":0,"R":0,"T":0,"B":0,"Z":0},"C":[[6,{"N":"CTE","S":{"L":113,"W":100,"T":97,"H":100,"Z":0},"C":[]}],[7,{"N":"BOX","S":{"L":114,"W":100,"T":176,"H":100,"Z":0},"C":[]}]]}]'
+let xx = SF.flatToReal(ww);  //'[5,{"N":"BOX","S":{"L":0,"R":0,"T":0,"B":0},"C":[[6,{"N":"CTE","S":{"L":113,"W":100,"T":97,"H":100},"C":[]}],[7,{"N":"BOX","S":{"L":114,"W":100,"T":176,"H":100},"C":[]}]]}]'
 let yy = SF.realToFlat(xx);
 let zz = JSON.stringify(yy);
 console.log (vv == zz);

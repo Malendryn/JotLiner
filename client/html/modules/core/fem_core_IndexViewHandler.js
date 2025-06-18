@@ -191,8 +191,8 @@ async function _onCtxExport_onDlgButton(btnLabel, dict) {
     return result;
 }
 async function onCtxExport() {
-    let extracter = new FG.DocExtracter();
-    let tmp = await extracter.extract(FG.curDoc.rootDcw, true);
+    const extracter = new FG.DocExtracter();
+    const dcwFlatTree = await extracter.extract(FG.curDoc.rootDcw, true);
 
     let mod = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
 
@@ -200,9 +200,9 @@ async function onCtxExport() {
     let dict = {
         uuid:    info.uuid,
         name:    info.name,
-        dchList: tmp,
+        dchList: JSON.stringify(dcwFlatTree),
     }
-    tmp = new mod.DocExporter();
+    let tmp = new mod.DocExporter();
     _dlgTmp = await tmp.export(dict);
 
     const form = `
@@ -264,23 +264,19 @@ FF.newDoc = async () => {
     await FF.clearDoc();
     
     // then create a new doc by adding a single BOX handler as the docRoot
-debugger; let dch = await DCW_BASE.create(null, null);	// blowout any loaded handlers and create toplevel DOC object
-    dch.sysDiv.style.left   = "0px";	// note DO NOT use 'inset' here as we expect to read dch.sysDiv.style.top/bottom/etc during exportDoc()
-    dch.sysDiv.style.top    = "0px";	// toplevel BOX must always have TRBL set to 0's to fill entire screen!
-    dch.sysDiv.style.right  = "0px";
-    dch.sysDiv.style.bottom = "0px";
-    dch.sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
+debugger; let dcw = await DCW_BASE.create(null, {T:0,R:0,B:0,L:0});	// blowout any loaded handlers and create toplevel DOC object
+    dcw.sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
 
-    dch.create("BOX", {zX:0, zY:0});      // turn it into a 'BOX'
+    debugger; await dcw.attachDch("BOX");      // turn it into a 'BOX'
     FG.curDoc = {
         uuid:      FF.makeUUID(),
         name:      "unnamed",
-        rootDcw:   dch,
+        rootDcw:   dcw,
         bump:      0,
         dchStates: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
     };
 };
-    
+   
     
 function makeNewDocForm(asChild) {
     let childTxt = (asChild) ? "child " : "";
@@ -301,7 +297,7 @@ function openDocRenamePopup() {
                 return false;
             }
     
-            let pkt = WS.makePacket("RenameDoc")
+            debugger; let pkt = WS.makePacket("RenameDoc")
             // FG.curDoc.name = dict.docName;   no reason to track docname in curDoc
             pkt.uuid = FG.curDoc.uuid;
             pkt.name = dict.docName;
@@ -334,7 +330,7 @@ function openDocRenamePopup() {
 // dict={docName, ?doc(u8a) if import, else null if new, asChild};
 // returns true=success, false=fail
 async function insertDoc(dict) {
-    if (dict.docName.length == 0) {
+    debugger; if (dict.docName.length == 0) {
         alert("Document name cannot be empty");
         return false;
     }
@@ -348,13 +344,11 @@ async function insertDoc(dict) {
 
     await FF.newDoc();    // setup NEW FG.curDoc w/empty document and new uuid (we always need that new uuid here)
     dict.uuid = FG.curDoc.uuid;
+    
+    let dcwFlatTree;
     if (!dict.doc) {        // if present, is u8a file import block, else make u8a from FF.newDoc() we just called
-        let extracter = new FG.DocExtracter();
-        let encoder = new DFEncoder();
-        let tmp = {
-            dchList: await extracter.extract(FG.curDoc.rootDcw, false),
-        };
-        dict.doc = encoder.encode(tmp);  // encodes only the {dchlist:[]}, no uuid,name,version
+        const extracter = new FG.DocExtracter();
+        dcwFlatTree = await extracter.extract(FG.curDoc.rootDcw, false);
     }
 
 trace("moveTo fem_core_PacketHandlersFtoB.js and add a onChanged() func instead of calling FF.loadDocTree()...");
@@ -364,7 +358,7 @@ trace("moveTo fem_core_PacketHandlersFtoB.js and add a onChanged() func instead 
         uuid:       dict.uuid,
         after:      (dict.asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
         parent:     (dict.asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
-        doc:        dict.doc,
+        doc:        JSON.stringify(dcwFlatTree),
     }
     pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
     if (dict.asChild) {
@@ -710,7 +704,8 @@ async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
 
     const attacher = new FG.DocAttacher();
     // const meta = JSON.parse(pkt.data.meta);
-    const rootDcw = await attacher.attach(pkt.rec.dcwFlatTree, null, false);    // this doc has no parent(null) so will become our new rootDcw
+    const dcwFlatTree = JSON.parse(pkt.rec.dcwFlatTree);
+    const rootDcw = await attacher.attach(dcwFlatTree, null, false);    // this doc has no parent(null) so will become our new rootDcw
 
     FG.curDoc = { 
         uuid:      uuid,

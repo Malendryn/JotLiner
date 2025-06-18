@@ -5,7 +5,11 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-18 ------------------------------------------------------------------------------------------------------------
+256000
+
+*
+
 2025-06-17 ------------------------------------------------------------------------------------------------------------
 * renamed NewDch packet to AddDch (just feels more inline with Add/Mod/Del)
 * moving to a 'send instrux to server, deal with broadcast response to handle' model rather than make mods to client
@@ -16,6 +20,7 @@
 * AddDch and DelDch (and ModDoc response) have all been coded, but not yet tested,  tomorrow...!
 
 * changed many _s_ props on DCW_BASE to #props (#dch, #dchRecId, #sysDiv, ...) and now have get/setters for them
+* backend is now correctly performing AddDch and DelDch and broadcasting aproper ModDoc, time to work the BtoF logic!
 
 2025-06-16 ------------------------------------------------------------------------------------------------------------
 * renamed all _c_ to _h_ (dCh to dcH) to be more inline with _w_ dcW 

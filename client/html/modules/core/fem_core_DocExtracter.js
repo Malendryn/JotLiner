@@ -19,7 +19,7 @@ export class DocExtracter {
     extract(dcw) {        // returns the dcwFlatTree of a doc [[recId, {N,S,C}],...] as a DFDict
         this.dcwDict = new DFDict();
         this. _extract(dcw);  // turn the dch into a stream
-        return JSON.stringify(this.dcwDict.export());
+        return this.dcwDict.export();
     }
 
     _extract(dcw) { // no async/await as no longer reaching into uncharted territory(into the dch itself)

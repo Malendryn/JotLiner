@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------------------------------------
-
+when loading a doc just have it call ModDoc and let ModDoc handle fetching the dch's instead of the current  way
 
 /*
 

@@ -138,8 +138,8 @@ _register(class DelDch extends PacketBASE {    // deleting dch(and all children)
 });
 
 _register(class GetDch extends PacketBASE {    // load a doc from the db via its uuid
-// id;          // B<--F id of dch rec to fetch
-// u8a          // B->F
-// bump         // B->F
+// id;          // B<>F id of dch rec to fetch
+// rec.name     // B->F
+// rec.content  // B->F
 });
 

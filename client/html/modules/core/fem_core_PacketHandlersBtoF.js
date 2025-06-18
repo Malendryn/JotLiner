@@ -1,5 +1,6 @@
 
-// import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
+import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
+import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 import { DFDict } from "/public/classes/DFDict.mjs";
 
 // see fem_core_PacketHandlersFtoB.js for an explanation of how these all work
@@ -18,140 +19,97 @@ import { DFDict } from "/public/classes/DFDict.mjs";
 // functions below are called when a broadcast packet comes in ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.classes.ModDoc.prototype.onPktRecvd = async function() {  // {uuid, bump} trigger: -- WS.pktFtoB.AddDch(dcw)
-    debugger; if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // MY curDoc is not changed so ignore packet
+    if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // MY curDoc is not changed so ignore packet
         return;
     }
 
-    const newDcwFlatTree = this.dcwFlatTree;
+    let was, now, wasDict, nowDict, wasRecIds, nowRecIds, removed = [], added = [], kept = [];
+    const extracter = new FG.DocExtracter();
+    was = extracter.extract(FG.curDoc.rootDcw);
+    now = this.dcwFlatTree;
 
-    debugger; let tmp = new FG.DocExtracter();
-    const oldDcwFlatTree = tmp.extract(FG.curDoc.rootDcw);
+    wasDict   = new DFDict(was);
+    wasRecIds = wasDict.keys.sort((a, b) => Number(a) - Number(b));  // extract the current recids and sort them numerically
 
-    const callbacks = {
-        onInsert: (parent, index, recId, data) => {
-          debugger; console.log(`INSERT ${recId} under ${parent} at ${index}`);
-        },
-        onRemove: (recId, data) => {
-            debugger; console.log(`REMOVE ${recId}`);
-        },
-        onUpdate: (recId, oldData, newData) => {
-            debugger; console.log(`UPDATE ${recId}`);
-        },
-        onMove: (recId, oldParent, newParent, oldIndex, newIndex) => {
-            debugger; console.log(`MOVE ${recId} from ${oldParent}[${oldIndex}] to ${newParent}[${newIndex}]`);
-        },
-        onReorder: (parentId, recId, oldIndex, newIndex) => {
-            debugger; console.log(`REORDER ${recId} under ${parentId}: ${oldIndex} → ${newIndex}`);
-        }
-    };
-    debugger; walkFlatTreeDiff(oldDcwFlatTree, newDcwFlatTree, callbacks)
-}
+    nowDict   = new DFDict(now);
+    nowRecIds = nowDict.keys.sort((a, b) => Number(a) - Number(b));  // same for newly received dcwFlatTree
 
-//#####################################################################################################################
-//#####################################################################################################################
-//#####################################################################################################################
-//#####################################################################################################################
-function cvtFlatTree(flat, startIndex = 0, parent = null, index = 0) {
-    debugger; const [recId, data] = flat[startIndex];
-    const node = {
-        recId,
-        data,
-        parent,
-        index,
-        children: []
-    };
-    let curIdx = startIndex + 1;
-    let kidsLeft = data.C;
-
-    while (kidsLeft > 0) {
-        const [childNode, newIdx] = cvtFlatTree(flat, curIdx, node, node.children.length);
-        node.children.push(childNode);
-        curIdx = newIdx;
-        kidsLeft--;
-    }
-
-    return [node, curIdx];
-}
-
-function flattenToDict(root, map = {}) {
-    debugger; map[root.recId] = root;
-    for (const child of root.children) {
-        flattenToDict(child, map);
-    }
-    return map;
-}
-
-function walkFlatTreeDiff(oldFlat, newFlat, callbacks) {
-    debugger; const oldTree = SF.flatToReal(oldFlat);
-    const newTree = SF.flatToReal(newFlat);
-
-    const oldDict = flattenToDict(oldTree);
-    const newDict = flattenToDict(newTree);
-
-    const visited = new Set();
-
-    function walkNew(node, newParent = null, index = 0) {
-        const { recId, data, children } = node;
-        const oldNode = oldDict
-
-        if (!oldNode) {
-            callbacks.onInsert?.(newParent?.recId ?? null, index, recId, data);
-        } else {
-            // Possible update
-            if (JSON.stringify(oldNode.data) !== JSON.stringify(data)) {
-                callbacks.onUpdate?.(recId, oldNode.data, data);
-            }
-
-            const oldParentId = oldNode.parent?.recId ?? null;
-            const newParentId = newParent?.recId ?? null;
-
-            if (oldParentId !== newParentId) {
-                callbacks.onMove?.(recId, oldParentId, newParentId, oldNode.index, index);
-            } else if (oldNode.index !== index) {
-                callbacks.onReorder?.(newParentId, recId, oldNode.index, index);
+    while(wasRecIds.length || nowRecIds.length) {  // get removed,added,kept Ids
+        if (!wasRecIds.length) {                       // if no more old recs, add now rec to added
+            added.push(nowRecIds.shift());    
+        } else if (!nowRecIds.length) {                // if no more new recs, add was rec to removed
+            removed.push(wasRecIds.shift());  
+        } else {                                       // if BOTH lists still have recs
+            if (wasRecIds[0] < nowRecIds[0]) {         // if was < now then was got removed
+                removed.push(wasRecIds.shift());
+            } else if (wasRecIds[0] > nowRecIds[0]) {  // if was > now then now got added added
+                added.push(nowRecIds.shift());
+            } else {                                   // both still exist, record in kept and delete from both
+                kept.push(wasRecIds.shift());
+                nowRecIds.shift();
             }
         }
+    }
+// we now have a list of id's to remove, to add, and that were kept
+    let dcwList = FF.getDcwList();            // easiest first step is removing, so...
+    for (let idx = dcwList.length - 1; idx >= 0; idx--) {
+        if (removed.includes(dcwList[idx].dchRecId)) {
+            await dcwList[idx].destroy();
+        }
+    }
+    let parenTree = _parentize(now);             // mate the 'now' flatTree recIds with their parentId
+    parenTree = new DFDict(parenTree);
 
-        for (let i = 0; i < children.length; i++) {
-            walkNew(children[i], node, i);
+    for (const recId of added) {      // take entries in added, find them in parenTree, add as new
+        const parentId = parenTree.getByKey(recId);
+        dcwList = FF.getDcwList();    // refetch each loop cuz some new 'added' id's may not exist in prior loop
+        for (const dcw of dcwList) {
+            if (dcw.dchRecId == parentId) {
+                const data = nowDict.getByKey(recId);
+                const nuDcw = await DCW_BASE.create(dcw, data.S);
+                let pkt = WS.makePacket("GetDch", {id:recId});
+                pkt = await WS.sendExpect(pkt, _onGetDch, nuDcw);
+            }
         }
     }
 
-    walkNew(newTree);
+// all deleted were deleted, all added were added, 
+// now refetch the 'was' flatTree which should now exactly mirror the structure of 'now' 
+// but the order of children has to be addressed AND the styles may need to be changed, so first lets fix the order:
+    was = extracter.extract(FG.curDoc.rootDcw);  
 
-    // Now detect removals
-    for (const recId in oldMap) {
-        if (!visited.has(+recId)) {
-            callbacks.onRemove?.(Number(recId), oldMap[recId].data);
+
+// RSTODO last step!  compare the styles and restyle if needed!  (add a 'setStyle' func to the DCW_BASE)
+   
+    debugger;
+}
+
+
+function _parentize(tuples) {   // turn dcwFlatTree into [[recId, parentRecId],...]
+    let idx = 0, list = [];
+    function walk(parent) {
+        if (idx >= tuples.length) {
+            return;
         }
+        const [recId, data] = tuples[idx++];
+        list.push([recId, parent]);
+        let kidCt = data.C;
+        while (kidCt--) {
+            walk(recId);
+        }
+    }
+    walk(0);
+    return list;
+}
+
+
+async function _onGetDch(pkt, dcw) {
+    await dcw.attachDch(pkt.rec.name);  // attach the approprate dch!
+    dcw.dchRecId = pkt.id;              // give it it's dch rec id      
+
+    const decoder = new DFDecoder(pkt.rec.content);
+    const blob = decoder.decode();      // will return decoder.EOSTREAM if u8a is empty
+    if (blob != decoder.EOSTREAM) {     // if stream was empty
+        dcw.dch.importData(blob);
     }
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// const oldFlat = [
-//   [1, { N: 'A', S: {}, C: 1 }],
-//   [2, { N: 'B', S: {}, C: 0 }]
-// ];
-
-// const newFlat = [
-//   [1, { N: 'A', S: {}, C: 2 }],
-//   [3, { N: 'C', S: {}, C: 0 }],
-//   [2, { N: 'B', S: {}, C: 0 }]
-// ];
-
-// walkFlatTreeDiff(oldFlat, newFlat, {
-//   onInsert: (parent, index, recId, data) => {
-//     console.log(`INSERT ${recId} under ${parent} at ${index}`);
-//   },
-//   onRemove: (recId, data) => {
-//     console.log(`REMOVE ${recId}`);
-//   },
-//   onUpdate: (recId, oldData, newData) => {
-//     console.log(`UPDATE ${recId}`);
-//   },
-//   onMove: (recId, oldParent, newParent, oldIndex, newIndex) => {
-//     console.log(`MOVE ${recId} from ${oldParent}[${oldIndex}] to ${newParent}[${newIndex}]`);
-//   },
-//   onReorder: (parentId, recId, oldIndex, newIndex) => {
-//     console.log(`REORDER ${recId} under ${parentId}: ${oldIndex} → ${newIndex}`);
-//   }
-// });

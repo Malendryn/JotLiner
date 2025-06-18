@@ -88,9 +88,8 @@ WS.classes.GetDoc.prototype.onPktRecvd = async function(client) { // must use 'f
 }
 WS.classes.GetDch.prototype.onPktRecvd = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
     logPkt("GetDch");
-    const recs = await client.db.query("SELECT name,content FROM dch WHERE id = ?", [this.id]);
+    this.rec = await client.db.get("SELECT name,content FROM dch WHERE id = ?", [this.id]);
     delete this.id;
-    this.rec = recs[0];
     return this;
 }
 

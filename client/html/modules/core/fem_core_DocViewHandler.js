@@ -338,7 +338,8 @@ try {
             WS.pktFtoB.AddDch(dcw.dchRecId, newDcwFlatTree);
         } else switch (action) {                                                 // 'go do' whatever was clicked
             case "export":
-                debugger; trace("RSTODO 'extract' needs work!"); let str = await extracter.extract(dcw);
+                debugger; trace("RSTODO 'extract' needs work!"); const dcwFlatTree = await extracter.extract(dcw);
+                const str = JSON.stringify(dcwFlatTree);
                 console.log(str);
                 break;
             case "delete":
