@@ -93,8 +93,8 @@ function onFormClick(evt) {
     if (evt.target.id.startsWith("dawIBCkBox")) {       // if a checkbox was clicked...
         formChanged = true;
         const dcw = FG.kmStates.dcw;
-        // const pRect = dcw._s_parentDcw.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
-        debugger;/*test _s_parentDcw*/ const pRect = dcw._s_parentDcw.sysDiv.getBoundingClientRect();
+        // const pRect = dcw.parentDcw.host.getBoundingClientRect();    // get the infinite-sized div, not the DCH div
+        const pRect = dcw.parentDcw.sysDiv.getBoundingClientRect();
         const rect = dcw.sysDiv.getBoundingClientRect();
 
         const id = evt.target.id;
@@ -564,13 +564,13 @@ function showGhosts(dcw) {
     if (mDiff || dDiff) {                               // if mode or dcw under mouse changed, clear all ghosts
         if (FG.ghosts.divGhost) {
             FG.ghosts.divGhost.remove();
-            FG.ghosts.divGhost = null;      // RSTODO can we eliminate this 'divGhost' entirely now that we use __divGhost ?
+            FG.ghosts.divGhost = null;      // RSTODO can we eliminate this 'divGhost' entirely now that we use dcw.divGhost ?
         }
         let dcwList = FF.getDcwList();       // also delete all child ghosts everywhere
         for (const dcw of dcwList) {
-            if (dcw.__divGhost) {
-                dcw.__divGhost.remove();
-                delete dcw.__divGhost;
+            if (dcw.divGhost) {
+                dcw.divGhost.remove();
+                delete dcw.divGhost;
             }
         }
     }
@@ -596,7 +596,7 @@ function showGhosts(dcw) {
                 el.style.width   = rect.width + "px";
                 el.style.height  = rect.height + "px";
                 docDiv.appendChild(el);
-                child.__divGhost = el;
+                child.divGhost   = el;
             }
         }
     }
@@ -614,10 +614,10 @@ function showGhosts(dcw) {
     if (FG.kmStates.mode == 2) {                        // if mode2, move the ghosts of the children too
         for (const child of dcw.children) {
             rect = child.sysDiv.getBoundingClientRect();
-            child.__divGhost.style.left    = rect.x + "px";
-            child.__divGhost.style.top     = rect.y + "px";
-            child.__divGhost.style.width   = rect.width + "px";
-            child.__divGhost.style.height  = rect.height + "px";
+            child.divGhost.style.left    = rect.x + "px";
+            child.divGhost.style.top     = rect.y + "px";
+            child.divGhost.style.width   = rect.width + "px";
+            child.divGhost.style.height  = rect.height + "px";
         }
     }
 }
@@ -764,7 +764,7 @@ function doDchOpMode2() { // only called when FG.kmStates.mode == 2  (mousemove 
         const deltaX = FG.kmStates.clientX - FG.kmPrior.clientX;
         const deltaY = FG.kmStates.clientY - FG.kmPrior.clientY;
         if (deltaX || deltaY) {
-            dcw.dch.setZXY(dcw.dch.zX += deltaX, dcw.dch.zY += deltaY);
+            dcw.dch.setZXY(dcw.dch.zX + deltaX, dcw.dch.zY + deltaY);
         }
     }
     setKBModeTitlebarText(dcw);
@@ -1203,7 +1203,7 @@ FF.getBOXforDcw = function(dcw) {     // if dcw=BOX return dcw, else walk parent
 // console.log("dcw=",dcw);
             while (FF.getDchName(dcw.dch) != "BOX") { // if dch != BOX, walk parentChain to find one
                 try {
-                    dcw = dcw._s_parentDcw;
+                    dcw = dcw.parentDcw;
                 } catch (err) {
                     debugger;
                 }

@@ -8,14 +8,21 @@ class DCH_BOX extends DCH_BASE {
     static pluginTooltip = "A rectangle that other plugins can exist inside of";
            hasToolbar    = false;
 
-    zX = 0;            // how far ALL children are shifted to give the appearance of infinite canvas
-    zY = 0;
+
+    get zX()  { return this.#zX; }
+    set zX(v) { throw new Error("BOX.zX is readonly"); }
+    get zY() { return this.#zY; }
+    set zY(v) { throw new Error("BOX.zY is readonly"); }
+
+
+    #zX = 0;            // how far ALL children are shifted to give the appearance of infinite canvas
+    #zY = 0;
 
     setZXY(x, y) {
-        debugger; if (zX != x || zY != y) {
-            this.zX = x;
-            this.zY = y;
-            this._hw_translateChildren(dcw.dch.zX, dcw.dch.zY);
+        if (this.#zX != x || this.#zY != y) {
+            this.#zX = x;
+            this.#zY = y;
+            this.owner._hw_translateChildren(this.#zX, this.#zY);
             this.autoSave();
         }
     }
@@ -23,24 +30,24 @@ class DCH_BOX extends DCH_BASE {
         // most styles are now in the DCH_BOX.css file
         // this.sysDiv.classList.add("DCH_BOX");
         this.host.classList.add("DCH_BOX"); // now = "DCW_DefaultRect DCH_BOX"
-        await this.__getOwner()._hw_translateChildren(this.zX, this.zY);     // applies the transform:translate() if needed
+        await this.owner._hw_translateChildren(this.#zX, this.#zY);     // applies the transform:translate() if needed
     }
 
+    _wh_updateZxy() {   // called straight through from DCW_BASE
+        this.owner._hw_translateChildren(this.#zX, this.#zY);     // applies the transform:translate() if needed
+    }
     async importData(data) {    // populate this component with data
-        this.zX      = parseInt(data.zX);  // transform:translate(zX,zY) of all children of BOX to give the infinite canvas illusion
-        this.zY      = parseInt(data.zY);  // (parseInt() not needed for FileFormat > 1.0, only for backwards compatibility)
+        this.#zX = parseInt(data.zX);  // transform:translate(zX,zY) of all children of BOX to give the infinite canvas illusion
+        this.#zY = parseInt(data.zY);  // (parseInt() not needed for FileFormat > 1.0, only for backwards compatibility)
+        this.owner._hw_translateChildren(this.#zX, this.#zY);     // applies the transform:translate() if needed
     }
 
     async exportData() {       // return data to be preserved/exported as a {}
-        debugger; return {
-            zX: this.zX,
-            zY: this.zY,
+        return {
+            zX: this.#zX,
+            zY: this.#zY,
         };
     }
-
-    // async isDirty() {
-    //     return false;   // changes in here already handled by autoSave() so just return false-always
-    // }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

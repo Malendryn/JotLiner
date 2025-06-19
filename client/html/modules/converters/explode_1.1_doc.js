@@ -140,13 +140,13 @@ class DocImporter {
         }
         switch(dtype) {
             case '?': {
-                debugger; val = undefined;
+                val = undefined;
                 break; }
             case '~': {
-                debugger; val = null;
+                val = null;
                 break; }
             case 'B': {
-                debugger; val = ('t') ? true : false;
+                val = ('t') ? true : false;
                 break; }
             case 'N': {
                 val = Number(val);
@@ -154,10 +154,10 @@ class DocImporter {
             case 'S': {     // val is alrady a string, nothing done here
                 break; }
             case 'A': {
-                debugger; val = JSON.parse(val);
+                val = JSON.parse(val);
                 break; }
             case 'O': {
-                debugger; val = JSON.parse(val);
+                val = JSON.parse(val);
                 break; }
         }
         return [ wrd, val ];

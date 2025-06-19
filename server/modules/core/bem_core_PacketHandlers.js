@@ -89,7 +89,7 @@ WS.classes.GetDoc.prototype.onPktRecvd = async function(client) { // must use 'f
 WS.classes.GetDch.prototype.onPktRecvd = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
     logPkt("GetDch");
     this.rec = await client.db.get("SELECT name,content FROM dch WHERE id = ?", [this.id]);
-    delete this.id;
+    // DoNotDelete 'this.id' as returnee wants it!
     return this;
 }
 
@@ -127,26 +127,33 @@ WS.classes.GetDch.prototype.onPktRecvd = async function(client) { // must use 'f
 //     this.dict = {}; // empty packetdata for faster returnPkt
 //     return this;    // send self back cus client called using .sendWait() (and we added docId and docTreeId to the class on return)
 // };
-// WS.classes.ModDoc.prototype.onPktRecvd = async function(client) {    // this.dict={uuid, doc(u8a)}
-//     logPkt("ModDoc");
-//     let rec;
-//     if (!client.db) { return WS.fault("Database not selected"); }
-//     try {
-//         await client.db.run("BEGIN TRANSACTION");
-//         let list = [this.dcwFlatTree, this.uuid];
-//         rec = await client.db.get("UPDATE doc SET dcwFlatTree=?,bump=bump+1 WHERE uuid=? RETURNING bump", [list]);  // insert the doc
-//         await client.db.run("COMMIT TRANSACTION");
-//     } catch (err) {
-//         await client.db.run("ROLLBACK TRANSACTION");
-//         return new WS.classes["Fault"](err.message);
-//     }
-//     WS.broadcast("ModDoc", {uuid:this.uuid, bump:rec.bump});
-//     delete this.name;
-//     delete this.dcwFlatTree;
-//     delete this.uuid;
-//     this.bump = rec.bump;
-//     return this;    // send self back cus client called using .sendExpect()
-// };
+
+WS.classes["ModDoc"].prototype.onPktRecvd = async function(client) {    // this.dict={uuid, doc(u8a)}
+    logPkt(this.constructor.name);
+    if (!client.db) { return WS.fault("Database not selected"); }
+    let rec, broadList = {uuid:this.uuid};
+    try {
+        await client.db.run("BEGIN TRANSACTION");
+        let list;
+        if ("name" in this) {
+            list = [this.name, this.uuid];
+            broadList.name = this.name;
+            rec = await client.db.get("UPDATE doc SET name,bump=bump+1 WHERE uuid=? RETURNING bump", [list]);  // insert the doc
+        } else if ("dcwFlatTree" in this) {
+            list = [JSON.stringify(this.dcwFlatTree), this.uuid];
+            broadList.dcwFlatTree = this.dcwFlatTree;
+            rec = await client.db.get("UPDATE doc SET dcwFlatTree=?,bump=bump+1 WHERE uuid=? RETURNING bump", [list]);  // insert the doc
+        }
+        broadList.bump = rec.bump;
+        await client.db.run("COMMIT TRANSACTION");
+    } catch (err) {
+        await client.db.run("ROLLBACK TRANSACTION");
+        return new WS.classes["Fault"](err.message);
+    }
+    WS.broadcast("ModDoc", broadList);
+    return nnull;
+};
+
 // WS.classes.RenameDoc.prototype.onPktRecvd = async function(client) {    // rename a document
 //     debugger; logPkt("RenameDoc");
 //     let rec;
@@ -194,8 +201,9 @@ WS.classes.GetDch.prototype.onPktRecvd = async function(client) { // must use 'f
 // };
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes.AddDch.prototype.onPktRecvd = async function(client) {  // add new dch rec(s), broadcast changes
-    // this.uuid, this.childOf(recid),  dcwFlatTree to insert
+WS.classes["AddDch"].prototype.onPktRecvd = async function(client) {  // add new dch rec(s), broadcast changes
+    logPkt(this.constructor.name);
+    if (!client.db) { return WS.fault("Database not selected"); }
     await client.db.run("BEGIN TRANSACTION");
     let rec = await client.db.get("SELECT id,dcwFlatTree,bump FROM doc WHERE uuid=?", [this.uuid]);
     const docId = rec.id;
@@ -234,7 +242,7 @@ WS.classes.AddDch.prototype.onPktRecvd = async function(client) {  // add new dc
     }
     addToTree(dcwRealTree);
 
-    dcwFlatTree = SF.realToFlat(dcwRealTree);       // revert it to a dchFlatTree again
+    dcwFlatTree = SF.realToFlat(dcwRealTree);       // revert it to a dcwFlatTree again
 
     const list = [
         JSON.stringify(dcwFlatTree),
@@ -249,12 +257,23 @@ WS.classes.AddDch.prototype.onPktRecvd = async function(client) {  // add new dc
 }
 
 
-WS.classes.ModDch.prototype.onPktRecvd = async function(client) {
-    debugger;
+WS.classes["ModDch"].prototype.onPktRecvd = async function(client) {
+    logPkt(this.constructor.name);
+    if (!client.db) { return WS.fault("Database not selected"); }
+    await client.db.run("BEGIN TRANSACTION");
+    let list = [this.uuid];
+    let rec = await client.db.get("UPDATE doc SET bump=bump+1 WHERE uuid=? RETURNING bump", list);
+    list = [this.u8a, rec.bump, this.recId];
+    await client.db.run("UPDATE dch SET content=?,bump=? where id=?", list);
+    await client.db.run("COMMIT TRANSACTION");
+    WS.broadcast("ModDch", {uuid:this.uuid, recId:this.recId, u8a:this.u8a, bump:rec.bump});
+    return null;
 }
 
 
-WS.classes.DelDch.prototype.onPktRecvd = async function(client) {
+WS.classes["DelDch"].prototype.onPktRecvd = async function(client) {
+    logPkt(this.constructor.name);
+    if (!client.db) { return WS.fault("Database not selected"); }
     await client.db.run("BEGIN TRANSACTION");
     let rec = await client.db.get("SELECT id,dcwFlatTree FROM doc WHERE uuid=?", [this.uuid]);
     let dcwFlatTree = rec.dcwFlatTree;
@@ -262,7 +281,7 @@ WS.classes.DelDch.prototype.onPktRecvd = async function(client) {
     const dcwRealTree = SF.flatToReal(dcwFlatTree);
     const docId = rec.id;
 
-    let done = false;
+    let done = 0;
     let flatTreeToDel;
     const findDcwToDel = (dict) => {
         if (done) {
@@ -270,13 +289,16 @@ WS.classes.DelDch.prototype.onPktRecvd = async function(client) {
         }
         if (dict.recId == this.dchId) {  // found the rec? start the capture!
             flatTreeToDel = SF.realToFlat(dict); // avoids worrying about detached dict.parent, dict.index, ...
-            done = true;
+            done = 1;
             return;
         }
         for (let idx = 0; idx < dict.children.length; idx++) {
             findDcwToDel(dict.children[idx]);
             if (done) {
-                dict.children.splice(idx, 1);
+                if (done == 1) {    // only delete once on the way out!
+                    done = 2;
+                    dict.children.splice(idx, 1);
+                }
                 return;
             }
         }

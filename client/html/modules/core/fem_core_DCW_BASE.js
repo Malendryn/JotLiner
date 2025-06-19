@@ -107,6 +107,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
         if (parentDcw) {                       // if parent was passed, attach this to its children
             parentDcw.#children.push(dcw);
+            parentDcw.dch._wh_updateZxy();         // parents are always BOX's and this will call its _hw_translateChildren()
         }
 
         return dcw;
@@ -205,7 +206,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
     hideToolbar() {  // works, but never used
-        debugger; if (this.#toolbar) {
+        if (this.#toolbar) {
             this.#toolWrap.style.display = "none";
             FF.setToolbarHeight(FG.defaultToolbarHeight);
         }
@@ -254,7 +255,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
 
     async importDchData(u8a) {
-        debugger; this.#dch._wh_importData(u8a);
+        this.#dch._wh_importData(u8a);
     }
 
     async exportDchData() {
@@ -284,6 +285,8 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     get sysDiv()     { return this.#sysDiv;    }
     set sysDiv(v)    { this.#throwErr("sysDiv"); }
 
+    get divGhost()   { return this.#divGhost; }
+    set divGhost(v)  { this.#divGhost = v; }
 
     get host()    { return this.#host;    }    // only DCH_BASE should access these
     get toolbar() { return this.#toolbar; }
@@ -301,6 +304,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
             child.#sysDiv.style.transform = "translate(" + zX + "px," + zY + "px)";
         }
     }
+
 
     async _hw_loadStyle(style, which={}) {
         if (Object.keys(which).length == 0) {
@@ -355,6 +359,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     #hostStyle    = null;  // #sysDiv.#shadowHost .#hostShadow.#hostStyle   (hidden)  ||| where <style/>s for host go
     #host         = null;  // #sysDiv.#shadowHost .#hostShadow.#host                  ||| <div> where plugin places <body> stuff
 
+    #divGhost     = null;  // special div for showing the greyed 'ghost' to show outline of dcw no matter what its content is
 
     #toolWrap   = null;    // <divToolBar>.#toolWrap
     #toolShadow = null;    // <divToolBar>.#toolWrap.#toolShadow = #toolWrap.attachShadow() ||| handle to the attached Shadow

@@ -110,9 +110,6 @@ class DFDecoder {
     EOSTREAM = Symbol("EOSTREAM");
 
     decode() {  // decode ONE AND ONLY ONE value,  repeated calls to this will decode more if more is available
-// if (this.idx == 257) {
-// debugger;
-// }
         if (this.u8a.byteLength == 0) {
             return this.EOSTREAM   // special case, only likely to happen if u8a had zerolength to begin with
         }
@@ -170,9 +167,6 @@ class DFDecoder {
             sLen = 4;
         }
 
-        // if (sLen > 1) {
-        //     debugger;
-        // }
         let bytes = 0, shift = 0;
         while(sLen-- > 0) {             // read in bytes in little-endian order
             bytes |= this.u8a[this.idx++] << shift;

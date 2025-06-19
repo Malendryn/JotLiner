@@ -158,8 +158,15 @@ WS.classes["ModDch"].prototype.onPktRecvd = async function() {  // {uuid, bump} 
     if (WS.lastPacketSent.__id == this.__id) {      // I am the one who sent the change so don't update myself again!
         return;
     }
-    debugger; if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // MY curDoc is not changed so ignore packet
+    if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // MY curDoc is not changed so ignore packet
         return;
     }
-    debugger; //RSTODO find the element by recId, update it's content
+    const dcwList = FF.getDcwList();
+    for (const dcw of dcwList) {
+        if (dcw.dchRecId == this.recId) {
+            dcw.importDchData(this.u8a);
+            dcw.bump = this.bump;
+            return;
+        }
+    }
 }

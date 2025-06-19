@@ -68,8 +68,3 @@ class LocalStore {
     }
 };
 globalThis.LS = new LocalStore();
-
-// LS.curDb = "foo";
-// let qq = LS.curDb;
-// console.log(qq);
-// debugger;

@@ -61,12 +61,10 @@ SF.realToFlat = function(tree) {
 
 
 /*test
-debugger;
 let vv =                       '[[5,{"N":"BOX","S":{"L":0,"R":0,"T":0,"B":0,},"C":2}],[6,{"N":"CTE","S":{"L":113,"W":100,"T":97,"H":100},"C":0}],[7,{"N":"BOX","S":{"L":114,"W":100,"T":176,"H":100},"C":0}]]'
 let ww=JSON.parse(vv);
 let xx = SF.flatToReal(ww);  //'[5,{"N":"BOX","S":{"L":0,"R":0,"T":0,"B":0},"C":[[6,{"N":"CTE","S":{"L":113,"W":100,"T":97,"H":100},"C":[]}],[7,{"N":"BOX","S":{"L":114,"W":100,"T":176,"H":100},"C":[]}]]}]'
 let yy = SF.realToFlat(xx);
 let zz = JSON.stringify(yy);
 console.log (vv == zz);
-debugger;
 /*end test */

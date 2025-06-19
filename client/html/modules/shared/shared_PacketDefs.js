@@ -46,11 +46,11 @@ class PacketBASE {
 // before returning,  and MAY add 'value' property, but only if 'key' was found
 
 _register(class Fault extends PacketBASE { // if error thrown, it's sent back as a Fault
-constructor(){super();debugger;} //    msg;        // <-- "msg" indicating what the fault was
+ // msg          // B->F "msg" indicating what the fault was
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 _register(class GetBackendInfo extends PacketBASE { // get any element from extra table
-    //  version;    // B-->F current software version (since frontend ONLY loads FROM backend, version is always same!)
+//  version;    // B-->F current software version (since frontend ONLY loads FROM backend, version is always same!)
 //  docVersion; // B-->F current highest docversion (that doesn't need a conversion)
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -105,21 +105,16 @@ class DCH_BASE {   // base class of all document components
 
 
     async _wh_importData(u8a) {  // called from DCW_BASE.importDchData();
-        // this.#dirty = false;
-        debugger; let decoder = new DFDecoder(u8a)
+        let decoder = new DFDecoder(u8a)
         this.importData(decoder.decode())
     }
 
     async _wh_exportData() {     // called from DCW_BASE.exportDchData();
-        // this.#dirty = false;
         let encoder = new DFEncoder();
-        let u8a = encoder.encode(this.exportData());
+        const data  = await this.exportData();
+        const u8a   = encoder.encode(data);
         return u8a;
     }
-
-    // async _wh_isDirty() {     // called from DCW_BASE.isDirty();
-    //     debugger; return await this.isDirty() || this.#dirty;   // return if plugin says its dirty OR if #dirty was set via autoSave()
-    // }
 
     #throwErr(propName) { throw new Error(`${this.constructor.name} attempted to set readonly property '${propName}'`); }
 
@@ -135,7 +130,8 @@ class DCH_BASE {   // base class of all document components
         this.#owner._hw_autoSave(delay);
     }
 
-    __getOwner() { return this.#owner; }     // special just for BOX
+    get owner()  { return this.#owner; }
+    set owner(v) { throw new Error( "DCH_BASE.owner is readonly"); }
 
     #owner;       // DCW_BASE that owns us
     // #dirty;

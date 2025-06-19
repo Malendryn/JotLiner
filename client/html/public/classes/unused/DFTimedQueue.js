@@ -49,7 +49,7 @@ export class DFTimedQueue extends DFSortedDict {
     autoSave = (action, val, delay=1000) => {    // since we're talking to 'local' backend this can happen fast,  1 sec, maybe even less?
         const test = this.find(val, this._compareFn);  // returns [timeout, val, uid] or null
         if (test !== null) {
-            debugger; this.removeByUid(test[2]);   // if matched, replace with new val + key
+            this.removeByUid(test[2]);   // if matched, replace with new val + key
         }
         this.add(action, val, Date.now() + delay);  // keep this order as the time might be defaultable later
     };

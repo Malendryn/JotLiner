@@ -80,7 +80,6 @@ class DFStyleTracker {
 }
 
 /* test
-debugger;
 let x = new DFStyleTracker();
 let el = document.createElement("div");
 let style =  "<style>body { background-color: red; }</style>";

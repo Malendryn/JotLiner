@@ -72,11 +72,6 @@ const html = `
         });
     }
 
-
-    // async isDirty() {
-    //     debugger; return false;   // changes in here already handled by autoSave() so just return false-always
-    // }
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// below here is DCH Plugin's  stuff ////////////////////////////////////////////////
@@ -89,7 +84,7 @@ const html = `
         if (this.painting) {
             this.painting = false;
             this.ctx.beginPath(); // resets path to avoid unwanted lines
-            debugger; this.autoSave();
+            this.autoSave();
         }
     }
 
@@ -98,8 +93,7 @@ const html = `
             return;
         }
 
-        try {
-            const rect = this.canvas.getBoundingClientRect();
+        const rect = this.canvas.getBoundingClientRect();
         const x = evt.clientX - rect.left;
         const y = evt.clientY - rect.top;
 
@@ -111,9 +105,6 @@ const html = `
         this.ctx.stroke();
         this.ctx.beginPath();
         this.ctx.moveTo(x, y);
-        } catch(err) {
-            debugger;
-        }
     }
 
     clearCanvas = () => {

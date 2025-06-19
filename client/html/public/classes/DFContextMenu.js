@@ -132,7 +132,7 @@ class DFMenuBar {
             this._bar.remove();
             this._bar = null;
         }
-        debugger; const attr = "data-" + this._styleId;
+        const attr = "data-" + this._styleId;
         const elements = document.querySelectorAll(`[${attr}]`);
         for (const el in elements) {
             el.remove();

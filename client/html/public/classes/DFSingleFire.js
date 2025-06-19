@@ -141,7 +141,6 @@ class _IdHasher {
 }
 
 /* test code
-debugger; 
 const once = new DFSingleFire();
 
 function test1() {

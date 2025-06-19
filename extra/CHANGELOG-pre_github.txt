@@ -449,7 +449,7 @@ reworked globals and initialization (formerly bootstrap) to be more 'appropriate
 at any rate the basics on both front and backend are now all set up to work properly once again!
 
 2025-03-30 ------------------------------------------------------------------------------------------------------------
-managed to seperate client and server into 2 diff debuggers so I can launch 
+managed to seperate client and server into 2 diff projects so I can launch 
     code code.workspace in the server dir and F5 to run and debug that
     --and seperately launch--
     code code.workspace in the client dir and F5 to run and debug that AT the same time

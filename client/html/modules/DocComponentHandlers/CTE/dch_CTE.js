@@ -70,23 +70,20 @@ class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor
 
     onToolBtnBold(evt) {
         evt.preventDefault;
-        console.log("bold");
+        trace("bold");
     }
 
     onToolBtnItalic(evt) {
         evt.preventDefault;
-        console.log("italic");
-        // debugger;
+        trace("italic");
     }
 
     onToolBtnUnderline(evt) {
         evt.preventDefault;
-            debugger;
     }
 
     onToolBtnStrikethrough(evt) {
         evt.preventDefault;
-        debugger;
     }
 
     async importData(data) {    // populate this component with data
@@ -97,15 +94,11 @@ class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor
         return { "C" : this.el.innerHTML };   // "C" for content
     }
     
-    // async isDirty() {
-    //     return false;   // changes in here already handled by autoSave() so just return false-always
-    // }
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// below here is DCH Plugin's  stuff ////////////////////////////////////////////////
     async onContentChanged(evt) {
-        debugger; this.autoSave();
+        this.autoSave();
     }
 
 };
