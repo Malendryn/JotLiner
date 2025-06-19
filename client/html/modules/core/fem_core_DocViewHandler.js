@@ -335,7 +335,7 @@ try {
         if (action.startsWith("insert_")) {
             let dchName = action.substr(7);
             let newDcwFlatTree = [[0, {N:dchName, S:{L:startX, T:startY, W:100, H:100},"C":0}]];  // create faux dcwFlatTree entry
-            WS.pktFtoB.AddDch(dcw.dchRecId, newDcwFlatTree);
+            WS.pktFtoB["AddDch"](dcw.dchRecId, newDcwFlatTree);
         } else switch (action) {                                                 // 'go do' whatever was clicked
             case "export":
                 debugger; trace("RSTODO 'extract' needs work!"); const dcwFlatTree = await extracter.extract(dcw);
@@ -355,7 +355,7 @@ try {
                     }
                 }
                 setKMStateMode(0);      // obliterate all ghosting and modeing
-                WS.pktFtoB.DelDch(dcw);
+                WS.pktFtoB["DelDch"](dcw);
                 break;
             case "setLayout":
                 debugger; onContextDCHLayout();
@@ -720,7 +720,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             }
         }
 
-        debugger; FF.autoSave("DOC");          // autosave after short delay
+        FF.autoSave("ModDoc", "dcwFlatTree");          // autosave after short delay
         setKBModeToolbarText(FG.kmStates.dcw);
     }
 }

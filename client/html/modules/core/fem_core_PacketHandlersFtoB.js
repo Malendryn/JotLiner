@@ -19,40 +19,55 @@ in essense: when autoSave fires, (see FF.autoSave()) it calls one of the functio
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// functions below are called when autoSave() fires on them ///////////////////////////////////////////////////////////
+/////////////////////////// functions below are called when autoSave() fires on them //////////////////////////////////
+/////////////////////////// note, AUTOSAVE-FIRED FUNCTIONS MUST NOT FF.flushAll() /////////////////////////////////////
+/////////////////////// calling await FF.flushAll() in these causes deadlock waiting for itself ///////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// WS.pktFtoB.newDoc = async (doc) => {    // presently handled in fem_core_IndexViewHandler.js
+// WS.pktFtoB["NewDoc"] = async (doc) => {    // presently handled in fem_core_IndexViewHandler.js
 //     debugger;
 // }
 
-WS.pktFtoB.ModDoc = async (doc) => {
-    debugger;
+// reffed via quoted strings to make them easier to find
+
+WS.pktFtoB["ModDoc"] = async (what) => {       // autoSave, what == "name" or "dcwFlatTree"
+    let pkt = WS.makePacket("ModDoc", {uuid:FG.curDoc.uuid});
+    if (what == "name") {
+        debugger; pkt.name = FG.curDoc.name;
+    } else if (what == "dcwFlatTree") {
+        const extracter = new FG.DocExtracter();
+        pkt.dcwFlatTree = extracter.extract(FG.curDoc.rootDcw);
+    }
+    WS.send(pkt);
 }
 
-WS.pktFtoB.DelDoc = async (doc) => {
-    debugger;
+
+WS.pktFtoB["ModDch"] = async (dcw) => {                // autoSave when dch content (export/import[/delta]) changed
+    const pkt = WS.makePacket("ModDch");     // first thing we have to do is get the list of DCH handlers
+    pkt.uuid = FG.curDoc.uuid;
+    pkt.recId = dcw.dchRecId;
+    pkt.u8a = await dcw.exportDchData();
+    WS.send(pkt);
 }
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.pktFtoB.AddDch = async (parentRecId, newDcwFlatTree) => {
-    FF.flushAll();
-    let pkt     = WS.makePacket("AddDch", {uuid:FG.curDoc.uuid, childOf:parentRecId, newDcwFlatTree});
+/////////////////////////// functions below are called directly, NOT from autoSave() //////////////////////////////////
+/////////////////////////// These SHOULD start with FF.flushAll() /////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// WS.pktFtoB["DelDoc"] = async (doc) => {               
+//     debugger;
+// }
+
+WS.pktFtoB["AddDch"] = async (parentRecId, newDcwFlatTree) => {
+    await FF.flushAll();
+    let pkt = WS.makePacket("AddDch", {uuid:FG.curDoc.uuid, childOf:parentRecId, newDcwFlatTree});
     WS.send(pkt);
 };
 
-
-// WS.pktFtoB.ModDch = async (dcw) => {                    // fires when dch content (export/import[/delta]) changed
-//     FF.flushAll();
-//     debugger; const pkt = WS.makePacket("ModDch");     // first thing we have to do is get the list of DCH handlers
-//     pkt.id = dcw.dchRecId;
-//     pkt.u8a = dcw.exportDchData();
-//     pkt = await WS.sendWait(pkt);
-// }
-
-
-WS.pktFtoB.DelDch = async (dcw) => {
-    FF.flushAll();
+WS.pktFtoB["DelDch"] = async (dcw) => {
+    await FF.flushAll();
     let pkt = WS.makePacket("DelDch", {uuid:FG.curDoc.uuid, dchId:dcw.dchRecId});
     WS.send(pkt);
 }

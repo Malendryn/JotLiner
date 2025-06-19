@@ -44,7 +44,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 
 // _hw_ prefixed: called from DCH_BASE to DCW_BASE: (see DCH_BASE for actual useFunc)
 // _hw_loadStyle(style, which) adds style to this.#hostStyle
-// _hw_autoSave(delay = 1000)  --> FF.autoSave("DCH", this, delay)
+// _hw_autoSave(delay = 1000)  --> FF.autoSave("ModDch", this, delay)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,32 +113,44 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
     createShadowHost() {
-        this.#shadowHost = this.#host;  // hijack the shadowless host and use it as our host for the shadowDom
+        this.#host.remove(); 
+        this.#shadowHost = document.createElement("div");               // remove&replace to start with completely fresh wrapper
         this._addDbgId(this.#shadowHost, "(was)host (now)shadowHost");
-        this.#shadowHost.classList.add("shadowWrapper__host");         // see index.css
+        this.#shadowHost.classList.add("DCW_DefaultRect");
+        this.#sysDiv.appendChild(this.#shadowHost);
 
         this.#hostShadow = this.#shadowHost.attachShadow({ mode: "open" });
-//         this.#hostShadow.innerHTML = `
-// <style>
-//     :host {
-//         display: block;
-//         width:  100%;
-//         height: 100%;
-//     }
+        this.#hostShadow.innerHTML = `
+<style>
+    :host {
+        display:  block;
+        position: absolute;
+    }
 
-//     *, *::before, *::after {
-//     box-sizing: border-box;
-//     }
-// </style>
-// `;
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+    #__hostInShadow {
+        width:    100%;
+        height:   100%;
+        position: absolute;
+    }
+    #__hostInShadow.disabled {
+        pointer-events: none;   
+        opacity:0.5;
+    }
+</style>
+`;
         this.#hostStyle = document.createElement("div");   // this is now where all style elements get appended to
         this._addDbgId(this.#hostStyle, "#hostStyle(InShadow)");
         this.#hostStyle.style.display = "none";            // hide this div
         this.#hostShadow.appendChild(this.#hostStyle);    // here is where all loadStyle() el's go
 
-        this.#host = document.createElement("div");      // create 'final' <body>-like div to pass to plugin
+        this.#host = document.createElement("div");      // create new #host to replace old one
+        this.#host.id = "__hostInShadow";
         this._addDbgId(this.#host, "#host(InShadow)");
-        this.#host.classList.add("DCW_DefaultRect");
+        // this.#host.classList.add("DCW_DefaultRect");     
+        // this.#host.classList.add("shadowWrapper__host");     // not accessible inside shadow!
         this.#hostShadow.appendChild(this.#host);
     }
 
@@ -246,7 +258,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
     async exportDchData() {
-        debugger; return await this.#dch._wh_exportData();
+        return await this.#dch._wh_exportData();
     }
 
     // async isDirty() {
@@ -328,7 +340,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
     _hw_autoSave(delay) {       // dirty flag gets set on #dch, not this obj  (see async exportData() below)
-        FF.autoSave("DCH", this, delay);
+        FF.autoSave("ModDch", this, delay);
     } 
 
 

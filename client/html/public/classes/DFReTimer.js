@@ -27,18 +27,24 @@ export class DFReTimer  {
         this._process(Date.now() + delay);
     }
 
+    async flushAll() {
+        await this.setDelay(0);
+        await this.deadlock(); 
+    }
+
     cancel = () => {
-        this._inProcess = false;
         if (this._lastTimeoutId > 0) {                       // kill any current running timer
             clearTimeout(this._lastTimeoutId);
             this._lastTimeoutId = 0;
         }
+        this._inCallback = false;
     }
+
 
     deadlock = async () => {            // waitfor timer to expire (and callback to be made if any timer was active)
         return new Promise((resolve,reject) => {
             const id = setInterval(() => {
-                if (!this._inProcess) {
+                if (!this._inCallback) {
                     clearInterval(id);
                     resolve();
                     return;
@@ -48,20 +54,23 @@ export class DFReTimer  {
     }
 
     async _process(time) {
-        this.cancel();
-        this._inProcess = true;
-        const span = time - Date.now();              //FF.trace("span=" + span, "key=",this.keys[0]);
-        if (span <= 0) {           // ready to fire!
-            await this._callback(this._payload);
-            this._inProcess = false;
-        } else {                // else start a timeout of 'span' millis
-            this._lastTimeoutId = setTimeout( async () => {
+        if (!this._inCallback) {     // prevents recursion
+            this.cancel();
+            const span = time - Date.now();              //FF.trace("span=" + span, "key=",this.keys[0]);
+            if (span <= 0) {           // ready to fire!
+                this._inCallback = true;
                 await this._callback(this._payload);
-                this._inProcess = false;
-            }, span);
+                this._inCallback = false;
+            } else {                // else start a timeout of 'span' millis
+                this._lastTimeoutId = setTimeout( async () => {
+                    this._inCallback = true;
+                    await this._callback(this._payload);
+                    this._inCallback = false;
+                }, span);
+            }
         }
     }
     _lastTimeoutId = 0;
-    _inProcess = false;
+    _inCallback = false;
 }
 

@@ -23,8 +23,8 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
 --------       autoSave("action", data, delay)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees, actions are:
-                                            "DCH" dch data content needs saving
-                                            "DOC" doc's dcw's were moved/resized/reordered (not added/deleted, those are immediate acts)
+                                            "ModDch" dch data content needs saving
+                                            "ModDoc" doc's dcw's were moved/resized/reordered (not added/deleted, those are immediate acts)
 -------- async flushAll()               convenience call to flush any FF.autoSave waiting to trigger saving immediately
 
 
@@ -231,33 +231,32 @@ FF.__FILE__ = function(all = false) {   // see 'FF.trace' right below this func 
 };
 
 
-const _aSaveReTimer = new DFReTimer(_onAutoSave);
+const _aSaveReTimer = new DFReTimer(_autoSaveFired);
 let   _aSaveKeyword;
 let   _aSavePayload;
-async function _onAutoSave() {  // process autosaving
+async function _autoSaveFired() {  // process autosaving
     switch(_aSaveKeyword) {
-        case "DCH":         // content of plugin has changed
-            debugger;
+        case "ModDch":         // content of plugin has changed
+            await WS.pktFtoB["ModDch"](_aSavePayload);
             break;
-        case "DOC":         // doc's dcw's were moved/resized/reordered (NOT added/deleted, that's handled differently!)
-            debugger;
+        case "ModDoc":         // doc's dcw's were moved/resized/reordered (NOT added/deleted nor was doc renamed, that's handled differently!)
+            await WS.pktFtoB["ModDoc"](_aSavePayload);
             break;
     }
     _aSaveKeyword = undefined;
 };
 
-FF.autoSave   = (keyword, payload, delay=1000) => {
-    if (kwd == _aSaveKeyword || payload != _aSavePayload) {
-        FF.flushAll();
+FF.autoSave   = async (keyword, payload, delay=1000) => {
+    if (keyword != _aSaveKeyword || payload != _aSavePayload) {
+        await FF.flushAll();
         _aSaveKeyword = keyword;
-        _aSavePayload = payload
+        _aSavePayload = payload;
     } 
-    _aSaveReTimer.setDelay;
+    _aSaveReTimer.setDelay(delay);
 }
 
 FF.flushAll   = async function () { 
-    _aSaveReTimer.setDelay(0);
-    await _aSaveReTimer.deadlock(); 
+    _aSaveReTimer.flushAll();
 }
 
 

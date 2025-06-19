@@ -88,7 +88,7 @@ _register(class GetDBList extends PacketBASE {  // Delete /CURRENT/ DB from back
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 _register(class GetDCHList extends PacketBASE { // get list of all available DocComponentHandlers
-    //    list;       // B->F  ["DOC","BOX"] etc... 
+    //    list;       // B->F  ["BOX","TXA",...] etc... 
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 _register(class GetDocTree extends PacketBASE { // get docTree table contents
@@ -104,10 +104,10 @@ _register(class NewDoc extends PacketBASE {    // create a new doc and insert it
 });
 _register(class ModDoc extends PacketBASE {    // B<-F save namechg or dcwpos/shapes back into the database
                                                // B->F=broadcast of uuid,name,dcwFlatTree,bump
-//    uuid;        // B<>F uuid of doc to mod
-//    name;        // B<>F name of doc  or undeclared if name ! changed
-//    dcwFlatTree; // B<>F dcwFlatTree of connected dcw/dch's or undeclared if dcwFlatTree ! changed
-//    bump:        // B->F bump# of modded doc
+//    uuid;         // B<>F uuid of doc to mod
+//    ?name;        // B<>F name of doc  [or undeclared if name ! changed]
+//    ?dcwFlatTree; // B<>F dcwFlatTree of connected dcw/dch's [or undeclared if dcwFlatTree ! changed]
+//    bump:         // B->F bump# of modded doc
 });
 _register(class DelDoc extends PacketBASE {   // Delete a document from the system
     constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 
@@ -128,8 +128,10 @@ _register(class AddDch extends PacketBASE {    // add dch flatTree(in cases of p
 //  childOf         // B<-F dchRecId to insert this new dch as a child of (always as last child)
 });
 
-_register(class ModDch extends PacketBASE {    // add a new dch to current doc
-    constructor(){super();debugger;}//   uuid        // B<-F uuid of doc this belongs to
+_register(class ModDch extends PacketBASE {    // add a new dch to current doc, broadcasts "ModDoc"
+//   uuid          // B<>F uuid of doc this belongs to
+// recId           // B<>F recId of dch getting modded
+// u8a             // B<>F Uint8array of data
 });
 
 _register(class DelDch extends PacketBASE {    // deleting dch(and all children) from current doc, broadcasts "ModDoc"

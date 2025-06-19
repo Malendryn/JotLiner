@@ -1,6 +1,7 @@
 
 // base class of all DocumentComponentHandlers (dch's)
 
+import { DFDecoder,DFEncoder } from "/public/classes/DFCoder.mjs";
 import { DFListenerTracker } from "/public/classes/DFListenerTracker.js";
 
 class DCH_BASE {   // base class of all document components
@@ -111,7 +112,7 @@ class DCH_BASE {   // base class of all document components
 
     async _wh_exportData() {     // called from DCW_BASE.exportDchData();
         // this.#dirty = false;
-        debugger; let encoder = new DFEncoder();
+        let encoder = new DFEncoder();
         let u8a = encoder.encode(this.exportData());
         return u8a;
     }
@@ -131,7 +132,7 @@ class DCH_BASE {   // base class of all document components
 
     autoSave(delay) {
         // this.#dirty = true;
-        debugger; this.#owner._hw_autoSave(delay);
+        this.#owner._hw_autoSave(delay);
     }
 
     __getOwner() { return this.#owner; }     // special just for BOX

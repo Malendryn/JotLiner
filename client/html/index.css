@@ -130,10 +130,6 @@ html,body {
     border:     0px;
     /* border:     1px dashed red; */
 }
-.shadowWrapper__host.disabled {
-    pointer-events: none;   
-    opacity:0.5;
-}
 
 .DCW_DefaultToolbar {
     position:   absolute;
