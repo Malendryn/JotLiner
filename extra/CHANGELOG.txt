@@ -9,6 +9,8 @@
 1 added AddDch+broadcast response, still working out the kinks
 2 update of dch contents is now fully working again (simple bindump/restore, no delta yet)
 3 alt+shift+z now seems to be working as well
+4 alt+shift+RMB and editing anchors and positions now works again
+4 tested multiuser moving/sizing/shaping/styling and all seems good!  (still not yet doing front<->back though)
 
 2025-06-18 ------------------------------------------------------------------------------------------------------------
 1 updated DFDict and documented it better now

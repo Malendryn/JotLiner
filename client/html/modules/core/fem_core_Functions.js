@@ -23,8 +23,9 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
 --------       autoSave("action", data, delay)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees, actions are:
-                                            "ModDch" dch data content needs saving
-                                            "ModDoc" doc's dcw's were moved/resized/reordered (not added/deleted, those are immediate acts)
+                                            "ModDch" dch)                content needs saving
+                                            ("ModDoc", "dcwFlatTree")    doc's dcw's were moved/resized/reordered/restyled (not added/deleted, those are immediate acts)
+                                            ("ModDoc", "name")           doc's name was changed
 -------- async flushAll()               convenience call to flush any FF.autoSave waiting to trigger saving immediately
 
 

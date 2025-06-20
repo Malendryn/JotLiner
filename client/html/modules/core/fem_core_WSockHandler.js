@@ -135,7 +135,7 @@ function process(buf) {     // this function must not await, anything that happe
                 entry.callback(pkt, entry.context);
             }
         } else {
-            debugger; if (pkt.__key) {    // if it has a __key, it's a batchResponse packet
+            if (pkt.__key) {    // if it has a __key, it's a batchResponse packet
                 const key = pkt.constructor.name + ":" + pkt.__key;
                 if (key in __waitBatch) { // found a batch wait'er
                     const entry = __waitBatch[key];

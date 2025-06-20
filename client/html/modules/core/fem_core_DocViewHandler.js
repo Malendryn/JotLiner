@@ -1,5 +1,6 @@
 // DocViewHandler = Toplevel Keyboard and Mouse Event Handlers
 
+import { DFDict } from "/public/classes/DFDict.mjs";
 import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 
 let el = document.getElementById("divDocView");
@@ -238,15 +239,15 @@ function onContextDCHLayout() {
             ss.top    = formOrigVals.top;
             ss.height = formOrigVals.height;
             ss.bottom = formOrigVals.bottom;
-            formChanged = false;                // unset the changed state
-        }
+            formChanged = false;    // unset the changed state
+        }                           // no need for if dict.Submit as we live-changed the dch)
         return true;                // tell dialog to close no matter what button was pressed
     }
     async function _postRun(form) {
         form.removeEventListener("input", onFormInput);
         form.removeEventListener("click", onFormClick);
         if (formChanged) {
-            debugger; FF.flushAll();         // save immediately
+            FF.autoSave("ModDoc", "dcwFlatTree"); 
         }
         FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
         onStateChange({});          // just to bump an update so ghost clears
@@ -358,7 +359,7 @@ try {
                 WS.pktFtoB["DelDch"](dcw);
                 break;
             case "setLayout":
-                debugger; onContextDCHLayout();
+                onContextDCHLayout();
                 break;
             case "setProps":
                 debugger; onContextDCHProps();
@@ -474,6 +475,28 @@ function setKBModeToolbarText(dcw) {
 
         el.innerHTML = txt;
     }
+}
+
+
+FF.getDcwDict = function() {  // return a DFDict of [recId, dcw] ordered by dcwFlatTree of doc
+    if (!FG.curDoc) {
+        return [];
+    }
+    let dict = new DFDict();
+
+    let dcw = FG.curDoc.rootDcw;
+    dict.append(dcw.dchRecId, dcw);     // append dcw right away
+    function walk(dcw) {
+        if (dcw.children && dcw.children.length > 0) {
+            for (let child of dcw.children) {
+                dict.append(child.dchRecId, child);
+                list.push(child);
+                walk(child);
+            }
+        }
+    }
+    walk(dcw);
+    return dict;
 }
 
 

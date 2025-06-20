@@ -76,24 +76,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         dcw.#sysDiv.style.minWidth = "20px";           //prevent resizing smaller than 20px
         dcw.#sysDiv.style.minHeight = "20px";
 
-        dcw.#sysDiv.style.left       = '';     // start by setting all these to '' (to override .css 'inset:0px;')
-        dcw.#sysDiv.style.right      = '';
-        dcw.#sysDiv.style.width      = '';
-        dcw.#sysDiv.style.top        = '';
-        dcw.#sysDiv.style.bottom     = '';
-        dcw.#sysDiv.style.height     = '';
-
-        for (const key in style) {              // get and parse the style values
-            const val = style[key] + "px";      // get the value and append "px"
-            switch(key) {
-                case 'L':   dcw.#sysDiv.style.left   = val;   break;
-                case 'R':   dcw.#sysDiv.style.right  = val;   break;
-                case 'W':   dcw.#sysDiv.style.width  = val;   break;
-                case 'T':   dcw.#sysDiv.style.top    = val;   break;
-                case 'B':   dcw.#sysDiv.style.bottom = val;   break;
-                case 'H':   dcw.#sysDiv.style.height = val;   break;
-            }
-        }
+        dcw.setStyle(style);
         parentDiv.appendChild(dcw.#sysDiv);
 
 // create a 'temporary non-shadow' host until we discover what type of dch is loading
@@ -111,6 +94,27 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
         }
 
         return dcw;
+    }
+
+    setStyle(style) {
+        this.#sysDiv.style.left       = '';     // start by setting all these to '' (to override .css 'inset:0px;')
+        this.#sysDiv.style.right      = '';
+        this.#sysDiv.style.width      = '';
+        this.#sysDiv.style.top        = '';
+        this.#sysDiv.style.bottom     = '';
+        this.#sysDiv.style.height     = '';
+
+        for (const key in style) {              // get and parse the style values
+            const val = style[key] + "px";      // get the value and append "px"
+            switch(key) {
+                case 'L':   this.#sysDiv.style.left   = val;   break;
+                case 'R':   this.#sysDiv.style.right  = val;   break;
+                case 'W':   this.#sysDiv.style.width  = val;   break;
+                case 'T':   this.#sysDiv.style.top    = val;   break;
+                case 'B':   this.#sysDiv.style.bottom = val;   break;
+                case 'H':   this.#sysDiv.style.height = val;   break;
+            }
+        }
     }
 
     createShadowHost() {
