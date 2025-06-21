@@ -39,6 +39,8 @@ class DFContextMenu {
 //  constructor(dict={styles:[]})  see bottom of class
 
     async open(entries, callback, locX, locY) {
+        locX = (locX > 0) ? locX - 8 : 0;   // mv locXY up/left 8px so mouse is absolutely above it
+        locY = (locY > 0) ? locY - 8 : 0;
         for (let idx = 0; idx < this._styles.length; idx++) {
             const style = this._styles[idx];
             await _loadStyle(this._styleId, idx + 2, style);  // idx is +2 cuz 1) so errs show 1-based and 2) to skip styles.unshift("DFDialog.css") above

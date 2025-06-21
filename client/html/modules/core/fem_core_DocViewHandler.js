@@ -16,7 +16,7 @@ document.addEventListener("keydown",     onTkmKeyDown,     { capture: true, pass
 document.addEventListener("keyup",       onTkmKeyUp,       { capture: true, passive: false });
 
 // function onTkmDocViewFocus(evt) {
-//     console.log(FF.__FILE__(), "onTkmDocViewFocus")
+//     console.log(__FILE__(), "onTkmDocViewFocus")
 // }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -520,7 +520,7 @@ FF.getDcwList = function() {  // return a straight [] of all dcw's in this doc
 }
 
 
-function getChildrenBoundingRect(dcw) {
+function getChildrenBoundingRect(dcw) {   // only test direct children, not children's children
     let rect = {
         L: 999999999,
         R: 0,
@@ -539,32 +539,32 @@ function getChildrenBoundingRect(dcw) {
 
 
 function showOOB() {
-    console.log(FF.__FILE__(), "showOOB");
+    // trace("showOOB");
     FG.ghosts.showOOB = true;
     const dcwList = FF.getDcwList();
     for (const dcw of dcwList) {
         if (FF.getDchName(dcw.dch) == "BOX") {  // only do this to BOXes
             let pRect = dcw.sysDiv.getBoundingClientRect();
-            let cRect = getChildrenBoundingRect(dcw);
-            trace(dcw.sysDiv.dataset._dbgid.padStart(8, '-'), "TESTREDBOX pRect=", JSON.stringify(pRect));
-            trace(dcw.sysDiv.dataset._dbgid.padStart(8, '-'), "TESTREDBOX cRect=", JSON.stringify(cRect));
+            let cRect = getChildrenBoundingRect(dcw);   // only test direct children, not children's children
+            // trace(dcw.sysDiv.dataset._dbgid.padStart(8, '-'), "TESTREDBOX pRect=", JSON.stringify(pRect));
+            // trace(dcw.sysDiv.dataset._dbgid.padStart(8, '-'), "TESTREDBOX cRect=", JSON.stringify(cRect));
 
-            dcw.sysDiv.classList.remove("border-T");
-            dcw.sysDiv.classList.remove("border-R");
-            dcw.sysDiv.classList.remove("border-B");
-            dcw.sysDiv.classList.remove("border-L");
+            dcw.host.classList.remove("border-T");  // div must also have class="DCH_BOX" to work
+            dcw.host.classList.remove("border-R");
+            dcw.host.classList.remove("border-B");
+            dcw.host.classList.remove("border-L");
 
             if (FG.kmStates.mode != 0) {            // only show borders if mode 1 or 2
-                if (cRect.T < pRect.top)    { dcw.sysDiv.classList.add("border-T"); }
-                if (cRect.R > pRect.right)  { dcw.sysDiv.classList.add("border-R"); }
-                if (cRect.B > pRect.bottom) { dcw.sysDiv.classList.add("border-B"); }
-                if (cRect.L < pRect.left)   { dcw.sysDiv.classList.add("border-L"); }
+                if (cRect.T < pRect.top)    { dcw.host.classList.add("border-T"); }
+                if (cRect.R > pRect.right)  { dcw.host.classList.add("border-R"); }
+                if (cRect.B > pRect.bottom) { dcw.host.classList.add("border-B"); }
+                if (cRect.L < pRect.left)   { dcw.host.classList.add("border-L"); }
             }
         }
     }
 }
 // function clearOOB() {
-//     console.log(FF.__FILE__(), "clearOOB");
+//     console.log(__FILE__(), "clearOOB");
 //     FG.ghosts.showOOB = false;
 //     const dcwList = FF.getDcwList();
 //     for (const dcw of dcwList) {
@@ -577,7 +577,7 @@ function showOOB() {
 function showGhosts(dcw) {
     const mDiff = FG.kmStates.mode != FG.kmPrior.mode;  // did the current mode change?
     const dDiff = FG.kmStates.dcw  != FG.kmPrior.dcw;   // did the dcw under mouse change?
-    // console.log(FF.__FILE__(), "showGhosts dcw=", dcw != null, "mode=", FG.kmStates.mode, "mDiff=", mDiff, "dDiff=", dDiff);
+    // console.log(__FILE__(), "showGhosts dcw=", dcw != null, "mode=", FG.kmStates.mode, "mDiff=", mDiff, "dDiff=", dDiff);
     showOOB();
     // if (FG.kmStates.mode != 2 && !FG.ghosts.showOOB) {  // if mode0 and not showing OOBs
     //     showOOB();
@@ -602,7 +602,7 @@ function showGhosts(dcw) {
     }
     let ghost = FG.ghosts.divGhost;
     if (!ghost) {
-        // console.log(FF.__FILE__(), "showGhost:  creating ghostDiv");
+        // console.log(__FILE__(), "showGhost:  creating ghostDiv");
         ghost = document.createElement("div");
         ghost.style.position = "fixed";   // fixed to ignore all other div-inside-div measurings
         const docDiv = document.getElementById("divDocView");
@@ -659,7 +659,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
     if (FG.kmStates.dcw === FG.curDoc.rootDcw) {    // if rootDcw WAS selected (via mode2), THEN we came back here to mode1
         FG.kmStates.dcw = dcw = null;               // unset it (we don't 'mode1' on rootDcw ever!)
     }
-    // console.log(FF.__FILE__(), "doDchOpMode1: dcw=", FG.kmStates.dcw);
+    // console.log(__FILE__(), "doDchOpMode1: dcw=", FG.kmStates.dcw);
 
     if (FG.kmStates.btnLeft) {                      // if mouseLeft down, stick with currently selected dcw
         dcw = FG.kmStates.dcw;
@@ -869,7 +869,7 @@ function onStateChange() {  // detect commandState change and create a faux invi
     // const docDiv = document.getElementById("divDocView");
     let oldCMode = getCmdMode(FG.kmPrior);
     let newCMode = getCmdMode();
-    // console.log(FF.__FILE__(), oldCMode, newCMode);
+    // console.log(__FILE__(), oldCMode, newCMode);
 
     if (oldCMode != newCMode) {             // if commandState changed
         setKMStateMode(newCMode);           // set kmStates.mode, add/rmv ghosts, title/toolbars, dis/enable shadow DOMs

@@ -29,6 +29,7 @@ class DCH_BOX extends DCH_BASE {
     async construct() {
         // most styles are now in the DCH_BOX.css file
         // this.sysDiv.classList.add("DCH_BOX");
+        
         this.host.classList.add("DCH_BOX"); // now = "DCW_DefaultRect DCH_BOX"
         await this.owner._hw_translateChildren(this.#zX, this.#zY);     // applies the transform:translate() if needed
     }

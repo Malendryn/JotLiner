@@ -15,38 +15,6 @@ openssl req -x509 -newkey rsa:2048 -nodes -keyout localhost.key.pem -out localho
   -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:192.168.10.10"
 **********************************************************************************************************************/
 
-function __parseTraceNL(line) {
-    let fn_ln = "???:?";
-    try {
-        const match = line.match(/\(?([^():]+):(\d+):(\d+)\)?$/);
-        if (match) {
-            const fName = match[1].split('/').pop(); // get filename only
-            const lineNo = match[2];
-            fn_ln = fName + ":" + lineNo;
-        }
-    }
-    catch(err) {}   // catch-and-ignore
-    return fn_ln;
-}
-globalThis.trace = function(...args) {
-    const lines = (new Error()).stack.split('\n');
-    const fn_ln = __parseTraceNL(lines[2]);
-    console.log("TRACE:" + fn_ln, ...args);
-}
-globalThis.trace2 = function(...args) {
-    const lines = (new Error()).stack.split('\n');
-    const fn_ln2 = __parseTraceNL(lines[2]);
-    const fn_ln3 = __parseTraceNL(lines[3]);
-    console.log("TRACE:" + fn_ln3 + "-->" + fn_ln2, ...args);
-}
-globalThis.trace3 = function(...args) {
-    const lines = (new Error()).stack.split('\n');
-    const fn_ln2 = __parseTraceNL(lines[2]);
-    const fn_ln3 = __parseTraceNL(lines[3]);
-    const fn_ln4 = __parseTraceNL(lines[4]);
-    console.log("TRACE:" + fn_ln4 + "-->" + fn_ln3 + "-->" + fn_ln2, ...args);
-}
-
 FF.loadModule = async (modulePath) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -77,9 +45,9 @@ function __onUnhandledRejection(err) {
 window.onunhandledrejection = __onUnhandledRejection;
 
 window.addEventListener('load', async function() {
+    await FF.loadModule("./modules/shared/shared_Functions.js");           // populate SF -- also trace()
     await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate FG
     await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate FF
-    await FF.loadModule("./modules/shared/shared_Functions.js");           // populate SF
 
     let el;
     el = this.document.getElementById("divToolbar");

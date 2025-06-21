@@ -18,13 +18,22 @@ import { DFDict } from "/public/classes/DFDict.mjs";
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // functions below are called when a broadcast packet comes in ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.classes["ModDocTree"].prototype.onPktRecvd = async function() {  // {uuid, bump} trigger: -- WS.pktFtoB["AddDch"](dcw)
+    if (WS.lastPacketSent.__id == this.__id) {      // I am the one who sent the change so select this uuid immediately!
+        LS.curDoc = WS.lastPacketSent.uuid;
+    }
+    await FF.loadDocTree();         // go fetch and reconstruct index pane
+    await FF.selectAndLoadDoc(LS.curDoc, false);
+}
+
 WS.classes["ModDoc"].prototype.onPktRecvd = async function() {  // {uuid, bump} trigger: -- WS.pktFtoB["AddDch"](dcw)
     if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // MY curDoc is not changed so ignore packet
         return;
     }
     if ("name" in this) {
-        debugger; FG.curDoc.name = this.name;
-        debugger; // RSTODO update the docTree
+        FG.curDoc.name = this.name;
+        await FF.loadDocTree();         // go fetch and reconstruct index pane
+        await FF.selectAndLoadDoc(FG.curDoc.uuid, false);  // keep current doc as all we did was rename it
         return;
     }
     let feFlat, beFlat, feDict, beDict, feRecIds, beRecIds, removed = [], added = [], kept = [];

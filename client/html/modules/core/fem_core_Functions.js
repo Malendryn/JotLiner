@@ -9,7 +9,7 @@ module = async loadModule(modulePath)   load and return module, if has an export
 ==== FROM fem_core_Functions.js ====================================================================================
 --------       shutdown(event)          called before server exits entirely.  closes database and does other cleanup
 -------- async msDelay(ms)              cause a delay of ms,  EG: 'await FF.msDelay(1500);'
-uuid   = async makeUUID()               make and return a UUID
+uuid   = async makeUuid()               make and return a UUID
 hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
 
                setToolbarHeight(px)     // set toolbar height and adjust surrounding windows accordingly
@@ -76,7 +76,7 @@ FF.msDelay = (ms) => {  // this is primarily just a sample function
 };
 
 
-FF.makeUUID = () => {
+FF.makeUuid = () => {
 	return crypto.randomUUID();
 };
 
@@ -196,40 +196,6 @@ function __getFileLineInfo(err) {
 		return "<?noFileInfo?>.???";
 	}
 }
-
-
-FF.__FILE__ = function(all = false) {   // see 'FF.trace' right below this func for a much better version
-	try {
-		throw new Error();
-	} catch (error) {
-		const stackLines = error.stack.split('\n');		// convert stack trace to array
-
-        const lines = [];
-        for (let idx = 0; idx < stackLines.length; idx++) {
-            if (stackLines[idx].indexOf('@') > -1 || stackLines[idx].indexOf('at ') > -1) { // look for '@' or 'at '
-                let filename = stackLines[idx].substring(stackLines[idx].lastIndexOf('/') + 1);
-                filename = filename.substring(0, filename.lastIndexOf(':')); // of 'fname.js:lineno:idx)'return 'fname:lno'      //.indexOf(')'));
-                lines.push(filename);
-            }
-        }
-
-        let line = "";
-        if (!all) {
-            if (lines) {
-                line = lines[1];
-            }
-        } else {
-            for (let idx = lines.length; idx >= 1; idx--) {     // never use 0 as that's the 'throw new Error(' line above
-                line += "\n >> " + lines[idx];
-            }
-        }
-	
-		if (line) { 
-			return line;
-		}
-		return "<?noFileName?>.??:???";
-	}
-};
 
 
 const _aSaveReTimer = new DFReTimer(_autoSaveFired);

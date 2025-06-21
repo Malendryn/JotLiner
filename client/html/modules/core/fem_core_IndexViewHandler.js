@@ -10,7 +10,7 @@ import { DFDict } from "/public/classes/DFDict.mjs";
 
 let _dlgTmp;    // used to exfer exploded file to _onCtxImport2_onDlgButton()  {?name?,{dchList:},error}
 async function _onCtxImport2_onDlgButton(btnLabel, formData) {        // btn pressed in 2nd dialog (child/sibling and rename)
-    let result = true;
+    debugger; let result = true;
     const newDocInfo = {};
     if (formData.isSubmit) {
         if (formData.docName.length == 0) {
@@ -32,7 +32,7 @@ async function _onCtxImport2_onDlgButton(btnLabel, formData) {        // btn pre
         newDocInfo.doc = encoder.encode(tmp);  // encodes only the {dchlist:[]}, no uuid,name,version
 
         newDocInfo.asChild = (formData.placement == "child");     // based on the radiobutton
-        result = await insertDoc(newDocInfo);   // result=true=done+closeDialog false=error occurred
+        debugger; result = await insertDoc(newDocInfo);   // result=true=done+closeDialog false=error occurred
         if (!result) {
             alert("Something went wrong with import...!");  // RSTODO should NEVER!!! but still we need better error management
         }
@@ -269,7 +269,7 @@ debugger; let dcw = await DCW_BASE.create(null, {T:0,R:0,B:0,L:0});	// blowout a
 
     debugger; await dcw.attachDch("BOX");      // turn it into a 'BOX'
     FG.curDoc = {
-        uuid:      FF.makeUUID(),
+        uuid:      FF.makeUuid(),
         name:      "unnamed",
         rootDcw:   dcw,
         bump:      0,
@@ -297,13 +297,11 @@ function openDocRenamePopup() {
                 return false;
             }
     
-            debugger; let pkt = WS.makePacket("RenameDoc")
+            let pkt = WS.makePacket("ModDoc")
             // FG.curDoc.name = dict.docName;   no reason to track docname in curDoc
             pkt.uuid = FG.curDoc.uuid;
             pkt.name = dict.docName;
-            pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
-            await FF.loadDocTree();         // go fetch and reconstruct index pane
-            await FF.selectAndLoadDoc(FG.curDoc.uuid, false);  // keep current doc as all we did was rename it
+            pkt = WS.send(pkt)
         }
         FG.kmStates.modal = false;
         return true;
@@ -330,42 +328,42 @@ function openDocRenamePopup() {
 // dict={docName, ?doc(u8a) if import, else null if new, asChild};
 // returns true=success, false=fail
 async function insertDoc(dict) {
-    debugger; if (dict.docName.length == 0) {
-        alert("Document name cannot be empty");
-        return false;
-    }
-
-    let info = null;
+    let info;
     if (FG.curDoc) {                    // if doc selected we need its id and parent
         info = FF.getDocInfo(FG.curDoc.uuid);
     } else {
         info = { id:0, parent:0 };      // else insert at very END (at server, 0 matches no id so goes at end)
     }
 
-    await FF.newDoc();    // setup NEW FG.curDoc w/empty document and new uuid (we always need that new uuid here)
-    dict.uuid = FG.curDoc.uuid;
+    // await FF.newDoc();    // setup NEW FG.curDoc w/empty document and new uuid (we always need that new uuid here)
+    // dict.uuid = FG.curDoc.uuid;
     
-    let dcwFlatTree;
-    if (!dict.doc) {        // if present, is u8a file import block, else make u8a from FF.newDoc() we just called
-        const extracter = new FG.DocExtracter();
-        dcwFlatTree = await extracter.extract(FG.curDoc.rootDcw, false);
-    }
+    // let dcwFlatTree;
+    // if (!dict.doc) {        // if present, is u8a file import block, else make u8a from FF.newDoc() we just called
+    //     const extracter = new FG.DocExtracter();
+    //     dcwFlatTree = await extracter.extract(FG.curDoc.rootDcw, false);
+    // }
 
-trace("moveTo fem_core_PacketHandlersFtoB.js and add a onChanged() func instead of calling FF.loadDocTree()...");
-    let pkt = WS.makePacket("NewDoc")
-    pkt.dict = {
-        name:       dict.docName,
-        uuid:       dict.uuid,
-        after:      (dict.asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
-        parent:     (dict.asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
-        doc:        JSON.stringify(dcwFlatTree),
-    }
-    pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
-    if (dict.asChild) {
-        FF.setIdxpanded(info.id, true);
-    }
-    await FF.loadDocTree();         // go fetch and reconstruct index pane
-    await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
+    const parent = (dict.asChild) ? info.id : info.parent;  // ifChild, set parent to selected, else selecteds parent
+    const after  = (dict.asChild) ? 0       : info.id;      // ifChild, set after to 0, else to selected
+
+    await WS.pktFtoB["AddDoc"](dict.docName, parent, after);
+
+// trace("moveTo fem_core_PacketHandlersFtoB.js and add a onChanged() func instead of calling FF.loadDocTree()...");
+//     let pkt = WS.makePacket("NewDoc")
+//     pkt.dict = {
+//         name:       dict.docName,
+//         uuid:       dict.uuid,
+//         after:      (dict.asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
+//         parent:     (dict.asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
+//         doc:        JSON.stringify(dcwFlatTree),
+//     }
+//     pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
+//     if (dict.asChild) {
+//         FF.setIdxpanded(info.id, true);
+//     }
+//     await FF.loadDocTree();         // go fetch and reconstruct index pane
+//     await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
     return true;
 }
 
@@ -377,15 +375,13 @@ function openNewDocDialog(asChild) {
 
     async function onDlgButton(btnLabel, dict) {    // on btnPress when inserting new document
         if (dict.isSubmit) {
-            delete dict.isSubmit;
-            // dict.uuid    = FG.curDoc.uuid;   // as NEW doc we DONT pass a uuid
-            // dict.doc     = tmp;              // this will also get created inside insertDoc()
-            dict.asChild = asChild;              // taken from funcParam(asChild)
-
-            const result = await insertDoc(dict);
-            if (!result) {
+            if (dict.docName.length == 0) {
+                alert("Document name cannot be empty");
                 return false;
             }
+            dict.asChild = asChild;              // taken from funcParam(asChild)
+
+            await insertDoc(dict);
         }
         FG.kmStates.modal = false;
         return true;
@@ -400,41 +396,25 @@ let _dialog;
 
 const _indexContextMenu = new DFContextMenu();
 
-// const indexMenuEntries = [
-//     //   action,      entryText,             tooltipText
-//         {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"},
-//         {action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"},
-//         {action:"",              label:"",                        tip:""},
-//         {action:"renameDoc",     label:"Rename document",         tip:"Rename the selected document"},
-//         {action:"",              label:"",                        tip:""},
-//         {action:"indent",        label:"> Make child of",         tip:"Make document a child of the document above it"},
-//         {action:"dedent",        label:"< Move to parent level",  tip:"Move document up to parent's level"},
-//         {action:"",              label:"",                        tip:""},
-//         {action:"import",        label:"Import Document",         tip:"Import document from local file"},
-//         {action:"export",        label:"Export Document",         tip:"Export document to a local file"},
-//         {action:"",              label:"",                        tip:""},
-//         {action:"delete",        label:"Delete Document",         tip:"Delete document under cursor (and all its children)"},
-// ];
-    
 
-function openIndexContextMenu() {
+function openIndexContextMenu(uuid) {
     let tmp = [];
-        tmp.push({action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"        });
-    if (FG.curDoc) {
-        tmp.push({action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"});
-        tmp.push({action:"",              label:"",                        tip:""                                                    });
-        tmp.push({action:"renameDoc",     label:"Rename document",         tip:"Rename the selected document"                        });
-        tmp.push({action:"",              label:"",                        tip:""                                                    });
-        tmp.push({action:"indent",        label:"> Make child of",         tip:"Make document a child of the document above it"      });
-        tmp.push({action:"dedent",        label:"< Move to parent level",  tip:"Move document up to parent's level"                  });
-    }
-        tmp.push({action:"",              label:"",                        tip:""                                                    });
-        tmp.push({action:"import",        label:"Import Document",         tip:"Import document from local file"                     });
-    if (FG.curDoc) {
-        tmp.push({action:"export",        label:"Export Document",         tip:"Export document to a local file"                     });
-        tmp.push({action:"",              label:"",                        tip:""                                                    });
-        tmp.push({action:"delete",        label:"Delete Document",         tip:"Delete selected document (and all its children)"     });
-    }
+        tmp.push(    {action:"newDocAtSame",  label:"New document",            tip:"Insert a new document below the selected one"        });
+        if (uuid) {
+            tmp.push({action:"newDocAsChild", label:"New child document",      tip:"Insert a new document as a child of the selected one"});
+            tmp.push({action:"",              label:"",                        tip:""                                                    });
+            tmp.push({action:"renameDoc",     label:"Rename document",         tip:"Rename the selected document"                        });
+            tmp.push({action:"",              label:"",                        tip:""                                                    });
+            tmp.push({action:"indent",        label:"> Make child of",         tip:"Make document a child of the document above it"      });
+            tmp.push({action:"dedent",        label:"< Move to parent level",  tip:"Move document up to parent's level"                  });
+        }
+        tmp.push(    {action:"",              label:"",                        tip:""                                                    });
+        tmp.push(    {action:"import",        label:"Import Document",         tip:"Import document from local file"                     });
+        if (FG.curDoc) {
+            tmp.push({action:"export",        label:"Export Document",         tip:"Export document to a local file"                     });
+            tmp.push({action:"",              label:"",                        tip:""                                                    });
+            tmp.push({action:"delete",        label:"Delete Document",         tip:"Delete selected document (and all its children)"     });
+        }
 
     FG.kmStates.modal = true;
     _indexContextMenu.open(tmp, onIdxContextMenuAction, FG.kmStates.clientX, FG.kmStates.clientY);
@@ -526,6 +506,16 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
                 await FF.flushAll();                               // process any pending autoSave's immediately
             }
             /*NOwait*/ FF.loadDoc(uuid, force);              //  reload doc if needed or forced...
+            let node = info.li;
+            while (node.parentElement) {
+                node = node.parentElement;
+                if (node.id == "divIndexViewUL") {      // if reached the top of the docTree
+                    break;
+                }
+                if (node.tagName === "LI") {            // expand all parent<li> of selected uuid (needed by "AddDoc"->"ModDocTree")
+                    node.classList.add("expanded");
+                }
+            }
             info.li.style.backgroundColor = bgColorSel;      //...mark treeEntry as 'selected'
         }
     } else {
@@ -579,12 +569,12 @@ async function onContextMenu(evt) {     // desel any sel,  sel current one under
         await FF.selectAndLoadDoc(uuid);
         FG.kmStates.clientX = evt.clientX;  // update kmStates mousepos HERE cuz it now ONLY updates when over dch window
         FG.kmStates.clientY = evt.clientY;
-        openIndexContextMenu();
+        openIndexContextMenu(uuid);
     }
 }
 
 function onDragStart(evt) {             // RSTODO RSFIX RSBUG these are for dragging the leftpane entries up/down in the list, 
-    // console.log(FF.__FILE__(), "onDragStart");
+    // console.log(__FILE__(), "onDragStart");
     draggedItem = evt.target;
     evt.dataTransfer.effectAllowed = 'move';
     evt.target.classList.add('dragging');
@@ -592,7 +582,7 @@ function onDragStart(evt) {             // RSTODO RSFIX RSBUG these are for drag
 }
 
 function onDragOver(evt) {
-    console.log(FF.__FILE__(), "onDragOver", evt.target.id);
+    console.log(__FILE__(), "onDragOver", evt.target.id);
     evt.preventDefault();
     evt.dataTransfer.dropEffect = 'move';
 
@@ -622,7 +612,7 @@ function onDragOver(evt) {
 // }
 
 function onDragEnd(evt) {   // this is firing twice, donno why, but at least testing for !draggedItem prevents errors
-    console.log(FF.__FILE__(), "onDragOver RSTODO finish this! (update order/depth changes serverside and reload docTree");
+    console.log(__FILE__(), "onDragOver RSTODO finish this! (update order/depth changes serverside and reload docTree");
     evt.preventDefault();
     evt.stopPropagation();              // prevent dragend on parent <ul>'s from firing
     let list = evt.target.parentNode;
@@ -721,7 +711,7 @@ async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
 
 FF.loadDoc = async function(uuid, force=false) {          // returns T/F if doc loaded. (sets curDoc.uuid and .rootDcw if True)
     if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded
-        // console.log(FF.__FILE__(), "FF.loadDoc curDoc=RETURN=true");
+        // console.log(__FILE__(), "FF.loadDoc curDoc=RETURN=true");
         return true;
     }
 

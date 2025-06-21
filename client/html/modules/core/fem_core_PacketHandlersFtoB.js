@@ -17,18 +17,11 @@ in essense: when autoSave fires, (see FF.autoSave()) it calls one of the functio
      (see bottom of file where WS.classes.<PacketClass>.prototype.onchanged = async function()) {...}
 */
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// functions below are called when autoSave() fires on them //////////////////////////////////
 /////////////////////////// note, AUTOSAVE-FIRED FUNCTIONS MUST NOT FF.flushAll() /////////////////////////////////////
 /////////////////////// calling await FF.flushAll() in these causes deadlock waiting for itself ///////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// WS.pktFtoB["NewDoc"] = async (doc) => {    // presently handled in fem_core_IndexViewHandler.js
-//     debugger;
-// }
-
-// reffed via quoted strings to make them easier to find
-
 WS.pktFtoB["ModDoc"] = async (what) => {       // autoSave, what == "name" or "dcwFlatTree"
     let pkt = WS.makePacket("ModDoc", {uuid:FG.curDoc.uuid});
     if (what == "name") {
@@ -50,11 +43,20 @@ WS.pktFtoB["ModDch"] = async (dcw) => {                // autoSave when dch cont
 }
 
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// functions below are called directly, NOT from autoSave() //////////////////////////////////
 /////////////////////////// These SHOULD start with FF.flushAll() /////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.pktFtoB["AddDoc"] = async (docName, parent, after) => {    // presently handled in fem_core_IndexViewHandler.js
+    const dict = {
+        uuid:        FF.makeUuid(),
+        name:        docName,
+        parent:      parent,        // ifChild, set parent to selected, else selecteds parent
+        after:       after,         // ifChild, set after to 0, else to selected
+    }
+    let pkt = WS.makePacket("AddDoc", dict);
+    pkt = WS.send(pkt);
+}
 
 // WS.pktFtoB["DelDoc"] = async (doc) => {               
 //     debugger;

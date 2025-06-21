@@ -113,7 +113,7 @@ class DocImporter {
         let len = parseInt(tmp[1]);     // integerize 'len'
 
         if (this.idx > this.str.length) {    // test for end of data
-            console.warn(FF.__FILE__(), "readEl() Data stream too short");
+            console.warn(__FILE__(),    "readEl() Data stream too short");
             return null;
         }
 

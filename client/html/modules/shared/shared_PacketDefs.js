@@ -83,27 +83,30 @@ _register(class DeleteDB extends PacketBASE {  // Delete /CURRENT/ DB from backe
                 // <-- error string if db not empty, null if successful
 });
 _register(class GetDBList extends PacketBASE {  // Delete /CURRENT/ DB from backend
-//  list;       // B-->F array[] of database names (without .db extension)]
+// list;       // B-->F array[] of database names (without .db extension)]
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 _register(class GetDCHList extends PacketBASE { // get list of all available DocComponentHandlers
-    //    list;       // B->F  ["BOX","TXA",...] etc... 
+// list;       // B->F  ["BOX","TXA",...] etc... 
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 _register(class GetDocTree extends PacketBASE { // get docTree table contents
-    //    list;       // B->F [{T.id,T.docUuid,T.listOrder,T.parent,T.bump,D.docName}[,{}...]] etc...  (T=table:docTree, D=table:doc)
+// list;       // B->F [{T.id,T.docUuid,T.listOrder,T.parent,T.bump,D.docName}[,{}...]] etc...  (T=table:docTree, D=table:doc)
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-_register(class NewDoc extends PacketBASE {    // create a new doc and insert it into the database
-    constructor(){super();debugger;}  // RSREWORK   dict;       // --> {uuid,version,name,listOrder,parent,doc}
-// <-- returns with a GetDocTree packet instead of this one!
+_register(class AddDoc extends PacketBASE {    // B<-F insert new doc in db  .. broadcasts ModDocTree
+// uuid          // B<-F uuid of new doc
+// name          // B<-F name of new doc
+// parent        // B<-F recId of parent of new doc, or 0 if is toplevel
+// after         // B<-F recId of preceeding doc, or 0 if is first;
+// dcwFlatTree   // B<-F 
 });
-_register(class ModDoc extends PacketBASE {    // B<-F save namechg or dcwpos/shapes back into the database
-                                               // B->F=broadcast of uuid,name,dcwFlatTree,bump
+_register(class ModDoc extends PacketBASE {    // B<-F save namechg OR dcwFlatTree changes back into the database
+                                               // B->F broadcast of uuid,name,dcwFlatTree,bump
 //    uuid;         // B<>F uuid of doc to mod
 //    ?name;        // B<>F name of doc  [or undeclared if name ! changed]
 //    ?dcwFlatTree; // B<>F dcwFlatTree of connected dcw/dch's [or undeclared if dcwFlatTree ! changed]
@@ -121,6 +124,10 @@ _register(class GetDoc extends PacketBASE {    // load a doc from the db via its
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////// the following packets are 'Fire and Forget' and will be handled by a broadcasted response pkt /////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+_register(class ModDocTree extends PacketBASE {    // add dch flatTree(in cases of paste) to current doc, broadcasts "ModDoc"
+// nothing returned as nothing but a tree reload needs to happen
+});
 
 _register(class AddDch extends PacketBASE {    // add dch flatTree(in cases of paste) to current doc, broadcasts "ModDoc"
 //  uuid            // B<-F uuid of doc this belongs to
