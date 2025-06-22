@@ -112,8 +112,8 @@ _register(class ModDoc extends PacketBASE {    // B<-F save namechg OR dcwFlatTr
 //    ?dcwFlatTree; // B<>F dcwFlatTree of connected dcw/dch's [or undeclared if dcwFlatTree ! changed]
 //    bump:         // B->F bump# of modded doc
 });
-_register(class DelDoc extends PacketBASE {   // Delete a document from the system
-    constructor(){super();debugger;} uuid;       // -->  uuid of doc to get 
+_register(class DelDoc extends PacketBASE {   // B<-F Delete a doc+kids,  F->B broadcast "ModDocTree"
+//  uuid;       // B<-F uuid of doc to delete (and kids too)
 });
 
 _register(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid

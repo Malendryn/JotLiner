@@ -22,9 +22,10 @@ WS.classes["ModDocTree"].prototype.onPktRecvd = async function() {  // {uuid, bu
     if (WS.lastPacketSent.__id == this.__id) {      // I am the one who sent the change so select this uuid immediately!
         LS.curDoc = WS.lastPacketSent.uuid;
     }
-    await FF.loadDocTree();         // go fetch and reconstruct index pane
-    await FF.selectAndLoadDoc(LS.curDoc, false);
+    await FF.loadDocTree();                         // THIS call clears FG.curDoc/LS.curDoc if docUnderCursor was deleted
+    await FF.selectAndLoadDoc(LS.curDoc, false);    // but does this already do that for us?
 }
+
 
 WS.classes["ModDoc"].prototype.onPktRecvd = async function() {  // {uuid, bump} trigger: -- WS.pktFtoB["AddDch"](dcw)
     if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // MY curDoc is not changed so ignore packet
@@ -136,6 +137,7 @@ WS.classes["ModDoc"].prototype.onPktRecvd = async function() {  // {uuid, bump} 
     }
 }
 
+
 function _arrayMatch(aa, bb) {
     if (aa.length !== bb.length) {
         return false;
@@ -147,6 +149,7 @@ function _arrayMatch(aa, bb) {
     }
     return true;
 }
+
 
 function _getParentsAsList(parentsPair) {   // cvt from [[recId, parentRecId],...] to [[recId, [kidIds], [recId, [kidIds]]
     let src = new DFDict(parentsPair);
@@ -162,6 +165,7 @@ function _getParentsAsList(parentsPair) {   // cvt from [[recId, parentRecId],..
     }
     return dest;
 }
+
 
 function _getParentsPair(dcwFlatTree) {   // turn dcwFlatTree into [[recId, parentRecId],...]
     let idx = 0, list = [];
@@ -182,8 +186,8 @@ function _getParentsPair(dcwFlatTree) {   // turn dcwFlatTree into [[recId, pare
 
 
 async function _onGetDch(pkt, dcw) {
-    await dcw.attachDch(pkt.rec.name);  // attach the approprate dch!
-    dcw.dchRecId = pkt.id;              // give it it's dch rec id      
+    await dcw.attachDch(pkt.id, pkt.rec.name);  // attach the approprate dch!
+    // dcw.dchRecId = pkt.id;              // give it it's dch rec id      
 
     const decoder = new DFDecoder(pkt.rec.content);
     const blob = decoder.decode();      // will return decoder.EOSTREAM if u8a is empty

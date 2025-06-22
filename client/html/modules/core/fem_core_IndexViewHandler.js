@@ -237,10 +237,7 @@ async function onCtxDelete() {
             yes = window.confirm("This will delete all children of '" + info.name + "' too.\nAre you SURE?");
         }
         if (yes) {
-            let pkt = WS.makePacket("DeleteDoc")
-            pkt.uuid = FG.curDoc.uuid;
-            pkt = await WS.sendWait(pkt)    // delete doc, wait for confirmation-or-fault,  don't care
-            await FF.loadDocTree();         // go fetch and reconstruct index pane  (clears doc internally!)
+            WS.pktFtoB["DelDoc"](FG.curDoc.uuid);
         }
     }
 }
@@ -259,23 +256,23 @@ function onIdxContextMenuAction(action) {
 }
 
 
-FF.newDoc = async () => {
-    await FF.flushAll();   // save any still unprocessed autoSaves instantly
-    await FF.clearDoc();
+// FF.newDoc = async () => {
+//     debugger; await FF.flushAll();   // save any still unprocessed autoSaves instantly
+//     await FF.clearDoc();
     
-    // then create a new doc by adding a single BOX handler as the docRoot
-debugger; let dcw = await DCW_BASE.create(null, {T:0,R:0,B:0,L:0});	// blowout any loaded handlers and create toplevel DOC object
-    dcw.sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
+//     // then create a new doc by adding a single BOX handler as the docRoot
+// debugger; let dcw = await DCW_BASE.create(null, {T:0,R:0,B:0,L:0});	// blowout any loaded handlers and create toplevel DOC object
+//     dcw.sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
 
-    debugger; await dcw.attachDch("BOX");      // turn it into a 'BOX'
-    FG.curDoc = {
-        uuid:      FF.makeUuid(),
-        name:      "unnamed",
-        rootDcw:   dcw,
-        bump:      0,
-        dchStates: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
-    };
-};
+//     await dcw.attachDch(0, "BOX");      // turn it into a 'BOX'
+//     FG.curDoc = {
+//         uuid:      FF.makeUuid(),
+//         name:      "unnamed",
+//         rootDcw:   dcw,
+//         bump:      0,
+//         dchStates: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
+//     };
+// };
    
     
 function makeNewDocForm(asChild) {
@@ -556,8 +553,8 @@ function onClickULItem(evt) {
 async function onLeftClick(evt) {     // desel any sel,  sel current one under mouse, then load it in docView
     evt.preventDefault();
     if (!FG.kmStates.modal) {
-        LS.curDoc = null;
-        await FF.selectAndLoadDoc('');
+        LS.curDoc = "";
+        await FF.selectAndLoadDoc(LS.curDoc);
     }
 }
 
@@ -677,7 +674,7 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
     if (FG.curDoc) {                                    // if we had a doc currently selected
         if (FF.getDocInfo(FG.curDoc.uuid) == null) {    // and it disappeared from list
             await FF.clearDoc();                        // nuke it!
-            LS.curDoc = null;
+            LS.curDoc = "";
         }
     }
     showDocTree();

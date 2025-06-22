@@ -28,9 +28,9 @@ BG.basePath = dirname(BG.serverPath);               // "file:///<somewhere>"
 
 
 async function start() {
+    await BF.loadModule("../client/html/modules/shared/shared_Functions.js");  // populate SF .. also trace()
     await BF.loadModule("./modules/core/bem_core_Globals.js");                 // populate FG
     await BF.loadModule("./modules/core/bem_core_Functions.js");               // populate FF
-    await BF.loadModule("../client/html/modules/shared/shared_Functions.js");  // populate SF
 
     await getConverters(); // get files in converters subdir to see if db or anything needs updating
 

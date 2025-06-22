@@ -61,8 +61,8 @@ BUT FIRST lets get attach to construct a dch-less tree and then go fetch all the
         pkt.id = recId;
         pkt = await WS.sendWait(pkt);           // consider lazyloading this in the future
 
-        if (await dcw.attachDch(pkt.rec.name)) {
-            dcw.dchRecId = recId; 
+        if (await dcw.attachDch(pkt.id, pkt.rec.name)) {
+            // dcw.dchRecId = recId; 
             const decoder = new DFDecoder(pkt.rec.content);
             const dict = decoder.decode();      // will return undefined if u8a is empty
             if (dict != decoder.EOSTREAM) {     // if stream was empty

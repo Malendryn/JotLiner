@@ -8,7 +8,7 @@
 
 // ==== FROM bem_core_Functions.js ====================================================================================
 // --------       shutdown()               called before server exits entirely.  closes database and does other cleanup
-// -------- async makeUUID()               make and return a UUID
+// -------- async makeUuid()               make and return a UUID
 // -------- async makeHash(txt)            convert txt into a one-way SHA-1 hash value and return it
 // "txt"  =       checkDBName(name)        check for invalid characters and lengths; return string if bad, null if good
 // [list] = async getDBList()              return list of databases 
@@ -38,7 +38,7 @@ process.on("SIGTERM", () => { process.exit(); });
 export async function init() {
     const crypto = await import("crypto");
 
-    BF.makeUUID = async () => {
+    BF.makeUuid = async () => {
         return crypto.randomUUID();
     }
     

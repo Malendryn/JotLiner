@@ -16,6 +16,7 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
 
 -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
 -------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
+el     = ----- makeDocEl(type, recId, subName)  create a <type id="recId:subName"> el and return it
 
 --------       setIdxpanded(num, yesno) // set/remove entryId of docTreeRec to recall expanded/collapsed indexTree state
 
@@ -81,6 +82,13 @@ FF.makeUuid = () => {
 };
 
 
+FF.makeDocEl = function (name, recId, subName) {
+    const el = document.createElement(name);
+    el.id = `${recId}:${subName}`;
+    return el;
+}
+
+
 FF.makeHash = async (txt) => {
 	return Array.from(
 		new Uint8Array(
@@ -108,7 +116,7 @@ FF.clearDoc = async() => {
         await FF.flushAll();          // wait until doc save is clean
 
         await FG.curDoc.rootDcw.destroy();	// detach all listeners and remove entire document tree
-        FG.curDoc = null;
+        FG.curDoc = "";
     }
     const el = document.getElementById("divDocView");
     el.classList.add("disabled");

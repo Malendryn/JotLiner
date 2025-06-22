@@ -13,10 +13,9 @@ FG.ws            = null;     // WebSocket connector to localServer      (see fem
 
 FG.defaultToolbarHeight = 0; // pulled from index.css:#divToolbar.height at index.js init
 
+FG.curDbName     = "";       // "" or currently selected DB name  ("" cuz localStorage only stores strings)
 FG.docTree       = [];       // [{id,uuid,name,listOrder,parent,li}[,...]] ordered list of .dia "docTree" table
                                 // note that li is not from the db but is added during showDocTree()
-
-FG.curDbName     = "";       // "" or currently selected DB name  ("" cuz localStorage only stores strings)
 FG.curDoc        = null;     // "" or dict{ uuid, name, rootDcw }
 
 FG.DocAttacher   = null;     // CLASS to import a stringstream into a doc (see fem_core_DocAttacher.js)

@@ -93,7 +93,7 @@ class DCH_BASE {   // base class of all document components
         if (this.hasToolbar) {
             this.#owner.createShadowToolbar();
         }
-      
+
         await this.construct();
     }
 

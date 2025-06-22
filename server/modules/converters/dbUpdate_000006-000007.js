@@ -76,5 +76,6 @@ async function updateDb(db) {
     + ");";
     await db.run(sql);
     await db.iter("SELECT * FROM doc ORDER BY id", iterCallback);
+    await db.run("ALTER TABLE doc DROP COLUMN content");
 }
 export { updateDb };

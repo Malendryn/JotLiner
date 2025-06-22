@@ -1,9 +1,20 @@
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
 2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
-2025-06- ------------------------------------------------------------------------------------------------------------
+2025-06-22 ------------------------------------------------------------------------------------------------------------
+1 removed FF.NewDoc() entirely as new doc's are now created serverside
+1 got 'Delete Document' (and children) fully working again
+
+2025-06-21 ------------------------------------------------------------------------------------------------------------
+1 renamed #hostStyle to #hostHead -- just makes more sense as it's a <head>-type <div> meant to house <style> etc...
+1 created an FF.makeDocEl() to give each dcw and dch 'above-plugin' <div> an id in the form of id="dcwId:dchRecId:divName"
+
+2025-06-20 ------------------------------------------------------------------------------------------------------------
+1 fixed the 'red edge' not showing when child is out of viewport (was putting .border-TRBL on sysDiv but DCH_BOX was 
+    moved to host, so .border-TRBL needed to be moved to host too)
+2 Rename doc now works again
+2 'New Document' and 'New Child Document' indexView contextMenu entries now fully working again
+
 2025-06-19 ------------------------------------------------------------------------------------------------------------
 1 fixed some problems with ModDoc but little new progress -- yet
 1 added AddDch+broadcast response, still working out the kinks
