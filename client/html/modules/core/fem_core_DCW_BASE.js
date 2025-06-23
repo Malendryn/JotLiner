@@ -6,6 +6,7 @@
 
 // 'wrapper' class for actual DCH object.   this class handles the outermost alt+shift stuff like resize/anchor/depth
 
+import { DFDecoder,DFEncoder } from "/public/classes/DFCoder.mjs";
 import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 class DCW_BASE {   // base 'wrapper' class of all document components (where resize/anchor/depth are controlled)
@@ -29,7 +30,7 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
 // ------ ----- createShadowToolbar()
 // ------ ----- showToolbar()
 // ------ ----- hideToolbar()
-//        async attachDch(recId, name); // new dch() --> dch._wh_construct() (which attaches #host and #toolbar --> dch.construct())
+//        async attachDch(dchRecId, name); // new dch() --> dch._wh_construct() (which attaches #host and #toolbar --> dch.construct())
 //        async destroy(); // recurse, children first; --> this.#dch._wh_destroy(); removeall <div>'s, unlink from #parentDcw
 // ------ async importDchData(u8a) --> this.#dch._wh_importData(u8a)
 // u8a  = async exportDchData()    --> this.#dch._wh_exportDchData()
@@ -223,12 +224,12 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
     }
 
 
-    async attachDch(recId, name) {     // return true=good false=failed
+    async attachDch(dchRecId, name) {     // return true=good false=failed
         this.#srcUrl = DCH[name].srcUrl; // set this here&now so keep the ability to change it out of DCH_BASE
         let msg = null;
         try {
             this.#dch = new DCH[name].dchClass(this);        // create handler, do nothing else!
-            this.#dchRecId = recId;
+            this.#dchRecId = dchRecId;
         } catch (err) {
             msg = err.message;
         }
@@ -242,11 +243,22 @@ class DCW_BASE {   // base 'wrapper' class of all document components (where res
             this.#host.innerHTML = "";        // get rid of 'loading...' msg cuz things like BOX won't.
             await this.#dch._wh_construct();  // creates shadowHost&Toolbar as needed, then calls dch's .construct()
         }
+
+        let pkt = WS.makePacket("GetDch", {id:dchRecId});    // NOT BROADCAST!  get the dch's name and content and attach it
+        pkt = await WS.sendExpect(pkt, _onGetDch, this);
+
+        // if (true) {//await dcw.attachDch(pkt.id, pkt.rec.name)) {
+        //     const decoder = new DFDecoder(pkt.rec.content);
+        //     const dict = decoder.decode();      // will return undefined if u8a is empty
+        //     if (dict != decoder.EOSTREAM) {     // if stream was empty
+        //         dcw.dch.importData(dict);
+        //     }
+        // }
+
         return true;
     }
 
 
-// override above pre-defs in the help comments at the top of the class
     async destroy() { // recurse, children first; detach this dcw and owned dch from doc, removing all listeners too, and destroy it
         while(this.#children.length) {                          // destroy all children first
             const child = this.#children[this.#children.length - 1]; // last to first cuz created first to last (just feels right!)
@@ -405,4 +417,14 @@ export { DCW_BASE };
 let _dcwDbgIdCounter = 0;
 
 
- 
+async function _onGetDch(pkt, dcw) {
+    // await dcw.attachDch(pkt.id, pkt.rec.name);  // attach the approprate dch!
+
+    const decoder = new DFDecoder(pkt.rec.content);
+    const blob = decoder.decode();      // will return decoder.EOSTREAM if u8a is empty
+    if (blob != decoder.EOSTREAM) {     // if stream was empty
+        dcw.dch.importData(blob);
+    }
+}
+
+

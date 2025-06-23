@@ -79,11 +79,10 @@ WS.classes["GetDocTree"].prototype.onPktRecvd = async function(client) {
 WS.classes["GetDoc"].prototype.onPktRecvd = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
     logPkt(this.constructor.name);
     if (!client.db) { return WS.fault("Database not selected"); }
-    const tmp = await client.db.query("SELECT name,dcwFlatTree,bump FROM doc WHERE uuid=?", [this.uuid]);
-    delete this.uuid;
-    if (tmp.length > 0) {
-        this.rec = tmp[0];
-    }
+    const rec = await client.db.get("SELECT name,dcwFlatTree,bump FROM doc WHERE uuid=?", [this.uuid]);
+    this.name        = rec.name;
+    this.dcwFlatTree = JSON.parse(rec.dcwFlatTree);
+    this.bump        = rec.bump;
     return this;        // this is now sendWaited
 }
 

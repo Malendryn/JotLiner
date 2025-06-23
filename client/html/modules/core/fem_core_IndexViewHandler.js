@@ -237,7 +237,7 @@ async function onCtxDelete() {
             yes = window.confirm("This will delete all children of '" + info.name + "' too.\nAre you SURE?");
         }
         if (yes) {
-            WS.pktFtoB["DelDoc"](FG.curDoc.uuid);
+            debugger; WS.pktFtoB["DelDoc"](FG.curDoc.uuid);
         }
     }
 }
@@ -256,25 +256,6 @@ function onIdxContextMenuAction(action) {
 }
 
 
-// FF.newDoc = async () => {
-//     debugger; await FF.flushAll();   // save any still unprocessed autoSaves instantly
-//     await FF.clearDoc();
-    
-//     // then create a new doc by adding a single BOX handler as the docRoot
-// debugger; let dcw = await DCW_BASE.create(null, {T:0,R:0,B:0,L:0});	// blowout any loaded handlers and create toplevel DOC object
-//     dcw.sysDiv.style.backgroundColor = "lightgrey";	// RSTODO make this a user-definable scheme/style
-
-//     await dcw.attachDch(0, "BOX");      // turn it into a 'BOX'
-//     FG.curDoc = {
-//         uuid:      FF.makeUuid(),
-//         name:      "unnamed",
-//         rootDcw:   dcw,
-//         bump:      0,
-//         dchStates: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
-//     };
-// };
-   
-    
 function makeNewDocForm(asChild) {
     let childTxt = (asChild) ? "child " : "";
     return `
@@ -293,12 +274,11 @@ function openDocRenamePopup() {
                 alert("Document name cannot be empty");
                 return false;
             }
-    
-            let pkt = WS.makePacket("ModDoc")
-            // FG.curDoc.name = dict.docName;   no reason to track docname in curDoc
-            pkt.uuid = FG.curDoc.uuid;
-            pkt.name = dict.docName;
-            pkt = WS.send(pkt)
+            debugger; FF.autoSave("ModDoc:name", dict.docName);
+            // let pkt = WS.makePacket("ModDoc")// no reason to track docname in curDoc as broadcast response updates it for us
+            // pkt.uuid = FG.curDoc.uuid;
+            // pkt.name = dict.docName;
+            // pkt = WS.send(pkt)
         }
         FG.kmStates.modal = false;
         return true;
@@ -332,35 +312,10 @@ async function insertDoc(dict) {
         info = { id:0, parent:0 };      // else insert at very END (at server, 0 matches no id so goes at end)
     }
 
-    // await FF.newDoc();    // setup NEW FG.curDoc w/empty document and new uuid (we always need that new uuid here)
-    // dict.uuid = FG.curDoc.uuid;
-    
-    // let dcwFlatTree;
-    // if (!dict.doc) {        // if present, is u8a file import block, else make u8a from FF.newDoc() we just called
-    //     const extracter = new FG.DocExtracter();
-    //     dcwFlatTree = await extracter.extract(FG.curDoc.rootDcw, false);
-    // }
-
     const parent = (dict.asChild) ? info.id : info.parent;  // ifChild, set parent to selected, else selecteds parent
     const after  = (dict.asChild) ? 0       : info.id;      // ifChild, set after to 0, else to selected
 
-    await WS.pktFtoB["AddDoc"](dict.docName, parent, after);
-
-// trace("moveTo fem_core_PacketHandlersFtoB.js and add a onChanged() func instead of calling FF.loadDocTree()...");
-//     let pkt = WS.makePacket("NewDoc")
-//     pkt.dict = {
-//         name:       dict.docName,
-//         uuid:       dict.uuid,
-//         after:      (dict.asChild) ? 0       : info.id,      // ifChild, set after to 0, else to selected
-//         parent:     (dict.asChild) ? info.id : info.parent,  // ifChild, set parent to selected, else selecteds parent
-//         doc:        JSON.stringify(dcwFlatTree),
-//     }
-//     pkt = await WS.sendWait(pkt)    // insert new doc, wait for confirmation-or-fault, don't care
-//     if (dict.asChild) {
-//         FF.setIdxpanded(info.id, true);
-//     }
-//     await FF.loadDocTree();         // go fetch and reconstruct index pane
-//     await FF.selectAndLoadDoc(FG.curDoc.uuid, true);    // 'forget' current doc and force-load new one
+    debugger; WS.pktFtoB["AddDoc"](dict.docName, parent, after);
     return true;
 }
 
@@ -500,11 +455,11 @@ FF.selectAndLoadDoc = async function(uuid, force=false) {   // now ALWAYS resele
         const info = FF.getDocInfo(uuid);
         if (info) {
             if (FG.curDoc) {
-                await FF.flushAll();                               // process any pending autoSave's immediately
+                await FF.flushAll();                     // process any pending autoSave's immediately
             }
-            /*NOwait*/ FF.loadDoc(uuid, force);              //  reload doc if needed or forced...
+            FF.loadDoc(uuid, force);      /*NO await!*/  //  reload doc if needed or forced...
             let node = info.li;
-            while (node.parentElement) {
+            while (node.parentElement) {                // make sure all <LI> above curSel are expanded!
                 node = node.parentElement;
                 if (node.id == "divIndexViewUL") {      // if reached the top of the docTree
                     break;
@@ -681,31 +636,6 @@ FF.loadDocTree = async function() {         // sets off the following chain of W
 }
 
 
-async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
-    // we have changed loaded doc's and cleared any on screen,  then went to sleep waiting for this packet with the newly selected doc info
-
-    await FF.clearDoc();                                // there SHOULD NOT BE a doc loaded!  but just in case...
-    const el = document.getElementById("divDocView");   // immediately un-reset/un-disable the background in prep for docloading
-    el.classList.remove("disabled");
-    el.innerHTML = "";
-
-    const attacher = new FG.DocAttacher();
-    // const meta = JSON.parse(pkt.data.meta);
-    const dcwFlatTree = JSON.parse(pkt.rec.dcwFlatTree);
-    const rootDcw = await attacher.attach(dcwFlatTree, null, false);    // this doc has no parent(null) so will become our new rootDcw
-
-    FG.curDoc = { 
-        uuid:      uuid,
-        name:      pkt.rec.name,
-        rootDcw:   rootDcw,
-        bump:      pkt.rec.bump,
-        dchStates: new DFDict(),  // loadState of dch's {key=dch, val={isLoaded:false},...}
-    };
-
-    LS.curDoc = uuid;
-}
-
-
 FF.loadDoc = async function(uuid, force=false) {          // returns T/F if doc loaded. (sets curDoc.uuid and .rootDcw if True)
     if (!force && FG.curDoc && FG.curDoc.uuid == uuid) {  //doc already loaded
         // console.log(__FILE__(), "FF.loadDoc curDoc=RETURN=true");
@@ -723,7 +653,40 @@ FF.loadDoc = async function(uuid, force=false) {          // returns T/F if doc 
 
     return true;
 }
+async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
+    // we have changed loaded doc's and cleared any on screen,  then went to sleep waiting for this packet with the newly selected doc info
 
+    await FF.clearDoc();                                // there SHOULD NOT BE a doc loaded!  but just in case...
+    const el = document.getElementById("divDocView");   // immediately un-reset/un-disable the background in prep for docloading
+    el.classList.remove("disabled");
+    el.innerHTML = "";
+
+    FG.curDoc = { 
+        uuid:      pkt.uuid,
+        name:      pkt.name,
+        rootDcw:   null,
+        bump:      pkt.bump,
+    };
+
+    LS.curDoc = uuid;
+
+    pkt = WS.makePacket("ModDoc", {uuid:pkt.uuid, dcwFlatTree:pkt.dcwFlatTree, bump:pkt.bump});
+    await pkt.onPktRecvd();     // make it act like it received this as a ModDoc (instead of using DocAttacher.attach())
+
+    // const attacher = new FG.DocAttacher();
+    // // const meta = JSON.parse(pkt.data.meta);
+    // const dcwFlatTree = JSON.parse(pkt.rec.dcwFlatTree);
+    // const rootDcw = await attacher.attach(dcwFlatTree, null, false);    // this doc has no parent(null) so will become our new rootDcw
+
+    // FG.curDoc = { 
+    //     uuid:      uuid,
+    //     name:      pkt.rec.name,
+    //     rootDcw:   rootDcw,
+    //     bump:      pkt.rec.bump,
+    // };
+
+    // LS.curDoc = uuid;
+}
 
 
 FF.upgradeDoc = async function(u8aDoc, version=null) {    // take binary stream and optional version and returns {uuid,?name?,{dchList:},error}

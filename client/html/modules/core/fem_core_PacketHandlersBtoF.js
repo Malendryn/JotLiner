@@ -18,7 +18,7 @@ import { DFDict } from "/public/classes/DFDict.mjs";
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // functions below are called when a broadcast packet comes in ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes["ModDocTree"].prototype.onPktRecvd = async function() {  // {uuid, bump} trigger: -- WS.pktFtoB["AddDch"](dcw)
+WS.classes["ModDocTree"].prototype.onPktRecvd = async function() {
     if (WS.lastPacketSent.__id == this.__id) {      // I am the one who sent the change so select this uuid immediately!
         LS.curDoc = WS.lastPacketSent.uuid;
     }
@@ -27,7 +27,7 @@ WS.classes["ModDocTree"].prototype.onPktRecvd = async function() {  // {uuid, bu
 }
 
 
-WS.classes["ModDoc"].prototype.onPktRecvd = async function() {  // {uuid, bump} trigger: -- WS.pktFtoB["AddDch"](dcw)
+WS.classes["ModDoc"].prototype.onPktRecvd = async function() {
     if (!FG.curDoc || FG.curDoc.uuid !== this.uuid) {   // MY curDoc is not changed so ignore packet
         return;
     }
@@ -37,16 +37,24 @@ WS.classes["ModDoc"].prototype.onPktRecvd = async function() {  // {uuid, bump} 
         await FF.selectAndLoadDoc(FG.curDoc.uuid, false);  // keep current doc as all we did was rename it
         return;
     }
+
     let feFlat, beFlat, feDict, beDict, feRecIds, beRecIds, removed = [], added = [], kept = [];
+    beFlat = this.dcwFlatTree;
+    beDict   = new DFDict(beFlat);
+    beRecIds = beDict.keys.sort((a, b) => Number(a) - Number(b));  // same for newly received dcwFlatTree
+
+    if (FG.curDoc.rootDcw == null) {   // spcl when ModDoc called from FF.loadDoc()(rootDcw == null)
+        const [dchRecId, data] = beDict.getByIdx(0);
+        const nuDcw = await DCW_BASE.create(null, data.S);
+        FG.curDoc.rootDcw = nuDcw;
+        await nuDcw.attachDch(dchRecId, data.N);
+    }
+
     const extracter = new FG.DocExtracter();
     feFlat = extracter.extract(FG.curDoc.rootDcw);
-    beFlat = this.dcwFlatTree;
-
     feDict   = new DFDict(feFlat);
     feRecIds = feDict.keys.sort((a, b) => Number(a) - Number(b));  // extract the current recids and sort them numerically
 
-    beDict   = new DFDict(beFlat);
-    beRecIds = beDict.keys.sort((a, b) => Number(a) - Number(b));  // same for newly received dcwFlatTree
 
     while(feRecIds.length || beRecIds.length) {      // get removed,added,kept Ids
         if (!feRecIds.length) {                      // if no more old recs, add beFlat rec to added
@@ -64,54 +72,51 @@ WS.classes["ModDoc"].prototype.onPktRecvd = async function() {  // {uuid, bump} 
             }
         }
     }
-// we beFlat have a list of id's to remove, to add, and that were kept
+// we now have a list of id's to remove, to add, and that were kept
     let dcwList = FF.getDcwList();            // easiest first step is removing, so...
-    for (let idx = dcwList.length - 1; idx >= 0; idx--) {
-        if (removed.includes(dcwList[idx].dchRecId)) {
-            await dcwList[idx].destroy();
+    let idx = 0;
+    
+    while (idx < dcwList.length) {
+        if (removed.includes(dcwList[idx].dchRecId)) {  // if found
+            await dcwList[idx].destroy();               // remove it but don't inc idx
+            dcwList = FF.getDcwList();                  // refetch list with entrie(s) removed
+        } else {
+            ++idx;                                      // not found, bump idx
         }
     }
+    // for (let idx = dcwList.length - 1; idx >= 0; idx--) {   // backwards to prevent breakage
+    //     if (removed.includes(dcwList[idx].dchRecId)) {
+    //         await dcwList[idx].destroy();
+    //         dcwList = FF.getDcwList();        // refetch new list with destroyed recs removed
+    //     }
+    // }
+
     let parenTree = _getParentsPair(beFlat);    // turn dcwFlatTree into [[recId, parentRecId],...]
     parenTree = new DFDict(parenTree);
 
-    for (const recId of added) {      // take entries in added, find them in parenTree, add as new
-        const parentId = parenTree.getByKey(recId);
-        dcwList = FF.getDcwList();    // refetch each loop cuz some new 'added' id's may not exist in prior loop
+    for (const nuDchRecId of added) {      // take entries in added, find them in parenTree, add as new
+        const parentId = parenTree.getByKey(nuDchRecId);
         for (const dcw of dcwList) {
             if (dcw.dchRecId == parentId) {
-                const data = beDict.getByKey(recId);
+                const data = beDict.getByKey(nuDchRecId);
                 const nuDcw = await DCW_BASE.create(dcw, data.S);
-                let pkt = WS.makePacket("GetDch", {id:recId});
-                pkt = await WS.sendExpect(pkt, _onGetDch, nuDcw);
+                dcwList = FF.getDcwList();    // refetch with new 'added' id's in place
+                await nuDcw.attachDch(nuDchRecId, data.N);
+                // let pkt = WS.makePacket("GetDch", {id:nuDchRecId});
+                // pkt = await WS.sendExpect(pkt, _onGetDch, nuDcw);
             }
         }
     }
 
-// all deleted were deleted, all added were added, 
-// refetch the 'feFlat' flatTree which should beFlat exactly mirror the structure of 'beFlat' 
-// but the order of children has to be addressed AND the styles may need to be changed, so first lets fix the order:
-    feFlat = extracter.extract(FG.curDoc.rootDcw);  
-// RSTODO fix the order once we allow ordering, here is where!
-// TO DO this we need a new form of flatTree that instead of C:3 we have C:[rId1, rId2, rId3]
-    trace("fixing up ModDoc broadcast;  RSTODO "); 
-//    return;
-// //  we can use the _getParentsPair and walk it and compare parents, its in the right order! 
-// // so go backwards from end and build [] lists such that recId has [recId,recId] as kids and keep it 'flat' in the sense of
-// //    no deeper than one,
-//    // [[22,{C:2}],[33,{C:1}],,[44,{C:0}],[55,{C:0}]] --> [ [22,[33,55]],[33,[44]] ]  22 has 33,55,  33 has 44
-    debugger; let frEndParenTree = _getParentsPair(beFlat)
-//    let bkEndParenTree = _getParentsPair(beFlat);    // turn dcwFlatTrees into [[recId, parentRecId],...]
+// all deleted were deleted, all added were added, (dch's still loading in sendExpect state)
+// refetch the 'feFlat'/'feDict' items which should now exactly mirror the structure of 'beFlat' EXCEPT...
+//    ...EXCEPT order of children has to be addressed AND styles may need to be changed, so first lets fix the styles:
+    feFlat = extracter.extract(FG.curDoc.rootDcw);
+    feDict = new DFDict(feFlat);
+// NOTE: newly inserted dch's don't have a recId or 'N' even though we do have that info on hand.  THAT info comes in
+// via the "GetDch" callback ... but isn't that bad?  I mean if we're loading a new "BOX" and it doesn't yet know it's a 
+// BOX how can it attach children?
 
-//    frEndParenTree = _getParentsAsList(frEndParenTree);  // cvt dcwFlatTree from [[recId,data:{C:2}]] to DFDict:[[recId,data:{C:[rId1,rId2]}]]
-//    bkEndParenTree = _getParentsAsList(bkEndParenTree);
-//     for (let idx = 0; idx < bkEndParenTree.length; idx++) {   // compare all children[] lists and reorder frEndKids to match bkEndKids
-//         const [bkEndRecId,bkEndKids] = bkEndParenTree(idx);
-//         const frEndKids = frEndParenTree.getByKey(bkEndRecId);        // of bkEnd had it, frEnd is now guaranteed to have it too
-// // RSTODO compare bkEndKids to frEndKids and reorder frEndKids to match bkEndKids.  (the #"s are guaranteed to be the same, just not the order)        
-
-//     }
-
-// RSTODO last step!  compare the styles and restyle if needed!  (add a 'setStyle' func to the DCW_BASE)
     let same = true;
     for (let idx = 0; idx < dcwList.length; idx++) {
         let feTmp = feDict.getByIdx(idx);    // [recId, {N,S,C}]
@@ -120,11 +125,11 @@ WS.classes["ModDoc"].prototype.onPktRecvd = async function() {  // {uuid, bump} 
         beTmp = beTmp[1].S
         let feKeys = Object.keys(feTmp).sort(); // get/sort/compare the keys of both
         let beKeys = Object.keys(beTmp).sort();
-        if (!_arrayMatch(feKeys, beKeys)) {
+        if (!_arrayMatch(feKeys, beKeys)) {     // if length OR keys differ...
             same = false;
             break;
         }
-        for (const key of feKeys) {
+        for (const key of feKeys) {             // if content of any key differ...
             if (feTmp[key] != beTmp[key]) {
                 same = false;
                 break;
@@ -135,6 +140,30 @@ WS.classes["ModDoc"].prototype.onPktRecvd = async function() {  // {uuid, bump} 
             dcw.setStyle(beTmp);        // restyle using broadcasted(backend) data
         }
     }
+
+// none of that will have affected feFlat/feDict in a way that matters for the next step so, onward...!
+// we now address the changing of depth, (order of dcw's)
+
+// RSTODO fix the order once we allow ordering, here is where!
+// TO DO this we need a new form of flatTree that instead of C:3 we have C:[rId1, rId2, rId3]
+    trace("fixing up ModDoc broadcast;  RSTODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO"); 
+
+// //  we can use the _getParentsPair and walk it and compare parents, its in the right order! 
+// // so go backwards from end and build [] lists such that recId has [recId,recId] as kids and keep it 'flat' in the sense of
+// //    no deeper than one,
+//    // [[22,{C:2}],[33,{C:1}],,[44,{C:0}],[55,{C:0}]] --> [ [22,[33,55]],[33,[44]] ]  22 has 33,55,  33 has 44
+    feFlat = extracter.extract(FG.curDoc.rootDcw);
+//    let feParenTree = _getParentsPair(feFlat)
+//    let beParenTree = _getParentsPair(beFlat);    // turn dcwFlatTrees into [[recId, parentRecId],...]
+
+//    feParenTree = _getParentsAsList(feParenTree);  // cvt dcwFlatTree from [[recId,data:{C:2}]] to DFDict:[[recId,data:{C:[rId1,rId2]}]]
+//    beParenTree = _getParentsAsList(beParenTree);
+//     for (let idx = 0; idx < beParenTree.length; idx++) {   // compare all children[] lists and reorder frEndKids to match bkEndKids
+//         const [bkEndRecId,bkEndKids] = beParenTree(idx);
+//         const frEndKids = feParenTree.getByKey(bkEndRecId);        // of bkEnd had it, frEnd is now guaranteed to have it too
+// // RSTODO compare bkEndKids to frEndKids and reorder frEndKids to match bkEndKids.  (the #"s are guaranteed to be the same, just not the order)        
+
+//     }
 }
 
 
@@ -186,10 +215,9 @@ function _getParentsPair(dcwFlatTree) {   // turn dcwFlatTree into [[recId, pare
 
 
 async function _onGetDch(pkt, dcw) {
-    await dcw.attachDch(pkt.id, pkt.rec.name);  // attach the approprate dch!
-    // dcw.dchRecId = pkt.id;              // give it it's dch rec id      
+    // await dcw.attachDch(pkt.id, pkt.rec.name);  // attach the approprate dch!
 
-    const decoder = new DFDecoder(pkt.rec.content);
+    debugger; const decoder = new DFDecoder(pkt.rec.content);
     const blob = decoder.decode();      // will return decoder.EOSTREAM if u8a is empty
     if (blob != decoder.EOSTREAM) {     // if stream was empty
         dcw.dch.importData(blob);

@@ -1,4 +1,7 @@
 -----------------------------------------------------------------------------------------------------------------------
+change:  ALL pktFtoB packets are fired via WS.send,  we should therefore trigger ALL of them trhough autoSave() which
+   by its very nature detects changes in 'type of packet' sent and flushAll's as needed
+-----------------------------------------------------------------------------------------------------------------------
 when loading a doc just have it call ModDoc and let ModDoc handle fetching the dch's instead of the current  way
 
 /*

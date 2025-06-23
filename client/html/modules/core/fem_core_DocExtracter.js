@@ -18,7 +18,9 @@ export class DocExtracter {
     dcwDict;
     extract(dcw) {        // returns the dcwFlatTree of a doc [[recId, {N,S,C}],...] as a DFDict
         this.dcwDict = new DFDict();
-        this. _extract(dcw);  // turn the dch into a stream
+        if (dcw) {
+            this. _extract(dcw);  // turn the dch into a stream
+        }
         return this.dcwDict.export();
     }
 

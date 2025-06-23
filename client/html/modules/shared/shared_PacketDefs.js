@@ -116,9 +116,11 @@ _register(class DelDoc extends PacketBASE {   // B<-F Delete a doc+kids,  F->B b
 //  uuid;       // B<-F uuid of doc to delete (and kids too)
 });
 
-_register(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid
-//   uuid;       // B<-F uuid of doc to get 
-//   rec;        // B->F {name,dcwFlatTree,bump}
+_register(class GetDoc extends PacketBASE {    // load a doc from the db via its uuid, COMPATIBLE WITH ModDoc!  !!!! 
+//   uuid;        // B<>F uuid of doc to get 
+//   name:        // B->F
+//   dcwFlatTree: // B->F
+//   bump:        // B->F 
 });
     
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

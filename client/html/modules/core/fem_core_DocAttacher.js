@@ -38,7 +38,6 @@ BUT FIRST lets get attach to construct a dch-less tree and then go fetch all the
         // this.keys = [...this.dcwDict.keys];  // get a clone of the iterator so we can idx-walk it
         this.idx = 0;
         this.rootDcw = null;
-        this.dchStates = new DFDict();  // loadState of dch's {key=dch, val={isLoaded:false},...}
         await this._attachNext(parentDcw);
         return this.rootDcw;
     }
@@ -51,24 +50,25 @@ BUT FIRST lets get attach to construct a dch-less tree and then go fetch all the
         if (this.idx >= this.dcwDict.length) {      // no more recs to process 
             return null;
         }
-        const [recId, dcwEntry] = this.dcwDict.getByIdx(this.idx++); 
+        const [dchRecId, dcwEntry] = this.dcwDict.getByIdx(this.idx++); 
         const dcw = await DCW_BASE.create(parentDcw, dcwEntry.S);  // create a handler, assign parent, create <div>, set 'S'tyle
         if (this.rootDcw == null) {           // record the topmost dch for returning
             this.rootDcw = dcw;
         }
+        await dcw.attachDch(dchRecId, dcwEntry.N);
 
-        let pkt = WS.makePacket("GetDch");      // go get the dch's name and content and attach it
-        pkt.id = recId;
-        pkt = await WS.sendWait(pkt);           // consider lazyloading this in the future
+        // let pkt = WS.makePacket("GetDch");      // go get the dch's name and content and attach it
+        // pkt.id = dchRecId;
 
-        if (await dcw.attachDch(pkt.id, pkt.rec.name)) {
-            // dcw.dchRecId = recId; 
-            const decoder = new DFDecoder(pkt.rec.content);
-            const dict = decoder.decode();      // will return undefined if u8a is empty
-            if (dict != decoder.EOSTREAM) {     // if stream was empty
-                dcw.dch.importData(dict);
-            }
-        }
+        // debugger; /*RSTODO remove */ pkt = await WS.sendWait(pkt);           // consider lazyloading this in the future
+
+        // if (true) {//await dcw.attachDch(pkt.id, pkt.rec.name)) {
+        //     const decoder = new DFDecoder(pkt.rec.content);
+        //     const dict = decoder.decode();      // will return undefined if u8a is empty
+        //     if (dict != decoder.EOSTREAM) {     // if stream was empty
+        //         dcw.dch.importData(dict);
+        //     }
+        // }
         for (let idx = 0; idx < dcwEntry.C; idx++) {    // load children of component (if any) (only if BOX component)
             await this._attachNext(dcw);            // and attach to this dch
         }

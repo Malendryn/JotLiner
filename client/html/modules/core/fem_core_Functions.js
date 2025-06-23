@@ -15,7 +15,6 @@ hash   = async makeHash(txt)            convert txt into a one-way SHA-1 hash va
                setToolbarHeight(px)     // set toolbar height and adjust surrounding windows accordingly
 
 -------- async clearDoc()               detach all docEventHandlers and docComponents, set innerHTML=""
--------- async newDoc()                 call clearDoc(), then start brand new one with an empty DCH_BOX
 el     = ----- makeDocEl(type, recId, subName)  create a <type id="recId:subName"> el and return it
 
 --------       setIdxpanded(num, yesno) // set/remove entryId of docTreeRec to recall expanded/collapsed indexTree state
@@ -24,9 +23,9 @@ el     = ----- makeDocEl(type, recId, subName)  create a <type id="recId:subName
 {...}  =       getDocInfo(uuid)			find uuid in FG.docTree and return {...}
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
 --------       autoSave("action", data, delay)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees, actions are:
-                                            "ModDch" dch)                content needs saving
-                                            ("ModDoc", "dcwFlatTree")    doc's dcw's were moved/resized/reordered/restyled (not added/deleted, those are immediate acts)
-                                            ("ModDoc", "name")           doc's name was changed
+                                            ("ModDch", dch)           content needs saving
+                                            ("ModDoc:dcwFlatTree")    doc's dcw's were moved/resized/reordered/restyled (not added/deleted, those are immediate acts)
+                                            ("ModDoc:name", "name"})  doc's name was changed to "name"
 -------- async flushAll()               convenience call to flush any FF.autoSave waiting to trigger saving immediately
 
 
@@ -210,19 +209,30 @@ const _aSaveReTimer = new DFReTimer(_autoSaveFired);
 let   _aSaveKeyword;
 let   _aSavePayload;
 async function _autoSaveFired() {  // process autosaving
-    switch(_aSaveKeyword) {
-        case "ModDch":         // content of plugin has changed
-            await WS.pktFtoB["ModDch"](_aSavePayload);
-            break;
-        case "ModDoc":         // doc's dcw's were moved/resized/reordered (NOT added/deleted nor was doc renamed, that's handled differently!)
-            await WS.pktFtoB["ModDoc"](_aSavePayload);
-            break;
+    if (_aSaveKeyword) {
+        const list = _aSaveKeyword.split(":");
+        const kwd = list.shift();
+        await WS.pktFtoB[kwd](_aSavePayload, list);
+        // switch(list[0]) {
+        //     case "ModDch":         // content of plugin has changed
+        //         await WS.pktFtoB["ModDch"](_aSavePayload, list);
+        //         break;
+        //     case "ModDoc":         // doc's dcw's were moved/resized/reordered (NOT added/deleted nor was doc renamed, that's handled differently!)
+        //         await WS.pktFtoB["ModDoc"](_aSavePayload, list);
+        //         break;
+        //     case "AddDch":
+        //         await WS.pktFtoB["AddDch"](_aSavePayload, list);
+        //         break;
+        // }
+        _aSaveKeyword = undefined;
     }
-    _aSaveKeyword = undefined;
 };
 
-FF.autoSave   = async (keyword, payload, delay=1000) => {
-    if (keyword != _aSaveKeyword || payload != _aSavePayload) {
+FF.autoSave = async (keyword, payload, delay=1000) => {
+    const cmpK = keyword != _aSaveKeyword;
+    // const cmpP = JSON.stringify(payload) != JSON.stringify(_aSavePayload);    // (since payload might be a {})
+    // trace(`ASave: k=${cmpK}:${keyword}:${_aSaveKeyword}, p=${cmpP}${JSON.stringify(payload)}:${JSON.stringify(_aSavePayload)}`);
+    if (cmpK) {
         await FF.flushAll();
         _aSaveKeyword = keyword;
         _aSavePayload = payload;

@@ -247,7 +247,7 @@ function onContextDCHLayout() {
         form.removeEventListener("input", onFormInput);
         form.removeEventListener("click", onFormClick);
         if (formChanged) {
-            FF.autoSave("ModDoc", "dcwFlatTree"); 
+            debugger; FF.autoSave("ModDoc:dcwFlatTree"); 
         }
         FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
         onStateChange({});          // just to bump an update so ghost clears
@@ -336,7 +336,7 @@ try {
         if (action.startsWith("insert_")) {
             let dchName = action.substr(7);
             let newDcwFlatTree = [[0, {N:dchName, S:{L:startX, T:startY, W:100, H:100},"C":0}]];  // create faux dcwFlatTree entry
-            WS.pktFtoB["AddDch"](dcw.dchRecId, newDcwFlatTree);
+            FF.autoSave("AddDch", {parentRecId: dcw.dchRecId, newDcwFlatTree: newDcwFlatTree}, 0);
         } else switch (action) {                                                 // 'go do' whatever was clicked
             case "export":
                 debugger; trace("RSTODO 'extract' needs work!"); const dcwFlatTree = await extracter.extract(dcw);
@@ -356,7 +356,7 @@ try {
                     }
                 }
                 setKMStateMode(0);      // obliterate all ghosting and modeing
-                WS.pktFtoB["DelDch"](dcw);
+                FF.autoSave("DelDch", dcw, 0);
                 break;
             case "setLayout":
                 onContextDCHLayout();
@@ -501,7 +501,7 @@ FF.getDcwDict = function() {  // return a DFDict of [recId, dcw] ordered by dcwF
 
 
 FF.getDcwList = function() {  // return a straight [] of all dcw's in this doc
-    if (!FG.curDoc) {
+    if (!FG.curDoc || !FG.curDoc.rootDcw) {
         return [];
     }
     let dcw = FG.curDoc.rootDcw;
@@ -743,7 +743,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             }
         }
 
-        FF.autoSave("ModDoc", "dcwFlatTree");          // autosave after short delay
+        FF.autoSave("ModDoc:dcwFlatTree");          // autosave after short delay
         setKBModeToolbarText(FG.kmStates.dcw);
     }
 }
