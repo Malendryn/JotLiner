@@ -24,8 +24,8 @@ el     = ----- makeDocEl(type, recId, subName)  create a <type id="recId:subName
 "txt"  =       __FILE__()               returns "filename.js:linenum"; of any file this is called from within
 --------       autoSave("action", data, delay)    a DFRetimer() to save docs, dchs, new/deldbs and docTrees, actions are:
                                             ("ModDch", dch)           content needs saving
-                                            ("ModDoc:dcwFlatTree")    doc's dcw's were moved/resized/reordered/restyled (not added/deleted, those are immediate acts)
-                                            ("ModDoc:name", "name"})  doc's name was changed to "name"
+                                            ("ModDoc", {dcwFlatTree:true})    doc's dcw's were moved/resized/reordered/restyled (not added/deleted, those are immediate acts)
+                                            ("ModDoc", {name:"name"})         doc's name was changed to "name"
 -------- async flushAll()               convenience call to flush any FF.autoSave waiting to trigger saving immediately
 
 
@@ -34,8 +34,8 @@ pkt    = makePacket(name)               create and return a new packet
 pkt    = parsePacket(stream)			reconstruct a packet instance from the stream
 
 ==== FROM fem_core_TitlebarHandler.js
--------- async updateDBSelector()   fetch list of available dbs from server, populate dbDropdown in Titlebar 
-                                    (also deletes localStorage keys if they disappeared)
+-------- async updateDBSelector(bool)  fetch list of available dbs from server, populate dbDropdown in Titlebar, bool=true if switch to db too
+                                      (also deletes localStorage keys if they disappeared)
 
 -------- async selectDB()           workhorse;  tells Server which db to attach to, gets the docTree for that db, 
                                     selects the last selected doc from tree, displays doc for editing
@@ -210,9 +210,7 @@ let   _aSaveKeyword;
 let   _aSavePayload;
 async function _autoSaveFired() {  // process autosaving
     if (_aSaveKeyword) {
-        const list = _aSaveKeyword.split(":");
-        const kwd = list.shift();
-        await WS.pktFtoB[kwd](_aSavePayload, list);
+        await WS.pktFtoB[_aSaveKeyword](_aSavePayload);
         // switch(list[0]) {
         //     case "ModDch":         // content of plugin has changed
         //         await WS.pktFtoB["ModDch"](_aSavePayload, list);

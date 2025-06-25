@@ -10,7 +10,7 @@ export async function initialize() {    // called from index.js
     let sel = document.getElementById("dbSelector");
     sel.addEventListener("change", onDBSelectorChanged)
 
-    FF.updateDBSelector();      // get available dbs from server, populate dbDropdown in titlebar, fireup FF.selectDB() workhorse!
+    FF.updateDBSelector(true);      // get available dbs from server, populate dbDropdown in titlebar, fireup FF.selectDB() workhorse!
 }
 
 
@@ -29,7 +29,7 @@ const mainMenu = {
 };
 
 
-FF.updateDBSelector = async function() {
+FF.updateDBSelector = async function(switchTo) {
     let sel = document.getElementById("dbSelector");
     sel.innerHTML = "";
 
@@ -56,7 +56,9 @@ FF.updateDBSelector = async function() {
         }
         sel.appendChild(opt);
     }
-    sel.dispatchEvent(new Event("change"));   // fire a 'change' event --> onDBSelectorChanged() --> FF.selectDB()
+
+    const evt = new CustomEvent("change", { detail: {switch: switchTo}});
+    sel.dispatchEvent(evt);   // fire a 'change' event --> onDBSelectorChanged() --> FF.selectDB()
 }
 
 
@@ -68,10 +70,10 @@ FF.selectDB = async function() {
         pkt.name = FG.curDbName;
         pkt = await WS.sendWait(pkt);
         if (pkt.err) {
-            LS.curDb = "";              // something went wrong,  'forget' current DB and popup the msg
+            LS.curDb = "";                   // something went wrong,  'forget' current DB and popup the msg
             FG.curDbName = LS.curDb;
             alert(pkt.err);
-            FF.updateDBSelector();      // to clean out the missing db(s)
+            FF.updateDBSelector(true);      // to clean out the missing db(s)
         }
     }
 
@@ -91,8 +93,10 @@ function onDBSelectorChanged(evt) {
     if (dbName == "No DB Selected") {
         dbName = "";
     }
-    LS.curDb = dbName;
-    FF.selectDB();
+    if (!evt.detail || evt.detail.switch == true) {
+        LS.curDb = dbName;
+        FF.selectDB();
+    }
 }
 
 function onMainMenuCallback(action) {
@@ -116,16 +120,13 @@ function onNewInstance() {
 function onNewDB() {
     async function _onButton(btnLabel, dict) {
         if (dict.isSubmit) {
-            let pkt = WS.makePacket("CreateDB");
+            let pkt = WS.makePacket("AddDB");
             pkt.name = dict.dbName;
-            pkt = await WS.sendWait(pkt)                    // create new db, wait for confirmation
+            pkt = await WS.sendWait(pkt)                          // create new db, wait for confirmation
             if (pkt.error) {
                 alert("Database name error: " + pkt.error);
                 return false;
             }
-
-            debugger; LS.curDb = dict.dbName;               // set the new dbname
-            await FF.updateDBSelector();                    // re-fetch the dblist and select new db
             return true;
         }
         return true;        // close dlg on any button

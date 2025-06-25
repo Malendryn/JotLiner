@@ -81,19 +81,12 @@ WS.classes["GetDoc"].prototype.onPktRecvd = async function(client) { // must use
     if (!client.db) { return WS.fault("Database not selected"); }
     const rec = await client.db.get("SELECT name,dcwFlatTree,bump FROM doc WHERE uuid=?", [this.uuid]);
     this.name        = rec.name;
-    this.dcwFlatTree = JSON.parse(rec.dcwFlatTree);
+    this.dcwFlatTree = JSON.parse(rec.dcwFlatTree) ;
     this.bump        = rec.bump;
     return this;        // this is now sendWaited
 }
 
-WS.classes["GetDch"].prototype.onPktRecvd = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
-    logPkt(this.constructor.name);
-    this.rec = await client.db.get("SELECT name,content FROM dch WHERE id = ?", [this.id]);
-    // DoNotDelete 'this.id' as returnee wants it!
-    return this;
-}
-
-WS.classes["AddDoc"].prototype.onPktRecvd = async function(client) {    // this={uuid,name,after,parent,dcwFlatTree}
+WS.classes["AddDoc"].prototype.onPktRecvd = async function(client) {    // this={uuid,name,after,parent}
     logPkt(this.constructor.name);
     if (!client.db) { return WS.fault("Database not selected"); }
     try {
@@ -197,6 +190,13 @@ WS.classes["DelDoc"].prototype.onPktRecvd = async function(client) {    // inser
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.classes["GetDch"].prototype.onPktRecvd = async function(client) { // must use 'function()' to have a 'this'   (not '() =>' )
+    logPkt(this.constructor.name);
+    this.rec = await client.db.get("SELECT name,content FROM dch WHERE id = ?", [this.id]);
+    // DoNotDelete 'this.id' as returnee wants it!
+    return this;
+}
+
 WS.classes["AddDch"].prototype.onPktRecvd = async function(client) {  // add new dch rec(s), broadcast "ModDoc"
     logPkt(this.constructor.name);
     if (!client.db) { return WS.fault("Database not selected"); }
@@ -320,28 +320,32 @@ WS.classes["GetDBList"].prototype.onPktRecvd = async function(client) {    // de
     this.list = await BF.getDBList();
     return this;
 };
-// WS.classes["CreateDB"].prototype.onPktRecvd = async function(client) {    // create new db, return null=good, text=errormsg
-//     logPkt(this.constructor.name);
-//     const err = BF.checkDBName(this.name);    // test filename for validity
-//     delete this.name;
-//     if (err) {                            // return it if bad
-//         this.error = err;
-//         return this;
-//     }
 
-//     let list = await BF.getDBList();                // check if already exists! 
-//     if (list.includes(this.text)) {
-//         this.error = "Database '" + this.text + "' already exists";
-//         return this;
-//     }
+WS.classes["AddDB"].prototype.onPktRecvd = async function(client) {    // create new db, return null=good, text=errormsg
+    logPkt(this.constructor.name);
+    const err = BF.checkDBName(this.name);    // test filename for validity
+    if (err) {                                // return msg if bad
+        this.error = err;
+        return this;
+    }
 
+    let list = await BF.getDBList();      // check if already exists! 
+    if (list.includes(this.name)) {
+        this.error = "Database '" + this.name + "' already exists";
+        return this;
+    }
 
-//     await BF.detachDB(client);              // detach any currently open db on this client
-//     await BF.attachDB(this.text, client);
+    const db = await BF.openDB(this.name);     // cause db creation
+    db.close();                             // and immediately close
 
-//     WS.broadcast(this, {});      // tell the world that the dbList changed!
-//     return this;
-// };
+    // await BF.detachDB(client);            // detach any currently open db on this client
+    // await BF.attachDB(this.name, client);
+
+    WS.broadcast("AddDB", {});  // tell the world that the dbList changed!
+    delete this.name;           // save bandwidth
+    return this;                // return to caller in case of error
+};
+
 WS.classes["SelectDB"].prototype.onPktRecvd = async function(client) {    // make other db current, return null=good, text=errormsg
     logPkt(this.constructor.name);
     let name = this.name;

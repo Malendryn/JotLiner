@@ -9,7 +9,7 @@ import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 import { DFDict } from "/public/classes/DFDict.mjs";
 
 let _dlgTmp;    // used to exfer exploded file to _onCtxImport2_onDlgButton()  {?name?,{dchList:},error}
-async function _onCtxImport2_onDlgButton(btnLabel, formData) {        // btn pressed in 2nd dialog (child/sibling and rename)
+async function _onCtxImport2_onDlgButton(btnLabel, formData) {  // import file: btn pressed in 2nd dialog (child/sibling and rename)
     debugger; let result = true;
     const newDocInfo = {};
     if (formData.isSubmit) {
@@ -274,11 +274,7 @@ function openDocRenamePopup() {
                 alert("Document name cannot be empty");
                 return false;
             }
-            debugger; FF.autoSave("ModDoc:name", dict.docName);
-            // let pkt = WS.makePacket("ModDoc")// no reason to track docname in curDoc as broadcast response updates it for us
-            // pkt.uuid = FG.curDoc.uuid;
-            // pkt.name = dict.docName;
-            // pkt = WS.send(pkt)
+            await FF.autoSave("ModDoc", {name:dict.docName}, 0);
         }
         FG.kmStates.modal = false;
         return true;
@@ -315,7 +311,7 @@ async function insertDoc(dict) {
     const parent = (dict.asChild) ? info.id : info.parent;  // ifChild, set parent to selected, else selecteds parent
     const after  = (dict.asChild) ? 0       : info.id;      // ifChild, set after to 0, else to selected
 
-    debugger; WS.pktFtoB["AddDoc"](dict.docName, parent, after);
+    await FF.autoSave("AddDoc", {name: dict.docName, parent:parent, after:after }, 0);
     return true;
 }
 
@@ -670,8 +666,8 @@ async function onPktGetDoc(pkt, uuid) {         // response from a sendExpect()
 
     LS.curDoc = uuid;
 
-    pkt = WS.makePacket("ModDoc", {uuid:pkt.uuid, dcwFlatTree:pkt.dcwFlatTree, bump:pkt.bump});
-    await pkt.onPktRecvd();     // make it act like it received this as a ModDoc (instead of using DocAttacher.attach())
+    pkt = WS.makePacket("ModDoc", {uuid:pkt.uuid, dcwFlatTree:pkt.dcwFlatTree, bump:pkt.bump});  // INJECT faux packet
+    await pkt.onPktRecvd();     // INJECT: make it act like it received this as a ModDoc (instead of using DocAttacher.attach())
 
     // const attacher = new FG.DocAttacher();
     // // const meta = JSON.parse(pkt.data.meta);

@@ -70,8 +70,8 @@ _register(class SetExtra extends PacketBASE { // get any element from extra tabl
 // });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-_register(class CreateDB extends PacketBASE {  // Delete a document from the system
-    constructor(){super();debugger;} //  name;       // F->B string name of db to create
+_register(class AddDB extends PacketBASE {  // Delete a document from the system
+//  name;       // B<-F string name of db to create
 //  error;      // B->F error string if bad name or null if succeeded
 });
 _register(class SelectDB extends PacketBASE {  // Delete a document from the system

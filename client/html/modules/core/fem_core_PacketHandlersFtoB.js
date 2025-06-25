@@ -22,14 +22,9 @@ in essense: when autoSave fires, (see FF.autoSave()) it calls one of the functio
 /////////////////////////// note, AUTOSAVE-FIRED FUNCTIONS MUST NOT FF.flushAll() /////////////////////////////////////
 /////////////////////// calling await FF.flushAll() in these causes deadlock waiting for itself ///////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.pktFtoB["AddDoc"] = async (docName, parent, after) => {          // B<-F "AddDoc",  B->F "ModDocTree"
-    debugger;/*TOMOVETOAutoSave()*/ const dict = {
-        uuid:        FF.makeUuid(),
-        name:        docName,
-        parent:      parent,        // ifChild, set parent to selected, else selecteds parent
-        after:       after,         // ifChild, set after to 0, else to selected
-    }
-    let pkt = WS.makePacket("AddDoc", dict);
+WS.pktFtoB["AddDoc"] = async (dict) => {        // B<-F "AddDoc",  B->F broadcast "ModDocTree"
+    dict.uuid = FF.makeUuid();
+    let pkt = WS.makePacket("AddDoc", dict);    // dict = {uuid, name, parent, after}
     pkt = WS.send(pkt);
 }
 
@@ -38,11 +33,11 @@ WS.pktFtoB["DelDoc"] = async (uuid) => {                            // B<-F "Del
     WS.send(pkt);
 }
 
-WS.pktFtoB["ModDoc"] = async (payload, xtra) => {
+WS.pktFtoB["ModDoc"] = async (data) => {
     let pkt = WS.makePacket("ModDoc", {uuid:FG.curDoc.uuid});
-    if (xtra[0] == "name") {
-        pkt.name = what.name;
-    } else if (xtra[0] == "dcwFlatTree") {
+    if ("name" in data) {   // we only do one or the other, name OR dcwFlatTree
+        pkt.name = data.name;
+    } else {
         const extracter = new FG.DocExtracter();
         pkt.dcwFlatTree = extracter.extract(FG.curDoc.rootDcw);
     }

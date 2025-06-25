@@ -4,10 +4,13 @@ import { DFDict } from "/public/classes/DFDict.mjs";
 import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 
 let el = document.getElementById("divDocView");
-// el.addEventListener("focus",       onTkmDocViewFocus, true);                                           // listen for 'leaving browser' specifically
-// el.addEventListener("blur",        onTkmDocViewBlur, true);                                           // listen for 'leaving browser' specifically
-// el.addEventListener("mouseleave",  onTkmDocViewLeave, true);
+// el.addEventListener("focus",       onTkmDocViewFocus, true);             // listen for 'leaving browser' specifically
+// el.addEventListener("blur",        onTkmDocViewBlur, true);              // listen for 'leaving browser' specifically
+// document.addEventListener("mouseleave",  onTkmDocViewLeave, true);
+// document.addEventListener("pointermove",  onTkmDocViewLeave, true);
+// document.addEventListener("visibilitychange", onTkmDocViewLeave, true);  // NONE of these work reliably
 // el.addEventListener("mouseenter",  onTkmDocViewEnter, true);
+
 document.addEventListener("contextmenu", onTkmContextMenu, { capture: true, passive: false }); // listen for contextmenu specifically
 document.addEventListener("mousedown",   onTkmMousedown,   { capture: true, passive: false }); // listen for mouseup/down/move ANYwhere on doc
 document.addEventListener("mousemove",   onTkmMouseMove,   { capture: true, passive: false });
@@ -19,6 +22,14 @@ document.addEventListener("keyup",       onTkmKeyUp,       { capture: true, pass
 //     console.log(__FILE__(), "onTkmDocViewFocus")
 // }
 
+function onTkmDocViewLeave(evt) {
+    trace(`PM X=${evt.clientX}, Y=${evt.clientY}`)
+    // let el = document.getElementById("divDocView");
+    // if (!evt.relatedTarget || !el.contains(evt.relatedTarget)) {
+    //     trace("WEGKWEGHKWEGHEG")
+    // }
+    // trace("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Toplevel MouseHandler stuff below here ///////////////////////////////////////////////////////////////////////////
@@ -247,7 +258,7 @@ function onContextDCHLayout() {
         form.removeEventListener("input", onFormInput);
         form.removeEventListener("click", onFormClick);
         if (formChanged) {
-            debugger; FF.autoSave("ModDoc:dcwFlatTree"); 
+            FF.autoSave("ModDoc", {dcwFlatTree:true}); 
         }
         FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
         onStateChange({});          // just to bump an update so ghost clears
@@ -303,7 +314,6 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
     dcw = FG.kmStates.dcw;
 
     const entries = [];
-try {
     if (FF.getDchName(dcw.dch) == "BOX") {
         for (const key in DCH) {    // add all the addable dch's to the menuEntries
             const dchClass = DCH[key].dchClass;
@@ -312,12 +322,8 @@ try {
             }
         }
     }
-} catch (err) {
-    debugger;
-}
     entries.push({action:"", label:"", tip:""});
     entries.push({action:"export", label:"Export Element", tip:"Export node (and all children) under cursor to local file"});
-
 
     if (dcw != FG.curDoc.rootDcw) {     // never allow deleting the topmost BOX element from this menu
         entries.push({action:"delete", label:"Delete node (and all children)", tip:"Delete document element under mouse and all children inside it"});
@@ -646,26 +652,17 @@ function showGhosts(dcw) {
 }
 
 function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove etc, not JUST on modechange)
-    // if (!FG.kmStates.inDocView) {
-    //     return;
-    // }
-    // if (!FG.curDoc) {
-    //     return;
-    // }
-
     let dcw = null;
     const docDiv = document.getElementById("divDocView");
 
     if (FG.kmStates.dcw === FG.curDoc.rootDcw) {    // if rootDcw WAS selected (via mode2), THEN we came back here to mode1
         FG.kmStates.dcw = dcw = null;               // unset it (we don't 'mode1' on rootDcw ever!)
     }
-    // console.log(__FILE__(), "doDchOpMode1: dcw=", FG.kmStates.dcw);
 
     if (FG.kmStates.btnLeft) {                      // if mouseLeft down, stick with currently selected dcw
         dcw = FG.kmStates.dcw;
     } else {                                        // mouseleft NOT down, find dcw currently hovering over
         dcw = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);
-        // if (FG.kmStates.dcw != FG.curDoc.rootDcw) {      
             if (dcw && dcw != FG.kmStates.dcw) {                // if dcw @mouse !same as last time through here
                 if (FG.ghosts.divGhost) {                           // remove any exhisting ghost
                     FG.ghosts.divGhost.remove();
@@ -676,7 +673,6 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             FG.ghosts.nesw = "";                      // clear this right away to prevent possible tripup later on
             setKBModeTitlebarText(FG.kmStates.dcw);     // fire 'first time' to get data on screen (else wont show til mousemove)
             setKBModeToolbarText(FG.kmStates.dcw);
-        // }
     }
     showGhosts(dcw);                // show any changes to the ghosting state
     if (FG.kmStates.btnRight) {             // if contextMenu button down, ...
@@ -743,7 +739,7 @@ function doDchOpMode1() { // only called when FG.kmStates.mode == 1 (mousemove e
             }
         }
 
-        FF.autoSave("ModDoc:dcwFlatTree");          // autosave after short delay
+        FF.autoSave("ModDoc", {dcwFlatTree:true});  // autosave after short delay
         setKBModeToolbarText(FG.kmStates.dcw);
     }
 }
@@ -762,9 +758,6 @@ function doDchOpMode2() { // only called when FG.kmStates.mode == 2  (mousemove 
         dcw = FG.kmStates.dcw;
     } else {
         dcw = getDcwAt(FG.kmStates.clientX, FG.kmStates.clientY);    // get dcw under cursor (even if it is the root!)
-// if (dcw==undefined) {
-// debugger;
-// }
         dcw = FF.getBOXforDcw(dcw);                                  // get parent BOX (or self if is a BOX)
         FG.kmStates.dcw = dcw;
 
@@ -897,7 +890,7 @@ function onStateChange() {  // detect commandState change and create a faux invi
 
 
 function debugStates(states) {
-    debugger; const wrds = ["btnLeft", "btnMid", "btnRight", "keyAlt", "keyCtrl", "keyShift", "keyMeta", "modal"];
+    const wrds = ["btnLeft", "btnMid", "btnRight", "keyAlt", "keyCtrl", "keyShift", "keyMeta", "modal"];
     let ss = "";
     let flag = false;
     for (let idx = 0; idx < wrds.length; idx++) {
@@ -919,9 +912,7 @@ function debugStates(states) {
 }
 
 function clearAllButtons(callSetKMState = true) {
-    // console.log("CAB");
-
-    debugger; const states = {          // inject an 'all buttons released' statechange
+    const states = {          // inject an 'all buttons released' statechange
         "btnLeft":  false,
         "btnMid":   false,
         "btnRight": false,
@@ -940,9 +931,14 @@ function clearAllButtons(callSetKMState = true) {
 }
 
 function setKMState(states) {
-    if (!FG.kmStates.inDocView) {
+    // debugStates(states);
+    if (!FG.kmStates.inDocView) {                               // if mouse not in docView
+        // if (FG.kmStates.inDocView != FG.kmPrior.inDocView) {    // if mouse JUST left docView
+        //     clearAllButtons(false);                             // false to prevent recursive calling of setKMState()
+        // }
         return;
     }
+
     if (!FG.curDoc) {
         return;
     }
@@ -957,12 +953,6 @@ function setKMState(states) {
             changed = true;
         }
     }
-
-// if mouse moved from inside to outside (or vica/versa) the scope of divDocView
-    if (FG.kmStates.inDocView != FG.kmPrior.inDocView) {   
-        clearAllButtons(false);                  // false to prevent recursive calling of setKMState()
-    }
-    // debugStates(states);
 
     if (changed) {
         onStateChange();                         // if anything changed, call the handler
@@ -1056,6 +1046,16 @@ function setInDocView(evt) {
     let rect = el.getBoundingClientRect();
     FG.kmStates.inDocView = evt.clientX >= rect.left && evt.clientX <= rect.right
              && evt.clientY >= rect.top && evt.clientY <= rect.bottom;
+
+    // trace(`XY=${evt.clientX},${evt.clientY}`)
+// I cannot RELIABLY track that the mouse has left divDocView and clearAllButtons() so I'm just going to have to
+// NOT do this under any circumstance
+    // if (!FG.kmStates.inDocView) {                               // if mouse not in docView
+    //     if (FG.kmStates.inDocView != FG.kmPrior.inDocView) {    // if mouse JUST left docView
+    //         clearAllButtons(false);                             // false to prevent recursive calling of setKMState()
+    //     }
+    //     return;
+    // }
 }
 
 
@@ -1222,18 +1222,9 @@ FF.getRawRect = function(el) { // get rectvals from el.style NOT boundingBox
 FF.getBOXforDcw = function(dcw) {     // if dcw=BOX return dcw, else walk parents to find owning BOX
     if (dcw) {                        // !!DO!! allow them to select/move the docroot! 
         let el = dcw.sysDiv;
-// try {
-// console.log("dcw=",dcw);
-            while (FF.getDchName(dcw.dch) != "BOX") { // if dch != BOX, walk parentChain to find one
-                try {
-                    dcw = dcw.parentDcw;
-                } catch (err) {
-                    debugger;
-                }
-            }
-// } catch (err) {
-// debugger;
-// }
+        while (FF.getDchName(dcw.dch) != "BOX") { // if dch != BOX, walk parentChain to find one
+            dcw = dcw.parentDcw;
+        }
     }
     return dcw;
 }

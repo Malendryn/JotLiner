@@ -18,6 +18,13 @@ import { DFDict } from "/public/classes/DFDict.mjs";
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // functions below are called when a broadcast packet comes in ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.classes["AddDB"].prototype.onPktRecvd = async function() {    // this.name = newDBname
+    if (WS.lastPacketSent.__id == this.__id) {      // I am the one who sent the change so select this uuid immediately!
+        LS.curDb = WS.lastPacketSent.name;                    // set the new dbname
+    }
+    await FF.updateDBSelector(WS.lastPacketSent.__id == this.__id); // if I sent it, switch to it too
+}
+
 WS.classes["ModDocTree"].prototype.onPktRecvd = async function() {
     if (WS.lastPacketSent.__id == this.__id) {      // I am the one who sent the change so select this uuid immediately!
         LS.curDoc = WS.lastPacketSent.uuid;
