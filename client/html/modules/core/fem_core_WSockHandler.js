@@ -11,8 +11,6 @@ WS.lastPacketSent;             // used when we receive a broadcast response...
 
 let __nextPacketID    = 1;  // unique id for every packet created
 const __waitList      = {}; // dict of packetId: [TimeInserted, resolve, reject]
-const __waitBcastList = {}; // dict of packetId: [TimeInserted, resolve, reject]
-const __waitBatch     = {}; // dict of batch response keys to waitfor 
 
 function __wsFail() {
     if (!WS.connected) {
@@ -67,24 +65,10 @@ export async function init() {          // load, init, and establish connection 
             __waitList[pkt.__id] = {name:pkt.constructor.name, date:Date.now(), callback:callback, pkt, context};
             WS.send(pkt);
         }
-        // WS.sendBatchExpect = async (pkt, key, callback, context=undefined) => {
-        //     __wsFail();
-        //     const batchKey = `${pkt.constructor.name}:${key}`;
-        //     pkt.__key = key;
-        //     __waitBatch[batchKey] =  {name:pkt.constructor.name, date:Date.now(), callback:callback, pkt, context};
-        //     WS.send(pkt);
-        // }
         WS.sendWait = async (pkt, context=undefined) => {
             __wsFail();
             return new Promise((resolve, reject) => {
                 __waitList[pkt.__id] = {date:Date.now(), resolve:resolve, pkt, context};
-                WS.send(pkt);
-            });
-        }
-        WS.sendWaitBroadcast = async (pkt, context=undefined) => {
-            __wsFail();
-            return new Promise((resolve, reject) => {
-                __waitBcastList[pkt.__id] = {date:Date.now(), resolve:resolve, pkt, context };
                 WS.send(pkt);
             });
         }
@@ -98,10 +82,6 @@ WS.clearExpectByName = (pName) => {   // removeAll packets named pName from __wa
             delete __waitList[key]
         }
     }
-}
-
-WS.clearBatchExpect = (pktName, key) => {
-    delete __waitBatch[`${pktName}:${key}`];
 }
 
 WS.makePacket = function(name, dict = undefined)  {
@@ -124,34 +104,22 @@ function process(buf) {     // this function must not await, anything that happe
     
     const pkt = WS.parsePacket(buf);
 
-    if ("__r" in pkt) {                     // is it a response packet?
-        if (pkt.__id in __waitList) {    // is it in waitList?  if not, probably timed out
+    if (pkt instanceof WS.classes.Fault) {
+        console.error(pkt.error);
+        alert(pkt.error);
+    }
+    if ("__r" in pkt) {                         // is it a response packet?
+        if (pkt.__id in __waitList) {           // is it in waitList?  if not, probably timed out
             const entry = __waitList[pkt.__id]
             delete __waitList[pkt.__id];
             WS.lastPacketSent = entry.pkt;
             if (entry.resolve) {                // if sendWait response
-                entry.resolve(pkt);        
+                entry.resolve(pkt);                 // MUST HANDLE instanceof Fault by itself!
             } else if (entry.callback) {        // if sendExpect response
-                entry.callback(pkt, entry.context);
-            }
-        } else {
-            if (pkt.__key) {    // if it has a __key, it's a batchResponse packet
-                const key = pkt.constructor.name + ":" + pkt.__key;
-                if (key in __waitBatch) { // found a batch wait'er
-                    const entry = __waitBatch[key];
-                    delete __waitBatch[key];
-                    WS.lastPacketSent = entry.pkt;
-                    entry.callback(pkt, entry.context);   // can ONLY support sendExpect response,  not sendWait!
-                }
+                entry.callback(pkt, entry.context); // MUST HANDLE instanceof Fault by itself!
             }
         }
-    }  else if (pkt.__id in __waitBcastList) {  // if it is a broadcast we were waiting for...
-        const entry = __waitBcastList[pkt.__id]
-        delete __waitBcastList[pkt.__id];
-        WS.lastPacketSent = entry.pkt;
-        pkt.onPktRecvd();                       // process the broadcast normally before resolving
-        entry.resolve();                        // send nothing back
     } else {
-        pkt.onPktRecvd();
+        pkt.onPktRecvd();  // handle broadcasted packets
     }
 }

@@ -109,8 +109,6 @@ WS.classes["ModDoc"].prototype.onPktRecvd = async function() {
                 const nuDcw = await DCW_BASE.create(dcw, data.S);
                 dcwList = FF.getDcwList();    // refetch with new 'added' id's in place
                 await nuDcw.attachDch(nuDchRecId, data.N);
-                // let pkt = WS.makePacket("GetDch", {id:nuDchRecId});
-                // pkt = await WS.sendExpect(pkt, _onGetDch, nuDcw);
             }
         }
     }
@@ -218,17 +216,6 @@ function _getParentsPair(dcwFlatTree) {   // turn dcwFlatTree into [[recId, pare
     }
     walk(0);
     return list;
-}
-
-
-async function _onGetDch(pkt, dcw) {
-    // await dcw.attachDch(pkt.id, pkt.rec.name);  // attach the approprate dch!
-
-    debugger; const decoder = new DFDecoder(pkt.rec.content);
-    const blob = decoder.decode();      // will return decoder.EOSTREAM if u8a is empty
-    if (blob != decoder.EOSTREAM) {     // if stream was empty
-        dcw.dch.importData(blob);
-    }
 }
 
 

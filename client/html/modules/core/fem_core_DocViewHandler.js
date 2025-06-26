@@ -283,11 +283,11 @@ because we can't rely on the dch to do it itself
         return true;                // tell dialog to close no matter what button was pressed
     }
     async function _postRun(form) {
-        debugger; FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
-        onStateChange({});          // just to bump an update so ghost clears
+        FG.kmStates.modal = false;  // MUST be cleared before onStateChange()!
+        onStateChange({});                    // just to bump an update so ghost clears
     }
     
-    debugger; FG.kmStates.modal = true;
+    FG.kmStates.modal = true;
     dlg = new DFDialog({ preRun: _preRun, postRun: _postRun, onButton: _onBtn });
     dlg.open({form:"<form>temporary</form>"});
 }
@@ -368,7 +368,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
                 onContextDCHLayout();
                 break;
             case "setProps":
-                debugger; onContextDCHProps();
+                onContextDCHProps();
                 break;
         }
     }

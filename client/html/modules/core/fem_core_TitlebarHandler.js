@@ -69,11 +69,11 @@ FF.selectDB = async function() {
         let pkt = WS.makePacket("SelectDB");            // tell server, waitfor failMsg or null=good
         pkt.name = FG.curDbName;
         pkt = await WS.sendWait(pkt);
-        if (pkt.err) {
+        if (pkt.error) {
             LS.curDb = "";                   // something went wrong,  'forget' current DB and popup the msg
             FG.curDbName = LS.curDb;
-            alert(pkt.err);
-            FF.updateDBSelector(true);      // to clean out the missing db(s)
+            FF.updateDBSelector(true);       // to clean out the missing db(s)
+            alert(pkt.error);
         }
     }
 
@@ -120,14 +120,8 @@ function onNewInstance() {
 function onNewDB() {
     async function _onButton(btnLabel, dict) {
         if (dict.isSubmit) {
-            let pkt = WS.makePacket("AddDB");
-            pkt.name = dict.dbName;
-            pkt = await WS.sendWait(pkt)                          // create new db, wait for confirmation
-            if (pkt.error) {
-                alert("Database name error: " + pkt.error);
-                return false;
-            }
-            return true;
+            let pkt = WS.makePacket("AddDB", {name:dict.dbName});
+            pkt = WS.send(pkt);
         }
         return true;        // close dlg on any button
     }

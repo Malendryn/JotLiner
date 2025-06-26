@@ -1,4 +1,17 @@
 -----------------------------------------------------------------------------------------------------------------------
+FF.autoSave should always push to background via setTimeout() so that even if the timeout is 0 it doesnt 'linger' and
+     immediately process the packet before returning
+-----------------------------------------------------------------------------------------------------------------------
+rework our 'Fault()' packet system and fire-forget systems so in any case where an error can occur instead of calling
+WS.send and doing nothing we call WS.sendExpect(callback) where callback looks for an 'error' on the packet and if found will pop a dialog/show a console msg
+
+right now I think I have it set up to return a Fault which is captured in the WS receive handler and it does this for us
+but that makes awaited-for returns a little tricky?   so look at and review this
+
+(EG if I have a sendWait() and the backend responds with Fault() then the sendWait never clears,  or does it? and even
+if it DOES clear, HOW does it clear?  I mean 'Fault' has no idea what it was waiting for!)
+
+-----------------------------------------------------------------------------------------------------------------------
 change:  ALL pktFtoB packets are fired via WS.send,  we should therefore trigger ALL of them trhough autoSave() which
    by its very nature detects changes in 'type of packet' sent and flushAll's as needed
 -----------------------------------------------------------------------------------------------------------------------

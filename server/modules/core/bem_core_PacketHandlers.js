@@ -42,7 +42,87 @@ WS.classes["GetBackendInfo"].prototype.onPktRecvd = async function(client) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes["GetDCHList"].prototype.onPktRecvd = async function(client) {
+WS.classes["GetDBList"].prototype.onPktRecvd = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
+    logPkt(this.constructor.name);
+    this.list = await BF.getDBList();
+    return this;
+};
+
+WS.classes["AddDB"].prototype.onPktRecvd = async function(client) {    // create new db, return null=good, text=errormsg
+    logPkt(this.constructor.name);
+    const err = BF.checkDBName(this.name);    // test filename for validity
+    if (err) {                                // return msg if bad
+        return WS.fault(err);
+    }
+
+    let list = await BF.getDBList();      // check if already exists! 
+    if (list.includes(this.name)) {
+        return WS.fault("Database '" + this.name + "' already exists");
+    }
+
+    const db = await BF.openDB(this.name);     // cause db creation
+    db.close();                             // and immediately close
+
+    WS.broadcast("AddDB", {});  // tell the world that the dbList changed!
+    return null;
+};
+
+WS.classes["SelectDB"].prototype.onPktRecvd = async function(client) {    // make other db current, return null=good, text=errormsg
+    logPkt(this.constructor.name);
+    let name = this.name;
+    delete this.name;
+    const error = BF.checkDBName(name);    // test filename for validity
+
+    if (err) {                           // return msg if bad
+        this.error = error;
+        return this;
+    }
+
+    let list = await BF.getDBList();                // check that db file actually exists
+    if (!list.includes(name)) {
+        this.error = "Database '" + name + "' does not exist";
+        return this;
+    }
+
+    await BF.detachDB(client);        // close any currently open db on this client
+    await BF.attachDB(name, client);  // increment clientCount if already open, else open/create db
+
+    return this;
+};
+// WS.classes["DelDB"].prototype.onPktRecvd = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
+//     logPkt(this.constructor.name);
+//     if (!client.db) { return WS.fault("Database not selected"); }
+//     const error = BF.checkDBName(this.text);    // test filename for validity
+//     if (error) {                                // return msg if bad
+//         return WS.fault(error);
+//     }
+
+// // validate db is empty here, THEN...
+
+//     debugger; if (BF.openedDBs[client.dbName].clients > 1) {
+//         return WS.fault("Cannot delete DB while other clients are using it");
+//     }
+//     await BF.detachDB(client);      // close the db off the client so we can delete it
+
+//     client.db.close();
+//     client.db = null;
+    
+// debugger; try {
+//         await client.db.run("BEGIN TRANSACTION");
+// //...
+//         await client.db.run("COMMIT TRANSACTION");
+//     } catch (err) {
+//         await client.db.run("ROLLBACK TRANSACTION");
+//         return WS.fault(err.message);
+//     }
+
+//     WS.broadcast("DelDB", {});      // tell the world that the dbList changed!
+//     return null;
+// }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+WS.classes["GetDCHList"].prototype.onPktRecvd = async function(client) {    // get list of found modules
     logPkt(this.constructor.name);
     const dirPath = path.join(BG.basePath, "client", "html", "modules", "DocComponentHandlers");
     const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
@@ -158,7 +238,7 @@ WS.classes["ModDoc"].prototype.onPktRecvd = async function(client) {    // this 
 };
 
 WS.classes["DelDoc"].prototype.onPktRecvd = async function(client) {    // insert new doc into db,  return with nothing!
-    logPkt(this.constructor.name);
+    debuggerlogPkt(this.constructor.name);
     if (!client.db) { return WS.fault("Database not selected"); }
     try {
         await client.db.run("BEGIN TRANSACTION");
@@ -313,90 +393,3 @@ WS.classes["DelDch"].prototype.onPktRecvd = async function(client) {
     WS.broadcast("ModDoc", {uuid:this.uuid, dcwFlatTree:dcwFlatTree, bump:rec.bump});
     return null;
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.classes["GetDBList"].prototype.onPktRecvd = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
-    logPkt(this.constructor.name);
-    this.list = await BF.getDBList();
-    return this;
-};
-
-WS.classes["AddDB"].prototype.onPktRecvd = async function(client) {    // create new db, return null=good, text=errormsg
-    logPkt(this.constructor.name);
-    const err = BF.checkDBName(this.name);    // test filename for validity
-    if (err) {                                // return msg if bad
-        this.error = err;
-        return this;
-    }
-
-    let list = await BF.getDBList();      // check if already exists! 
-    if (list.includes(this.name)) {
-        this.error = "Database '" + this.name + "' already exists";
-        return this;
-    }
-
-    const db = await BF.openDB(this.name);     // cause db creation
-    db.close();                             // and immediately close
-
-    // await BF.detachDB(client);            // detach any currently open db on this client
-    // await BF.attachDB(this.name, client);
-
-    WS.broadcast("AddDB", {});  // tell the world that the dbList changed!
-    delete this.name;           // save bandwidth
-    return this;                // return to caller in case of error
-};
-
-WS.classes["SelectDB"].prototype.onPktRecvd = async function(client) {    // make other db current, return null=good, text=errormsg
-    logPkt(this.constructor.name);
-    let name = this.name;
-    delete this.name;
-    const err = BF.checkDBName(name);    // test filename for validity
-    if (err) {                           // return msg if bad
-        this.err = err;
-        return this;
-    }
-
-    let list = await BF.getDBList();                // check that db file actually exists
-    if (!list.includes(name)) {
-        this.err = "Database '" + name + "' does not exist";
-        return this;
-    }
-
-    await BF.detachDB(client);        // close any currently open db on this client
-    await BF.attachDB(name, client);  // increment clientCount if already open, else open/create db
-
-    return this;
-};
-// WS.classes["DeleteDB"].prototype.onPktRecvd = async function(client) {    // delete /CURRENT/ db, return null=good, text=errormsg
-//     logPkt(this.constructor.name);
-//     if (!client.db) { return WS.fault("Database not selected"); }
-//     const err = BF.checkDBName(this.text);    // test filename for validity
-//     if (err) {                            // return it if bad
-//         this.text = err;
-//         return this;
-//     }
-
-// // validate db is empty here, THEN...
-
-//     debugger; if (BF.openedDBs[client.dbName].clients > 1) {
-//         this.text = "Cannot delete DB while other clients are using it";
-//         return this;
-//     }
-//     await BF.detachDB(client);      // close the db off the client so we can delete it
-
-//     client.db = null;
-    
-// debugger; try {
-//         await client.db.run("BEGIN TRANSACTION");
-// //...
-//         await client.db.run("COMMIT TRANSACTION");
-//     } catch (err) {
-//         await client.db.run("ROLLBACK TRANSACTION");
-//         return new WS.classes["Fault"](err.message);
-//     }
-
-//     WS.broadcast(this, {name:dbName});      // tell the world that the dbList changed!
-
-//     this.text = null;
-//     return this;
-// }

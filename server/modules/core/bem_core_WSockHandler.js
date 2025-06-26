@@ -84,7 +84,7 @@ WS.batchRespond = (ws, pkt) => {
 
 WS.fault = function(msg) {
     const pkt = new WS.classes.Fault();
-    pkt.msg = msg;
+    pkt.error = msg;
     return pkt;
 }
 

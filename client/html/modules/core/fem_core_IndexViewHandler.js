@@ -237,7 +237,7 @@ async function onCtxDelete() {
             yes = window.confirm("This will delete all children of '" + info.name + "' too.\nAre you SURE?");
         }
         if (yes) {
-            debugger; WS.pktFtoB["DelDoc"](FG.curDoc.uuid);
+            FF.autoSave("DelDoc", FG.curDoc.uuid, 0);
         }
     }
 }

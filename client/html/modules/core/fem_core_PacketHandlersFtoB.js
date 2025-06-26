@@ -20,7 +20,7 @@ in essense: when autoSave fires, (see FF.autoSave()) it calls one of the functio
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// functions below are called when autoSave() fires on them //////////////////////////////////
 /////////////////////////// note, AUTOSAVE-FIRED FUNCTIONS MUST NOT FF.flushAll() /////////////////////////////////////
-/////////////////////// calling await FF.flushAll() in these causes deadlock waiting for itself ///////////////////////
+/////////////////////// calling await FF.flushAll() in these causes __deadlock waiting for itself ///////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.pktFtoB["AddDoc"] = async (dict) => {        // B<-F "AddDoc",  B->F broadcast "ModDocTree"
     dict.uuid = FF.makeUuid();
@@ -29,7 +29,7 @@ WS.pktFtoB["AddDoc"] = async (dict) => {        // B<-F "AddDoc",  B->F broadcas
 }
 
 WS.pktFtoB["DelDoc"] = async (uuid) => {                            // B<-F "DelDoc".uuid; B->F broadcast "ModDocTree"
-    debugger;/*TOMOVETOAutoSave()*/ let pkt = WS.makePacket("DelDoc", { uuid:uuid });
+    let pkt = WS.makePacket("DelDoc", { uuid:uuid });
     WS.send(pkt);
 }
 
