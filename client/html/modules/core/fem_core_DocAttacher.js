@@ -29,8 +29,6 @@ so, ok, hmm...
 we need to rebuild the local dcwTree and send it along with any AddDch/DelDch  request, that should give any other client
 enough info to reconstruct from as well
 
-so lets add an update() that coincides with attach
-
 BUT FIRST lets get attach to construct a dch-less tree and then go fetch all the dch's by recid
 */
     async attach(dcwDict, parentDcw, clone=false)  {
@@ -42,35 +40,19 @@ BUT FIRST lets get attach to construct a dch-less tree and then go fetch all the
         return this.rootDcw;
     }
 
-    async update(dcwDict, parentDcw) { //insert/update/delete dcwDict from parentDcw
-
-    }
-
     async _attachNext(parentDcw) {
         if (this.idx >= this.dcwDict.length) {      // no more recs to process 
             return null;
         }
         const [dchRecId, dcwEntry] = this.dcwDict.getByIdx(this.idx++); 
         const dcw = await DCW_BASE.create(parentDcw, dcwEntry.S);  // create a handler, assign parent, create <div>, set 'S'tyle
-        if (this.rootDcw == null) {           // record the topmost dch for returning
+        if (this.rootDcw == null) {                                // record the topmost dch for returning
             this.rootDcw = dcw;
         }
         await dcw.attachDch(dchRecId, dcwEntry.N);
 
-        // let pkt = WS.makePacket("GetDch");      // go get the dch's name and content and attach it
-        // pkt.id = dchRecId;
-
-        // debugger; /*RSTODO remove */ pkt = await WS.sendWait(pkt);           // consider lazyloading this in the future
-
-        // if (true) {//await dcw.attachDch(pkt.id, pkt.rec.name)) {
-        //     const decoder = new DFDecoder(pkt.rec.content);
-        //     const dict = decoder.decode();      // will return undefined if u8a is empty
-        //     if (dict != decoder.EOSTREAM) {     // if stream was empty
-        //         dcw.dch.importData(dict);
-        //     }
-        // }
         for (let idx = 0; idx < dcwEntry.C; idx++) {    // load children of component (if any) (only if BOX component)
-            await this._attachNext(dcw);            // and attach to this dch
+            await this._attachNext(dcw);                // and attach to this dch
         }
     }
 };

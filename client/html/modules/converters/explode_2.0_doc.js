@@ -1,5 +1,5 @@
 
-// explode contents of docstream into a dict (see bem_core_DocExporter.js for dict construction)
+// explode contents of docstream into a dict
 
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 

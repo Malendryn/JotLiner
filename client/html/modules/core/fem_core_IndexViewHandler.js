@@ -171,54 +171,49 @@ async function onCtxImport() {
 
 
 async function _onCtxExport_onDlgButton(btnLabel, dict) {
-    let result = false;
-    if (dict.isSubmit) {
-        const blob = new Blob([_dlgTmp], { type: "application/octet-stream" });
-        const url = URL.createObjectURL(blob);
+    let url;
+    let countdown = 63;  // ~1 full second at 16ms/frame
+    function flushExport() {
+        if (countdown > 0) {
+            countdown--;
+            requestAnimationFrame(flushExport);
+        } else {
+            URL.revokeObjectURL(url);
+        }
+    }
 
-        const tmp = document.createElement("a");
+    if (dict.isSubmit) {
+        let mod = await FF.loadModule("./modules/core/fem_core_DocStreamer.js");
+        let streamer = new mod.DocStreamer();
+        const u8a = await streamer.export();      // wraps a stream with data from FF.curDoc into a Uint8Array
+    
+        const blob = new Blob([u8a], { type: "application/octet-stream" });
+        url = URL.createObjectURL(blob);
+
+        let tmp = document.createElement("a");
         tmp.href = url;
         tmp.download = dict.fileName;
         tmp.style.display = "none";
         document.body.appendChild(tmp);
         tmp.click();
         document.body.removeChild(tmp);
-        URL.revokeObjectURL(url);
+        requestAnimationFrame(flushExport);
         FG.kmStates.modal = false;
-        result = true;
+        return true;
     }
-    _dlgTmp = undefined;    // clear this from memory now!
-    return result;
+    return false;
 }
 async function onCtxExport() {
-    const extracter = new FG.DocExtracter();
-    const dcwFlatTree = await extracter.extract(FG.curDoc.rootDcw, true);
-
-    let mod = await FF.loadModule("./modules/core/fem_core_DocExporter.js");
-
     const info = FF.getDocInfo(FG.curDoc.uuid);
-    let dict = {
-        uuid:    info.uuid,
-        name:    info.name,
-        dchList: JSON.stringify(dcwFlatTree),
-    }
-    let tmp = new mod.DocExporter();
-    _dlgTmp = await tmp.export(dict);
-
     const form = `
 <form>
     <b>Export document:</b> ${info.name}<br>
     <label>Save as: </label>
     <input type="text" name="fileName">
 </form>`;
-
-    dict = {
-        fileName: info.name + ".jldoc"
-    }
-
     FG.kmStates.modal = true;
     _dialog = new DFDialog({ onButton: _onCtxExport_onDlgButton });
-    _dialog.open({form:form, fields:dict});
+    _dialog.open({form:form, fields:{"fileName":info.name + ".jldoc"}});
 }
 
 

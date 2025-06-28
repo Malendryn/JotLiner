@@ -73,7 +73,7 @@ WS.classes["SelectDB"].prototype.onPktRecvd = async function(client) {    // mak
     delete this.name;
     const error = BF.checkDBName(name);    // test filename for validity
 
-    if (err) {                           // return msg if bad
+    if (error) {                           // return msg if bad
         this.error = error;
         return this;
     }

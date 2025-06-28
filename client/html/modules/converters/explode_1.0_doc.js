@@ -1,5 +1,5 @@
 
-// explode contents of docstream into a dict (see bem_core_DocExporter.js for dict construction)
+// explode contents of docstream into a dict
 export async function explode(dict) {  // see bem_core_DocExploder.js for definition of dict
     const doc = new TextDecoder().decode(dict.doc);   // doc always is Uint8array,  so for v1.0 we must convert back to textual
     delete dict.doc;                            // reduce mem usage

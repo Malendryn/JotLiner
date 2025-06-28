@@ -345,7 +345,7 @@ function openDCHContextMenu() {      // based on the dch the mouse is over when 
             FF.autoSave("AddDch", {parentRecId: dcw.dchRecId, newDcwFlatTree: newDcwFlatTree}, 0);
         } else switch (action) {                                                 // 'go do' whatever was clicked
             case "export":
-                debugger; trace("RSTODO 'extract' needs work!"); const dcwFlatTree = await extracter.extract(dcw);
+                debugger; trace("RSTODO 'Export Element' needs work!"); const dcwFlatTree = await extracter.extract(dcw);
                 const str = JSON.stringify(dcwFlatTree);
                 console.log(str);
                 break;
@@ -481,28 +481,6 @@ function setKBModeToolbarText(dcw) {
 
         el.innerHTML = txt;
     }
-}
-
-
-FF.getDcwDict = function() {  // return a DFDict of [recId, dcw] ordered by dcwFlatTree of doc
-    if (!FG.curDoc) {
-        return [];
-    }
-    let dict = new DFDict();
-
-    let dcw = FG.curDoc.rootDcw;
-    dict.append(dcw.dchRecId, dcw);     // append dcw right away
-    function walk(dcw) {
-        if (dcw.children && dcw.children.length > 0) {
-            for (let child of dcw.children) {
-                dict.append(child.dchRecId, child);
-                list.push(child);
-                walk(child);
-            }
-        }
-    }
-    walk(dcw);
-    return dict;
 }
 
 

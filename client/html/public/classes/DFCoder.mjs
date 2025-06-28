@@ -87,7 +87,6 @@ class DFEncoder {
         return u8a;
     }
 
-
     _concat(uint8aList) {
         const len = uint8aList.reduce((sum, arr) => sum + arr.length, 0);
         const result = new Uint8Array(len);

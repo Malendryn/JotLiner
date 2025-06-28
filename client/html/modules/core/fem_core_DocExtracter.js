@@ -16,7 +16,7 @@ import { DFDict } from "/public/classes/DFDict.mjs";
 
 export class DocExtracter {
     dcwDict;
-    extract(dcw) {        // returns the dcwFlatTree of a doc [[recId, {N,S,C}],...] as a DFDict
+    extract(dcw) {        // returns the dcwFlatTree of a doc [[recId, {N,S,C}],...] (NOT as a DFDict)
         this.dcwDict = new DFDict();
         if (dcw) {
             this. _extract(dcw);  // turn the dch into a stream

@@ -1,5 +1,5 @@
 
-// explode contents of docstream into a dict (see bem_core_DocExporter.js for dict construction)
+// explode contents of docstream into a dict
 
 // 1.1 differs from 1.0 in that it preserves field datatypes but it still doesnt have 'name' in the header
 
