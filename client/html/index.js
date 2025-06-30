@@ -58,6 +58,7 @@ window.addEventListener('load', async function() {
     let mod;
     await FF.loadModule("./modules/core/fem_core_LocalStore.js");          // attaches globally as 'LS' 'localStorage' class (for consistency)
     await FF.loadModule("./modules/core/fem_core_DocViewHandler.js");      // handle all the docview and Alt+Shift stuff
+    await FF.loadModule("./public/classes/DFWSPacketHandler.js");
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");
     await FF.loadModule("./modules/core/fem_core_PacketHandlersFtoB.js");      // for packets sent from backend that are not expect/wait responses

@@ -5,6 +5,24 @@ import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 
 // WS = {}; defined in index.js, NOT here.  WebSocket and Packet transmit/receive CLASSES, funcs, etc
 
+// lets work on changing this to a class rather than a bunch of 'loose' calls
+
+class DFWebSocketClient {       // WebSocketClient
+    connected       = false;
+    clientId        = 0;        // globalized cuz index.js needs to set it
+    lastPacketSent;             // used when we rcv broadcast response...  RSTODO change to ONLY be pktId cuz hugeData(use context for data instead)
+
+    __nextPacketID    = 1;      // unique id for every packet created
+    __waitList      = {}; // dict of packetId: [TimeInserted, resolve, reject]
+};
+class DFWebSocketSserver {      // WebSocketServer
+
+};
+export {DFWebSocketClient, DFWebSocketServer};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 WS.connected       = false;
 WS.connId          = 0;        // globalized cuz index.js needs to set it
 WS.lastPacketSent;             // used when we receive a broadcast response...
@@ -15,7 +33,7 @@ const __waitList      = {}; // dict of packetId: [TimeInserted, resolve, reject]
 function __wsFail() {
     if (!WS.connected) {
         alert("connection failed, refreshing browser");
-        location.replace(location.href);
+        location.replace(location.href);                    // cause a page refresh
         // throw new Error("connection failed, refreshing browser");  // prevent completing this action
     }
 }
@@ -72,6 +90,9 @@ export async function init() {          // load, init, and establish connection 
                 WS.send(pkt);
             });
         }
+        WS.sendPkt = async (pkt, callback, context) => {   // note: callback and context can both be null, but MUST be provided!
+
+        }
     });
 };
 
@@ -123,3 +144,25 @@ function process(buf) {     // this function must not await, anything that happe
         pkt.onPktRecvd();  // handle broadcasted packets
     }
 }
+
+
+WS.sendPkt = async function({ pkt, callback = null, context = null, progress = null }) {
+    const id = crypto.randomUUID();
+    const CHUNK_SIZE = 512 * 1024;
+    const total = pkt.length;
+    let sent = 0;
+  
+    for (let offset = 0; offset < total; offset += CHUNK_SIZE) {
+      const chunk = pkt.slice(offset, offset + CHUNK_SIZE);
+      const header = { id, offset, total };
+      const message = DFCoder.encode(header, chunk);
+  
+      await this.sendWait(message, context); // or send, depending on mode
+  
+      sent += chunk.length;
+      if (progress) progress(sent, total);
+    }
+  
+    if (callback) callback(context);
+    return id;
+  };

@@ -196,6 +196,9 @@ WS.classes["AddDoc"].prototype.onPktRecvd = async function(client) {    // this=
         let tmp = encoder.encode({zX:0, zY:0});         // encode the plugin's data
         list = [docId, "BOX", tmp, 0]
         rec = await client.db.get("INSERT INTO dch (docId,name,content,bump) VALUES(?,?,?,?) RETURNING id", list);    // insert basic dch content for the fullscreen box
+        debugger;  for (let idx = 0; idx < this.dcwFlatTree.length; idx++) {
+            
+        }
         const dcwFlatTree = `[[${rec.id},{"N":"BOX","S":{"L":0,"R":0,"T":0,"B":0},"C":0}]]`;     // absolute basic doc flatTree WITH dch recId
         await client.db.run("UPDATE doc SET dcwFlatTree=? where id=?", [dcwFlatTree, docId]);
 

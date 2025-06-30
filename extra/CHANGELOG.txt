@@ -3,11 +3,17 @@
  2025-06- ------------------------------------------------------------------------------------------------------------
  2025-06- ------------------------------------------------------------------------------------------------------------
  2025-06- ------------------------------------------------------------------------------------------------------------
- 2025-06- ------------------------------------------------------------------------------------------------------------
+ 2025-06-30 ------------------------------------------------------------------------------------------------------------
+1 new branch classing/DFWSSPacketHandler
+1 created new classes DFWebSocketClient and DFWebSocketServer as I intend to remove the .send, .sendWait, and .sendExpect
+    handlers and make a single sendPkt handler that can do all of the above and also supports sending chunks
+
  2025-06-28 ------------------------------------------------------------------------------------------------------------
 1 Finally have most conversions to the new backend/frontend handling finished, final step of export/import documents
     is all that really remains now.
 1 Finished doc-level export-to-file and reworked it in such a way that it should work as a cut/copy/paste handler too
+
+2 merged rework/0.2.0 back into main as at this point all that's left to fixup is import and that's noncritical
 
  2025-06-26 ------------------------------------------------------------------------------------------------------------
 1 modded autoSave slightly so it now releases immediately no matter what (by wrapping _process in setTimeout())

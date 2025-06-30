@@ -22,8 +22,9 @@ in essense: when autoSave fires, (see FF.autoSave()) it calls one of the functio
 /////////////////////////// note, AUTOSAVE-FIRED FUNCTIONS MUST NOT FF.flushAll() /////////////////////////////////////
 /////////////////////// calling await FF.flushAll() in these causes __deadlock waiting for itself ///////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WS.pktFtoB["AddDoc"] = async (dict) => {        // B<-F "AddDoc",  B->F broadcast "ModDocTree"
+WS.pktFtoB["AddDoc"] = async (dict) => {        // B<-F dict={name, parent, after}  B->F broadcast "ModDocTree"
     dict.uuid = FF.makeUuid();
+    dict.dcwFlatTree = `[[${rec.id},{"N":"BOX","S":{"L":0,"R":0,"T":0,"B":0},"C":0}]]`;     // absolute basic doc flatTree WITH dch recId
     let pkt = WS.makePacket("AddDoc", dict);    // dict = {uuid, name, parent, after}
     pkt = WS.send(pkt);
 }
