@@ -8,6 +8,8 @@
  * This program is distributed WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
+
+import { trace, trace2, trace3 } from "/public/classes/DFTracer.mjs";
 import { DFSortedDict } from "./DFSortedDict.js"
 
 /*

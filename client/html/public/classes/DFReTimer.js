@@ -9,6 +9,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 
+import { trace, trace2, trace3 } from "/public/classes/DFTracer.mjs";
 
 /*
 A reentrant timer that resets every time its called with a new delay

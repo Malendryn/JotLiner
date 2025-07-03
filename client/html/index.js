@@ -1,4 +1,6 @@
 
+import { trace, trace2, trace3 } from "/public/classes/DFTracer.mjs";
+
 globalThis.FG  = {}; // global 'Frontend Globals' variables   (see fem_core_Globals.js for details)
 globalThis.FF  = {}; // global 'Frontend Functions' functions (see fem_core_Functions.js for details)
 globalThis.SF  = {}; // just like BF except shared_Functions (functions both backend and frontend have in common)
@@ -45,6 +47,7 @@ function __onUnhandledRejection(err) {
 window.onunhandledrejection = __onUnhandledRejection;
 
 window.addEventListener('load', async function() {
+    // await FF.loadModule("/public/classes/DFTracer.mjs");
     await FF.loadModule("./modules/shared/shared_Functions.js");           // populate SF -- also trace()
     await FF.loadModule("./modules/core/fem_core_Globals.js");             // populate FG
     await FF.loadModule("./modules/core/fem_core_Functions.js");           // populate FF
@@ -58,7 +61,10 @@ window.addEventListener('load', async function() {
     let mod;
     await FF.loadModule("./modules/core/fem_core_LocalStore.js");          // attaches globally as 'LS' 'localStorage' class (for consistency)
     await FF.loadModule("./modules/core/fem_core_DocViewHandler.js");      // handle all the docview and Alt+Shift stuff
-    await FF.loadModule("./public/classes/DFWSPacketHandler.js");
+    mod = await FF.loadModule("./public/classes/DFWSPacketHandler.mjs");
+trace("WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST WSTEST ")
+await mod.client_test();
+return;
     await FF.loadModule("./modules/core/fem_core_WSockHandler.js");        // assigns FG.ws and opens FG.ws BEFORE returning
     await FF.loadModule("./modules/shared/shared_PacketDefs.js");
     await FF.loadModule("./modules/core/fem_core_PacketHandlersFtoB.js");      // for packets sent from backend that are not expect/wait responses

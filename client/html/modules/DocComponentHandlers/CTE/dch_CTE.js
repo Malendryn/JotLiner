@@ -4,6 +4,7 @@
 
 //             <!-- icons from https://icons8.com/icons/set/strikethrough--size-medium -->
 
+import { trace, trace2, trace3 } from "/public/classes/DFTracer.mjs";
 import { DCH_BASE } from "/modules/classes/class_DCH_BASE.js";
 
 class DCH_CTE extends DCH_BASE {     // CTE for div contenteditable="true" (poor man's RichText Editor)

@@ -1,5 +1,5 @@
 // DocViewHandler = Toplevel Keyboard and Mouse Event Handlers
-
+import { trace, trace2, trace3 } from "/public/classes/DFTracer.mjs";
 import { DFDict } from "/public/classes/DFDict.mjs";
 import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 

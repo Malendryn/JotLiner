@@ -1,4 +1,5 @@
 
+import { trace, trace2, trace3 } from "/public/classes/DFTracer.mjs";
 import { DCW_BASE } from "/modules/core/fem_core_DCW_BASE.js";
 import { DFEncoder,DFDecoder } from "/public/classes/DFCoder.mjs";
 import { DFDict } from "/public/classes/DFDict.mjs";

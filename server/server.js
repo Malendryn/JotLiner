@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
+
 /*
 to gen ssl (.pem) files for https do the following:
   openssl req -x509 -newkey rsa:2048 -nodes -keyout jotliner.key.pem -out jotliner.cert.pem -days 365 \
@@ -15,6 +16,7 @@ to gen ssl (.pem) files for https do the following:
 */
 
 //// Absolute minimum to get the ball rolling /////////////////////////////////////////////////////////////////////////
+import { trace, trace2, trace3 } from "../client/html/public/classes/DFTracer.mjs";
 globalThis.BG  = {}; // global 'Backend Globals' variables   (see bem_core_Globals.js for details)
 globalThis.BF  = {}; // global 'Backend Functions' functions (see bem_core_Functions.js for details)
 globalThis.SF  = {}; // just like BF except shared_Functions (functions both backend and frontend have in common)
@@ -84,7 +86,13 @@ async function start() {
         console.log(msg);
     });
 
-    await BF.loadModule("./modules/core/bem_core_WSockHandler.js");
+
+    const wsMod = await import("ws");
+    const mod = await BF.loadModule("../client/html/public/classes/DFWSPacketHandler.mjs");
+    mod.server_test(wsMod, WS.httpServer);
+// OLD way
+    // await BF.loadModule("./modules/core/bem_core_WSockHandler.js");
+
 
     // now we just sit back and let websockets handle everything from here on in
 }
