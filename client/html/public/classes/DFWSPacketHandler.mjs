@@ -13,8 +13,7 @@ class DFWebSocketClient {
 // ****** *****  constructor( {
 //                   onOpen,           // f(this)      called when connection established and id assigned
 //                   onClose,          // f(this)      called when connection was closed by the server
-//                   onMessage,        // f(this,msg)  called whenever a message comes in from the other side
-//                   onError} );       // f(this,msg)  called when any callback fails, NOTE: closes connection!
+//                   onMessage} );     // f(this,msg)  called whenever a message comes in from the other side
 // ----- await connect(endpt=undefined)   // open+connect websocket and perform initial handshake
                                             // await is optional (see onOpen in constructor)
                                             // endpt = an integer number to connect to current host but override port
@@ -45,57 +44,48 @@ class DFWebSocketClient {
 
             this._sv_setupWs(ws, null);
             this.#ws.onopen = async () => {      // this is a client-only op so doesnt belong in _sv_setupWs() cuz resolve())
-                // debugger; this.#lockId = await this.#lock.lock(this.#lockId);
                 trace("wsc: connection opened, waiting on handshake");
-                // if (this.#onOpen) {
-                //     try {
-                //         await this.#onOpen(this);
-                //     } catch (err) {
-                //         debugger; await this.#_onError(err.message);
-                //     }
-                // }
-                // this.#lock.unlock(this.#lockId);
                 return;
             };
-            this.#handshakeResolve = resolve;
+            this.#handshakeResolve = resolve;   // WAS here in 'this.#ws.onopen=', NOW here. (see 'this.#ws.onmessage=' for resolver)
             this.#lock.unlock(this.#lockId);
         });
     }
     #handshakeResolve = null;
     close = async() => {
-        debugger; this.#lockId = await this.#lock.lock(this.#lockId);
+        this.#lockId = await this.#lock.lock(this.#lockId);
         if (this.#ws) {
             if (this.#onClose) {
                 try {
                     await this.#onClose(this);    //  call BEFORE .close() to pass id's and states etc before clearing them
                 } catch(err) {
-                    console.error(err.message);   // DONT call this.#_onError here else infinite loop if error /in/ this.#onClose()
-                    // await this.#_onError(err.message);
+                    this.#err = err;
                 }
             }
             await this.#ws.close();
         }
         this.reset();
         this.#lock.unlock(this.#lockId);
+        this.#checkErr();
     }
     reset = async() => {
         this.#ws           = null;
         this.#clientId     = 0;
-        // this.#nextPacketID = 1;
     }
 
     async send(msg) {
         this.#lockId = await this.#lock.lock(this.#lockId);
         if (!this.#ws) {
-            await this.#_onError("Not connected");
+            this.#err = "Not connected";
         } else if (!this.clientId) {
-            await this.#_onError("Handshake not established")
+            this.#err = "Handshake not established";
         } else {
             const encoder = new DFEncoder();
             msg = encoder.encode(msg);
             this.#ws.send(msg);
         }
         this.#lock.unlock(this.#lockId);
+        this.#checkErr();
     }
 
     _sv_setupWs = (ws, svr) => {
@@ -113,7 +103,7 @@ class DFWebSocketClient {
                     try {
                         await this.#onOpen(this);
                     } catch (err) {
-                        await this.#_onError(err.message);
+                        this.#err = err;
                     }
                 }
                 this.#handshakeResolve(); // handshake done, resolve() and fallthrough to unlock
@@ -121,53 +111,45 @@ class DFWebSocketClient {
                 try {
                     await this.#onMessage(this, data);
                 } catch (err) {
-                    await this.#_onError(err.message);
+                    this.#err = err;
                 }
             }
             this.#lock.unlock(this.#lockId);
+            this.#checkErr();
         };
 
         this.#ws.onclose = async () => {
-            debugger; this.#lockId = await this.#lock.lock(this.#lockId);
-            // this.DFWSC.close();
+            this.#lockId = await this.#lock.lock(this.#lockId);
             await this.close();
             this.#lock.unlock(this.#lockId);
+            this.#checkErr();   // in case this.close() set this.#err
         };
     }
 
-    async #_onError(msg) {
-        debugger; this.#lockId = await this.#lock.lock(this.#lockId);
-        trace2("wsc:" + this.clientId + " error: msg=" + msg);
-        if (this.#onError) {
-            try {
-                await this.#onError(this, msg);
-            } catch(err) {
-                trace(`wss: onError from Client:${wsc.clientId} error: ${err.message}`);
-            }
+    #checkErr() {
+        if (this.#err) {
+            const err = this.#err;
+            this.#err = undefined;
+            throw err;
         }
-        await this.close();   // no await needed here
-        this.#lock.unlock(this.#lockId);
     }
-
 
     constructor(dict) {
         if ("onOpen"    in dict) { this.#onOpen = dict.onOpen;         }
         if ("onClose"   in dict) { this.#onClose = dict.onClose;       }
         if ("onMessage" in dict) { this.#onMessage = dict.onMessage;   }
-        if ("onError"   in dict) { this.#onError = dict.onError;       }
         this.reset();
     }
 
     #clientId      = 0;        // 0 if not connected, else server/client pairing ID
-    // #nextPacketID  = 1;        // unique id for every packet created starting at 1
     #onOpen        = null;
     #onClose       = null;
     #onMessage     = null;
-    #onError       = null;
     #ws            = null;     // handle to actual websocket engine
     #svr           = null;     // if created via server, this points back to it
     #lock          = new DFLocker();
     #lockId        = 0;
+    #err;
 
     #errMsg(msg)     { return `Attempt to set readonly property '${msg}'` }
     set connected(v) { throw new Error(this.#errMsg("connected"));        }
@@ -182,8 +164,7 @@ class DFWebSocketServer {       // WebSocketServer
 // constructor( {        //   wsc=WebSocketClient object
 //     onOpen,           // f(wsc)      called when client established and id assigned
 //     onClose,          // f(wsc)      called when client was closed by the server
-//     onMessage,        // f(wsc,msg)  called whenever a message comes in from the client
-//     onError} );       // f(this,msg) called when any callback fails, NOTE: closes connection!
+//     onMessage} );     // f(wsc,msg)  called whenever a message comes in from the client
 
     async onClose(wsc) {
         this.#lockId = await this.#lock.lock(this.#lockId);
@@ -192,12 +173,12 @@ class DFWebSocketServer {       // WebSocketServer
             try {
                 await this.#onClose(wsc);
             } catch(err) {
-                console.error(err.message);    // DONT call this.#_onError here else infinite loop if error /in/ this.#onClose()
-                // await this.#_onError(err.message);
+                this.#err = err;
             }
         }
         delete this.#clients[wsc.clientId];
         this.#lock.unlock(this.#lockId);
+        this.#checkErr();
     }
 
     async onMessage(wsc, msg) {
@@ -207,24 +188,19 @@ class DFWebSocketServer {       // WebSocketServer
             try {
                 await this.#onMessage(wsc, msg);
             } catch(err) {
-                await this.#_onError(wsc, err.message);
+                this.#err = err;
             }
         }
         this.#lock.unlock(this.#lockId);
+        this.#checkErr();
     }
 
-    async #_onError(wsc, msg) {
-        this.#lockId = await this.#lock.lock(this.#lockId);
-        trace2("wss:" + wsc.clientId + " error: msg=" + msg);
-        if (this.#onError) {
-            try {
-                await this.#onError(wsc, msg);
-            } catch(err) {
-                trace(`wss: onError from Client:${wsc.clientId} error: ${err.message}`);
-            }
+    #checkErr() {
+        if (this.#err) {
+            const err = this.#err;
+            this.#err = undefined;
+            throw err;
         }
-        await wsc.close();
-        this.#lock.unlock(this.#lockId);
     }
 
     async start(wss) {                         // wss = 'new WebSocketServer({server:yourServerHandle});' or other already opened WebSocketServer
@@ -235,10 +211,9 @@ class DFWebSocketServer {       // WebSocketServer
                 const client = {                    // user can add their client-specific stuff in here
                     id: clientId,
                     ws: new DFWebSocketClient({
-                        // onOpen:this.onOpen.bind(this),      // serverized clients don't have an onOpen
-                        onClose: this.onClose.bind(this),      // callback to server which in turn callse #onClose()
+                        // onOpen:   this.onOpen.bind(this),      // only for clients, server already handles opening
+                        onClose:  this.onClose.bind(this),     // callback to server which in turn callse #onClose()
                         onMessage:this.onMessage.bind(this),   // callback to server which in turn callse #onMessage()
-                        // onConnFail:this.onConnFail.bind(this)
                     }),
 //     dbName: null,   // client's currently selected db, or null if none
 //     db:     null,   // handle to open db, or null if dbName is null
@@ -255,13 +230,14 @@ class DFWebSocketServer {       // WebSocketServer
                     try {
                         await this.#onOpen(client.ws);
                     } catch(err) {
-                        await this.#_onError(client.ws, err.message);
+                        this.#err = err;
                     }
                 }
                 this.#lock.unlock(this.#lockId);
             });
             trace(`WebSocket server started on port ${WS.wssPort}`);
             resolve(this);
+            this.#checkErr();
             return;
         });
     }
@@ -270,18 +246,16 @@ class DFWebSocketServer {       // WebSocketServer
         if ("onOpen"    in dict) { this.#onOpen = dict.onOpen;       }
         if ("onClose"   in dict) { this.#onClose = dict.onClose;     }
         if ("onMessage" in dict) { this.#onMessage = dict.onMessage; }
-        if ("onError"   in dict) { this.#onError    = dict.onError   }
     }
 
     #clients     = {};
     #onOpen      = null;
     #onClose     = null;
     #onMessage   = null;
-    #onError     = null;
     #lock        = new DFLocker();
     #lockId      = 0;
     #nextWSockId = 1;
-    
+    #err;
 };
 export {DFWebSocketClient, DFWebSocketServer};
 
@@ -301,15 +275,14 @@ async function client_test() {
     function onMessage(wsc, msg) {
         trace("client_test: onMessage wscId=",wsc.clientId, "  msg=", msg);
     }
-    function onError(wsc, msg) {
-        trace("client_test: onError wscId=",wsc.clientId, "  msg=", msg);
-    }
     
-    const wsc = new DFWebSocketClient({onOpen, onClose, onMessage, onError});
-// wsc.send("foo");
+    const wsc = new DFWebSocketClient({onOpen, onClose, onMessage});
+    wsc.send("foo")  // not connected,  should throw
+    .catch((err) => {  // (wsc.send returns a promise, so must use .catch() instead of try/catch
+        console.log('wsc.send("Foo") error caught successfully');
+    });
     await wsc.connect(3000);
-    debugger; wsc.send(["foo"]);
-    trace("client_test client_test client_test client_test client_test client_test client_test client_test client_test client_test ");
+    wsc.send(["foo"]);
 }
 
 
@@ -326,13 +299,9 @@ function server_test(wssModule, httpServer) {
     function onMessage(wsc, msg) {
         trace("server_test:onMessage wscId=",wsc.clientId, "msg=", msg);
     }
-    function onConnFail(wsc) {
-        debugger;let x = qs.z.p; trace("server_test: onConnFail wscId=",wsc.clientId);
-    }
-    
 
     let wss = new wssModule.WebSocketServer({server:httpServer});
-    WS.tmp = new DFWebSocketServer({onOpen, onClose, onMessage, onConnFail});
+    WS.tmp = new DFWebSocketServer({onOpen, onClose, onMessage});
     WS.tmp.start(wss);                  // test uses external globalRef to my express httpServer      
 }
 

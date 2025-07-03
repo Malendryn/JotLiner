@@ -9,6 +9,8 @@
 2025-07-03 ------------------------------------------------------------------------------------------------------------
 1 developed a sorf of mutex locker as a new DFLocker class and wrapped all i/o ops of the DFWSPacketHandler classes
     with it to prevent certain state conditions that could cause inconsistent data otherwise
+1 reworked DFLocker to handle multiple re-calls from same handle via incr/decoder
+1 reworked DFWSPacketHandler to no longer support 'onError' callbacks, will throw where appropriate instead
 
 2025-07-01 ------------------------------------------------------------------------------------------------------------
 1 have the basics of a websocket handler working now,  right now it's just absolute basic send/receive but it does
