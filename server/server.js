@@ -86,13 +86,14 @@ async function start() {
         console.log(msg);
     });
 
-
-    const wsMod = await import("ws");
+//* NEW way
+    debugger; const wsMod = await import("ws");
     const mod = await BF.loadModule("../client/html/public/classes/DFWSPacketHandler.mjs");
     mod.server_test(wsMod, WS.httpServer);
-// OLD way
+/* end NEW way */
+//* OLD way
     // await BF.loadModule("./modules/core/bem_core_WSockHandler.js");
-
+/* end OLD way */
 
     // now we just sit back and let websockets handle everything from here on in
 }
